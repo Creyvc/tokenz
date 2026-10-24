@@ -1,0 +1,351 @@
+/* Inter: a clean, slightly tight sans-serif close to the reference screenshot */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap");
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  background: #ffffff;
+  color: #262626;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 {
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+/* Sidebar pinned to the left edge: logo on top, links stacked below.
+   Fixed keeps it in place while the page scrolls */
+.nav {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 10;
+  width: 210px;
+  background: #ffffff;
+  border-right: 1px solid #E5E4DF;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 48px;
+  padding: 8px 12px 28px 20px;
+}
+
+.nav-links {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+/* Leave room for the sidebar */
+.content {
+  margin-left: 210px;
+}
+
+.nav-links a {
+  display: inline-flex;
+  flex-direction: column;
+  font-size: 14px;
+  color: #5c5c5c;
+  text-decoration: none;
+}
+
+/* Invisible bold copy of the label reserves the bold width, so the active
+   link doesn't change size and the links stay in the same spot on every page */
+.nav-links a::after {
+  content: attr(data-label);
+  font-weight: 500;
+  height: 0;
+  visibility: hidden;
+  overflow: hidden;
+  user-select: none;
+  pointer-events: none;
+}
+
+.nav-links a:hover,
+.nav-links a.active {
+  color: #262626;
+}
+
+.nav-links a.active {
+  font-weight: 500;
+}
+
+/* Info is a secondary link: lighter grey, and it never gets the dot */
+.nav-links .nav-info {
+  color: #9a9a9a;
+}
+
+.nav-links .nav-info:hover {
+  color: #5c5c5c;
+}
+
+/* Small dot just after the current page's link text */
+.nav-links a {
+  position: relative;
+}
+
+.nav-dot {
+  position: absolute;
+  top: 50%;
+  left: 100%;
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 8px;
+  border-radius: 50%;
+  background: #16171A;
+  /* Same name on every page, so the browser slides the dot from the old link to the new one */
+  view-transition-name: nav-dot;
+}
+
+/* Animate between pages (Chrome, Edge, Safari; other browsers just switch instantly) */
+@view-transition {
+  navigation: auto;
+}
+
+/* Main travel from the old link to the new one: even ease in and out, with a slight
+   overshoot at the end that settles back, for a soft bounce */
+::view-transition-group(nav-dot) {
+  animation-duration: 0.6s;
+  animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1.08);
+}
+
+/* Skip the crossfade so a single dot moves, not two overlapping ones */
+::view-transition-old(nav-dot) {
+  display: none;
+}
+
+/* Sideways swing layered on top of the travel, peaking halfway, so the dot traces a U
+   instead of a straight line. In the sidebar the U bulges out to the right */
+::view-transition-new(nav-dot) {
+  animation: nav-dot-swing-x 0.6s ease-in-out;
+}
+
+/* Coming from a page without a dot (Info) there's nothing to travel from, so just show it */
+::view-transition-new(nav-dot):only-child {
+  animation: none;
+}
+
+@keyframes nav-dot-swing-x {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 6px 0; }
+}
+
+/* In the top header the links run left to right, so the U dips below them */
+@keyframes nav-dot-swing-y {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 3px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none;
+  }
+}
+
+/* Too narrow for a sidebar: switch back to a header pinned to the top */
+@media (max-width: 800px) {
+  .nav {
+    position: sticky;
+    bottom: auto;
+    width: auto;
+    border-right: none;
+    border-bottom: 1px solid #E5E4DF;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+    padding: 20px 32px;
+  }
+
+  .nav-links {
+    flex-direction: row;
+    gap: 40px;
+  }
+
+  .content {
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 800px) and (prefers-reduced-motion: no-preference) {
+  ::view-transition-new(nav-dot) {
+    animation-name: nav-dot-swing-y;
+  }
+}
+
+@media (max-width: 600px) {
+  /* Not enough room side by side: logo on top, links centered below */
+  .nav {
+    flex-direction: column;
+    gap: 14px;
+    padding: 16px;
+  }
+
+  /* On the narrowest phones, wrap whole links onto a second row instead of breaking them */
+  .nav-links {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px 20px;
+  }
+
+  .nav-links a {
+    white-space: nowrap;
+  }
+
+  .nav-links a {
+    font-size: 13px;
+  }
+}
+
+.logo {
+  display: inline-flex;
+}
+
+/* The mark has empty space on its left inside the image; pull it back so its
+   visible edge lines up with the link text in the sidebar */
+@media (min-width: 801px) {
+  .logo {
+    margin-left: -5px;
+  }
+
+  /* Links fill the sidebar's height so Info can drop to the bottom, just above the lockup */
+  .nav-links {
+    flex: 1;
+  }
+
+  .nav-info {
+    margin-top: auto;
+  }
+
+  /* Sit closer to Info than the sidebar's usual spacing */
+  .tz-lockup {
+    margin-top: -28px;
+  }
+}
+
+/* Wordmark lockup at the bottom of the sidebar */
+.tz-lockup {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tz-lockup svg {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  /* The mark has empty space on its left inside the image, same as the logo */
+  margin-left: -2px;
+}
+
+.tz-word {
+  font-size: 16px;
+  font-weight: 600;
+  color: #16171A;
+}
+
+.tz-bar {
+  width: 1px;
+  height: 16px;
+  margin: 0 4px;
+  background: #E5E4DF;
+}
+
+.tz-desc {
+  font-size: 12px;
+  color: #5c5c5c;
+  white-space: nowrap;
+}
+
+/* No bottom in the top header layout, so leave it out there */
+@media (max-width: 800px) {
+  .tz-lockup {
+    display: none;
+  }
+}
+
+/* Info page: centered title, grey summary, then the story in a narrow column.
+   It has its real content already, so drop the placeholder height and only
+   scroll if the text doesn't fit the screen */
+.content:has(> .info) {
+  min-height: 0;
+}
+
+/* With the sidebar layout, sit the whole block in the middle of the area beside the sidebar,
+   nudged slightly left by the extra right padding */
+@media (min-width: 801px) {
+  .content:has(> .info) {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding-right: 96px;
+  }
+
+  .info {
+    padding: 48px 0;
+  }
+}
+
+.info {
+  max-width: 460px;
+  margin: 0 auto;
+  padding: 96px 0 80px;
+  text-align: center;
+}
+
+.info h1 {
+  font-size: 44px;
+  color: #16171A;
+}
+
+.info-intro {
+  margin-top: 24px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #8a8a8a;
+}
+
+.info-body {
+  margin-top: 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #262626;
+}
+
+@media (max-width: 600px) {
+  .info {
+    padding-top: 48px;
+  }
+
+  .info h1 {
+    font-size: 34px;
+  }
+
+  .info-body {
+    margin-top: 32px;
+  }
+}
+
+/* Taller than the screen so the page scrolls; shrink once real content is added */
+.content {
+  min-height: 200vh;
+  padding: 0 16px;
+}
