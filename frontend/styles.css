@@ -83,12 +83,17 @@ h1, h2, h3 {
   font-weight: 500;
 }
 
-/* Info is a secondary link: lighter grey, and it never gets the dot */
-.nav-links .nav-info {
+/* Info and Cookies are secondary links: lighter grey, side by side, and they never get the dot */
+.nav-extra {
+  display: flex;
+  gap: 16px;
+}
+
+.nav-links .nav-extra a {
   color: #9a9a9a;
 }
 
-.nav-links .nav-info:hover {
+.nav-links .nav-extra a:hover {
   color: #5c5c5c;
 }
 
@@ -177,6 +182,11 @@ h1, h2, h3 {
     gap: 40px;
   }
 
+  /* Info and Cookies just join the row with the other links */
+  .nav-extra {
+    display: contents;
+  }
+
   .content {
     margin-left: 0;
   }
@@ -223,18 +233,18 @@ h1, h2, h3 {
     margin-left: -5px;
   }
 
-  /* Links fill the sidebar's height so Info can drop to the bottom, just above the lockup */
+  /* Links fill the sidebar's height so Info and Cookies can drop to the bottom, just above the lockup */
   .nav-links {
     flex: 1;
   }
 
-  .nav-info {
+  .nav-extra {
     margin-top: auto;
   }
 
   /* Sit closer to Info than the sidebar's usual spacing */
   .tz-lockup {
-    margin-top: -28px;
+    margin-top: -38px;
   }
 }
 
@@ -342,6 +352,83 @@ h1, h2, h3 {
   .info-body {
     margin-top: 32px;
   }
+}
+
+/* Cookie consent banner (built by consent.js), floating in the bottom-right corner */
+.consent {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 20;
+  max-width: 400px;
+  padding: 20px 22px;
+  background: #ffffff;
+  border: 1px solid #E5E4DF;
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+  font-size: 14px;
+  line-height: 1.55;
+  color: #262626;
+}
+
+.consent a {
+  color: #8a8a8a;
+  text-underline-offset: 2px;
+}
+
+.consent-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.consent-accept,
+.consent-deny {
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 9px 18px;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.consent-accept {
+  background: #16171A;
+  color: #ffffff;
+}
+
+.consent-accept:hover {
+  background: #33343a;
+}
+
+.consent-deny {
+  background: #F1F1EF;
+  color: #262626;
+}
+
+.consent-deny:hover {
+  background: #E6E6E3;
+}
+
+@media (max-width: 600px) {
+  .consent {
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    max-width: none;
+  }
+}
+
+/* Cookies page: button to reopen the banner, with the current choice below it */
+.consent-settings {
+  margin-top: 32px;
+  font-size: 13px;
+  color: #8a8a8a;
+}
+
+.consent-settings p {
+  margin-top: 10px;
 }
 
 /* Taller than the screen so the page scrolls; shrink once real content is added */
