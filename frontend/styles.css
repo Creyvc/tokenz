@@ -431,6 +431,38 @@ h1, h2, h3 {
   margin-top: 10px;
 }
 
+/* Intro animation on the front page (drawn by intro.js). Hidden unless the script
+   decided to play it this visit */
+.intro {
+  display: none;
+}
+
+html.intro-play {
+  overflow: hidden;
+}
+
+html.intro-play .intro {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: #ffffff;
+  /* Safety net: if the script ever fails, don't leave the page covered */
+  animation: intro-failsafe 0s 9s forwards;
+}
+
+.intro svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+@keyframes intro-failsafe {
+  to {
+    visibility: hidden;
+  }
+}
+
 /* Taller than the screen so the page scrolls; shrink once real content is added */
 .content {
   min-height: 200vh;
