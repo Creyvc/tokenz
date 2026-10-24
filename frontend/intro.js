@@ -67,6 +67,7 @@
       '</div>';
     cover.removeAttribute("aria-hidden");
     cover.appendChild(notice);
+    if (!reduceMotion) scrambleIn(notice);
 
     // Keep keyboard focus on the notice, not on the page hidden behind it
     var page = [].filter.call(document.body.children, function (el) { return el !== cover; });
@@ -95,6 +96,53 @@
         notice.remove();
         run();
       }, 1000);
+    });
+  }
+
+  // On arrival, every piece of text on the notice flickers through random letters, numbers and
+  // symbols, then settles into the real words from left to right, one piece after another
+  function scrambleIn(notice) {
+    var GLYPHS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#$%&*+=/<>?!@[]{}";
+    var SHUFFLE_EVERY = 45; // ms between new random characters
+
+    var pieces = [];
+    var walker = document.createTreeWalker(notice, NodeFilter.SHOW_TEXT);
+    while (walker.nextNode()) {
+      var text = walker.currentNode.nodeValue;
+      if (!text.trim()) continue;
+      pieces.push({
+        node: walker.currentNode,
+        text: text,
+        delay: pieces.length * 70,
+        duration: Math.min(600 + text.length * 3, 1200) // longer text takes a little longer
+      });
+    }
+
+    function noise(text, settled) {
+      var out = text.slice(0, settled);
+      for (var i = settled; i < text.length; i++) {
+        out += text[i] === " " ? " " : GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+      }
+      return out;
+    }
+
+    var start = performance.now();
+    var lastShuffle = -Infinity;
+    requestAnimationFrame(function frame(now) {
+      var t = now - start;
+      if (t - lastShuffle < SHUFFLE_EVERY) {
+        requestAnimationFrame(frame);
+        return;
+      }
+      lastShuffle = t;
+
+      var done = true;
+      pieces.forEach(function (piece) {
+        var p = progress(t, piece.delay, piece.duration);
+        piece.node.nodeValue = noise(piece.text, Math.floor(p * piece.text.length));
+        if (p < 1) done = false;
+      });
+      if (!done) requestAnimationFrame(frame);
     });
   }
 
