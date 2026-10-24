@@ -83,7 +83,7 @@
     banner.setAttribute("role", "region");
     banner.setAttribute("aria-label", "Cookie consent");
     banner.innerHTML =
-      '<p>We use an essential cookie to remember this choice. With your permission, we also use optional cookies to understand how the site is used. <a href="cookies.html">Cookie Policy</a></p>' +
+      '<p>We use an essential cookie to remember this choice. With your permission, we also use optional cookies to understand how the site is used. <a href="cookies.html" data-modal="cookies">Cookie Policy</a></p>' +
       '<div class="consent-actions">' +
         '<button type="button" class="consent-accept">Accept All</button>' +
         '<button type="button" class="consent-deny">Deny All</button>' +
@@ -103,6 +103,9 @@
       : choice === "denied" ? "You denied optional cookies."
       : "You haven't chosen yet.";
   }
+
+  // The Cookies window (modal.js) shows the current choice too, so fill it in when it opens
+  document.addEventListener("tokenz:modal-open", showStatus);
 
   // Any element with data-consent-open reopens the banner so the choice can be changed
   document.addEventListener("click", function (event) {

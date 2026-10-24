@@ -1,4 +1,5 @@
-// Intro animation on the front page, once per visit (and again after Cmd+R, see reload.js):
+// Intro on the front page, once per visit (and again after Cmd+R, see reload.js): first a
+// notice that Tokenz is an academic project, then, once they click Continue, the animation:
 // six boxes become T O K E N Z, the T and Z become wide O's, everything merges into one O,
 // and that O grows until its hole uncovers the whole page.
 //
@@ -14,11 +15,88 @@
   } catch (e) {
     played = true;
   }
-  if (played || reduceMotion) return;
+  if (played) return;
 
   // Set before the page paints, so the white cover is there from the very first frame
   document.documentElement.classList.add("intro-play");
-  document.addEventListener("DOMContentLoaded", run);
+  document.addEventListener("DOMContentLoaded", warn);
+
+  function finish(cover) {
+    cover.remove();
+    document.documentElement.classList.remove("intro-play");
+  }
+
+  // The notice, on the white cover. Continue closes it and starts the animation (or, for
+  // people who prefer less motion, goes straight to the page).
+  function warn() {
+    var cover = document.querySelector(".intro");
+    if (!cover) return;
+
+    var notice = document.createElement("div");
+    notice.className = "intro-warning";
+    notice.setAttribute("role", "dialog");
+    notice.setAttribute("aria-modal", "true");
+    notice.setAttribute("aria-labelledby", "intro-warning-title");
+    // A dark terminal-style window: title bar, heading row, the paragraph in an outlined box
+    // labelled on its border, then the tick box and Continue
+    notice.innerHTML =
+      '<div class="intro-warning-card">' +
+        '<div class="intro-warning-bar">' +
+          '<span class="intro-warning-brand">' +
+            '<svg viewBox="0 0 64 64" width="22" height="22" aria-hidden="true"><path d="M6 14 H15 L25 32 L15 50 H6 L16 32 Z"/><path d="M58 14 H49 L39 32 L49 50 H58 L48 32 Z"/><path d="M32 27.5 L36.5 32 L32 36.5 L27.5 32 Z"/></svg>' +
+            'Tokenz' +
+          '</span>' +
+        '</div>' +
+        '<div class="intro-warning-body">' +
+          '<div class="intro-warning-head">' +
+            '<h1 id="intro-warning-title">Before you continue</h1>' +
+            '<span class="intro-warning-badge">Research preview</span>' +
+          '</div>' +
+          '<div class="intro-warning-box">' +
+            '<h2 class="intro-warning-subtitle">Academic project</h2>' +
+            '<p class="intro-warning-text">Tokenz is an academic research project developed by students at Global Academy for the course 128-331 Artificial Intelligence. It is provided for educational and research purposes only.</p>' +
+          '</div>' +
+          '<div class="intro-warning-foot">' +
+            '<label class="intro-warning-agree">' +
+              '<input type="checkbox">' +
+              '<span>I have read and understood this notice.</span>' +
+            '</label>' +
+            '<button type="button" class="intro-warning-continue" disabled>Continue</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    cover.removeAttribute("aria-hidden");
+    cover.appendChild(notice);
+
+    // Keep keyboard focus on the notice, not on the page hidden behind it
+    var page = [].filter.call(document.body.children, function (el) { return el !== cover; });
+    page.forEach(function (el) { el.inert = true; });
+    var tick = notice.querySelector("input");
+    var button = notice.querySelector("button");
+    // Ready for the keyboard, but without scrolling a phone down past the title to reach it
+    tick.focus({ preventScroll: true });
+
+    // Continue only works once they've ticked that they've read the notice
+    tick.addEventListener("change", function () {
+      button.disabled = !tick.checked;
+    });
+
+    button.addEventListener("click", function () {
+      page.forEach(function (el) { el.inert = false; });
+      cover.setAttribute("aria-hidden", "true");
+      if (reduceMotion) {
+        finish(cover);
+        return;
+      }
+      // The window's corners close in to its centre (see intro-warning-close), then the
+      // animation starts from that point
+      notice.classList.add("is-leaving");
+      setTimeout(function () {
+        notice.remove();
+        run();
+      }, 1000);
+    });
+  }
 
   var N_OUTER = 160; // points around each shape's outside
   var N_INNER = 64;  // points around its hole
@@ -189,6 +267,7 @@
   function run() {
     var cover = document.querySelector(".intro");
     if (!cover) return;
+    cover.classList.add("is-playing");
 
     var W = window.innerWidth;
     var H = window.innerHeight;
@@ -506,8 +585,7 @@
       if (now < GROW + GROW_TIME) {
         requestAnimationFrame(frame);
       } else {
-        cover.remove();
-        document.documentElement.classList.remove("intro-play");
+        finish(cover);
       }
     }
 
