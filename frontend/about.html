@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About · Tokenz</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <script src="reload.js"></script>
+  <link rel="stylesheet" href="styles.css">
+  <script src="consent.js" defer></script>
+  <script src="scroll-line.js" defer></script>
+  <script src="modal.js" defer></script>
+</head>
+<body>
+  <header class="nav">
+    <span class="nav-line" aria-hidden="true"></span>
+    <a href="index.html" class="logo" aria-label="Tokenz home">
+      <img src="assets/logo-mark.svg" alt="" width="48" height="48">
+    </a>
+    <nav class="nav-links">
+      <a href="index.html" data-label="Home">Home</a>
+      <a href="compare.html" data-label="Compare">Compare</a>
+      <a href="results.html" data-label="Results">Results</a>
+      <a href="how-it-works.html" data-label="How it works">How it works</a>
+      <a href="about.html" class="active" data-label="About">About<span class="nav-dot"></span></a>
+      <div class="nav-extra">
+        <a href="info.html" data-modal="info" data-label="Info">Info</a>
+        <a href="cookies.html" data-modal="cookies" data-label="Cookies">Cookies</a>
+      </div>
+    </nav>
+    <div class="tz-lockup">
+      <svg width="54" height="54" viewBox="0 0 64 64" role="img" aria-label="Squeeze mark"><path d="M6 14 H15 L25 32 L15 50 H6 L16 32 Z" fill="#16171A"></path><path d="M58 14 H49 L39 32 L49 50 H58 L48 32 Z" fill="#16171A"></path><path d="M32 27.5 L36.5 32 L32 36.5 L27.5 32 Z" fill="#16171A"></path></svg>
+      <span class="tz-word">Tokenz</span><span class="tz-bar"></span><span class="tz-desc">Token saver</span>
+    </div>
+  </header>
+
+  <main class="content about">
+    <h1>About</h1>
+    <p class="about-intro">Tokenz is a group academic project, built in 2026 by a team of students.</p>
+
+    <section class="about-section">
+      <h2>The project</h2>
+      <p>Prompts sent to large language models are often longer than they need to be, and every extra token adds cost and waiting time. Tokenz shortens a prompt before it is sent, keeping the parts the model needs to give the same answer.</p>
+      <p>Made for [Course name and code] at [University name], under the supervision of [Supervisor name].</p>
+    </section>
+
+    <section class="about-section">
+      <h2>The team</h2>
+      <ul class="about-team">
+        <li><span class="about-name">[Member name]</span><span class="about-role">[Role]</span></li>
+        <li><span class="about-name">[Member name]</span><span class="about-role">[Role]</span></li>
+        <li><span class="about-name">[Member name]</span><span class="about-role">[Role]</span></li>
+        <li><span class="about-name">[Member name]</span><span class="about-role">[Role]</span></li>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>
