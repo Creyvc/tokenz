@@ -42,14 +42,14 @@ h1, h2, h3 {
   padding: 8px 12px 28px 20px;
 }
 
-/* Dividing line down the sidebar's right edge. Hidden at the top of the page; once you
-   scroll (scroll-line.js) it grows out from its middle, up and down at once, and shrinks
-   back into the middle when you return to the top. A real element (not ::after) so it can
-   also shrink away when you switch pages (see nav-line below) */
+/* Dividing line down the sidebar, just in from its right edge. Hidden at the top of the page;
+   once you scroll (scroll-line.js) it grows out from its middle, up and down at once, and
+   shrinks back into the middle when you return to the top. A real element (not ::after) so it
+   can also shrink away when you switch pages (see nav-line below) */
 .nav-line {
   position: absolute;
   top: 0;
-  right: 0;
+  right: 50px;
   width: 1px;
   height: 100%;
   background: #16171A;
@@ -298,44 +298,66 @@ html.scrolled .nav-line {
     margin-top: auto;
   }
 
-  /* Sit closer to Info than the sidebar's usual spacing */
+  /* Sit closer to Info than the sidebar's usual spacing, and out past the sidebar's
+     left padding so the badge touches the screen's left edge */
   .tz-lockup {
-    margin-top: -38px;
+    margin-top: -24px;
+    margin-left: -20px;
   }
 }
 
-/* Wordmark lockup at the bottom of the sidebar */
+/* Wordmark at the bottom of the sidebar: a tall black badge, the mark in white at the top and
+   the name turned on its side at the bottom, reading upwards */
 .tz-lockup {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 6px;
+  width: 44px;
+  padding: 12px 0 14px;
+  background: #16171A;
 }
 
 .tz-lockup svg {
   flex-shrink: 0;
   width: 26px;
   height: 26px;
-  /* The mark has empty space on its left inside the image, same as the logo */
-  margin-left: -2px;
+}
+
+.tz-lockup svg path {
+  fill: #ffffff;
+}
+
+/* Each piece of text is turned to read bottom to top, so they're stacked in reverse:
+   Token saver at the top, then the bar, then Tokenz at the bottom */
+.tz-word,
+.tz-desc {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  white-space: nowrap;
 }
 
 .tz-word {
-  font-size: 16px;
+  order: 3;
+  font-size: 15px;
   font-weight: 600;
-  color: #16171A;
+  color: #ffffff;
 }
 
 .tz-bar {
-  width: 1px;
-  height: 16px;
-  margin: 0 4px;
-  background: #E5E4DF;
+  order: 2;
+  width: 12px;
+  height: 1px;
+  margin: 8px 0;
+  background: #4a4a4a;
 }
 
 .tz-desc {
-  font-size: 12px;
-  color: #5c5c5c;
-  white-space: nowrap;
+  order: 1;
+  /* The gap below the mark. A margin, not padding: the text is turned upside down, which
+     would carry padding round to the other end */
+  margin-top: 36px;
+  font-size: 11px;
+  color: #9a9a9a;
 }
 
 /* No bottom in the top header layout, so leave it out there */
