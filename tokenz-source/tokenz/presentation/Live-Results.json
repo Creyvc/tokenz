@@ -1,0 +1,2420 @@
+{
+  "id": "2664801b-55a6-4599-8b34-d5ed5bfdfb39",
+  "created_at": "2026-10-24T08:25:10.029461+00:00",
+  "signature": "c70e9f883cf0b22b1049b4e2332e5c321c5b52779688f5cc4a8f0c04b390e611",
+  "demo": false,
+  "prompts": [
+    {
+      "id": "writing",
+      "category": "writing",
+      "prompt": "Hi, I would like you to please write a polite email declining a meeting on 12 November 2026. Offer 14 November at 10:00 UTC instead. Keep it under 100 words and do not invent a reason. Thank you very much."
+    },
+    {
+      "id": "extraction",
+      "category": "extraction",
+      "prompt": "Hi, please help me extract the names from this fictional note. Return a JSON array only, without explanation or code fences. Preserve the order and keep duplicates. The note is: Ada met Ben, and Ada returned later. Thank you very much.",
+      "automatic_check": {
+        "kind": "json",
+        "expected": [
+          "Ada",
+          "Ben",
+          "Ada"
+        ]
+      }
+    },
+    {
+      "id": "reasoning",
+      "category": "reasoning",
+      "prompt": "Hi, I would like you to please solve this arithmetic question carefully. A train travels 120 km at 60 km/h and then another 120 km at 120 km/h. What is its average speed in km/h for the entire journey? Return only the numeric value, with no unit or explanation. Thank you very much.",
+      "automatic_check": {
+        "kind": "numeric",
+        "expected": 80
+      }
+    }
+  ],
+  "optimizers": [
+    "cohere/north-mini-code:free"
+  ],
+  "targets": [
+    "nvidia/nemotron-3.5-lightning:free",
+    "cohere/north-mini-code:free"
+  ],
+  "judge": true,
+  "experiments": [
+    {
+      "id": "af569fa1-b5e1-45bc-938c-be468cec28ff",
+      "created_at": "2026-10-24T08:25:11.181757+00:00",
+      "prompt_id": "writing",
+      "category": "writing",
+      "original_prompt": "Hi, I would like you to please write a polite email declining a meeting on 12 November 2026. Offer 14 November at 10:00 UTC instead. Keep it under 100 words and do not invent a reason. Thank you very much.",
+      "original_prompt_tokens": 53,
+      "optimized_prompt": "Write a polite email declining a meeting on 12 November 2026 and offer 14 November at 10:00 UTC instead. Keep it under 100 words and do not invent a reason.",
+      "optimized_prompt_tokens": 40,
+      "length_group": "short",
+      "optimizer_provider": "openrouter_optimizer",
+      "optimizer_model": "cohere/north-mini-code:free",
+      "strategy": "structured",
+      "target_ratio": 0.75,
+      "adaptive": false,
+      "demo": false,
+      "status": "completed",
+      "stage": "done",
+      "failures": [],
+      "target_provider": "openrouter",
+      "target_model": "nvidia/nemotron-3.5-lightning:free",
+      "free_only": true,
+      "optimizer_calls": [
+        {
+          "text": "{\"optimized_prompt\":\"Write a polite email declining a meeting on 12 November 2026 and offer 14 November at 10:00 UTC instead. Keep it under 100 words and do not invent a reason.\"}",
+          "input_tokens": 318,
+          "output_tokens": 45,
+          "latency_ms": 1340.7306999433786,
+          "request_id": "gen-1792830312-IHkKPrO9I7Nn3H1O8M3U",
+          "model": "cohere/north-mini-code:free",
+          "finish_reason": "stop",
+          "usage_source": "provider",
+          "cost_usd": 0,
+          "provider_cost_usd": 0,
+          "reused": false,
+          "request_settings": {
+            "model": "cohere/north-mini-code:free",
+            "stream": false,
+            "max_tokens": 4096,
+            "temperature": 0,
+            "provider": {
+              "max_price": {
+                "prompt": 0,
+                "completion": 0,
+                "request": 0
+              },
+              "allow_fallbacks": true
+            },
+            "reasoning": {
+              "enabled": false
+            }
+          },
+          "provider": "openrouter_optimizer"
+        }
+      ],
+      "paid_calls": [
+        {
+          "text": "{\"optimized_prompt\":\"Write a polite email declining a meeting on 12 November 2026 and offer 14 November at 10:00 UTC instead. Keep it under 100 words and do not invent a reason.\"}",
+          "input_tokens": 318,
+          "output_tokens": 45,
+          "latency_ms": 1340.7306999433786,
+          "request_id": "gen-1792830312-IHkKPrO9I7Nn3H1O8M3U",
+          "model": "cohere/north-mini-code:free",
+          "finish_reason": "stop",
+          "usage_source": "provider",
+          "cost_usd": 0,
+          "provider_cost_usd": 0,
+          "reused": false,
+          "request_settings": {
+            "model": "cohere/north-mini-code:free",
+            "stream": false,
+            "max_tokens": 4096,
+            "temperature": 0,
+            "provider": {
+              "max_price": {
+                "prompt": 0,
+                "completion": 0,
+                "request": 0
+              },
+              "allow_fallbacks": true
+            },
+            "reasoning": {
+              "enabled": false
+            }
+          },
+          "provider": "openrouter_optimizer"
+        },
+        {
+          "text": "Subject: Rescheduling our meeting on 12 November\n\nDear [Name],\n\nI regret that I am unavailable on 12 November and would like to propose an alternative.\n\nCould we meet on 14 November at 10:00 UTC instead?\n\nBest regards,\n\n[Your Name]",
+          "input_tokens": 64,
+          "output_tokens": 62,
+          "latency_ms": 1578.3599000424147,
+          "request_id": "gen-1792830314-aPo3zWBhxGyKk3gQ6hOZ",
+          "model": "nvidia/nemotron-3.5-lightning:free",
+          "finish_reason": "stop",
+          "usage_source": "provider",
+          "cost_usd": 0,
+          "provider_cost_usd": 0,
+          "reused": false,
+          "request_settings": {
+            "model": "nvidia/nemotron-3.5-lightning:free",
+            "stream": false,
+            "max_tokens": 2048,
+            "provider": {
+              "max_price": {
+                "prompt": 0,
+                "completion": 0,
+                "request": 0
+              },
+              "allow_fallbacks": true
+            },
+            "reasoning": {
+              "enabled": false
+            }
+          },
+          "provider": "openrouter_target"
+        },
+        {
+          "text": "{\"A\": {\"correctness\": 10, \"completeness\": 10, \"relevance\": 10, \"instruction_following\": 10, \"format_preservation\": 10, \"factual_consistency\": 10}, \"B\": {\"correctness\": 9, \"completeness\": 9, \"relevance\": 9, \"instruction_following\": 9, \"format_preservation\": 9, \"factual_consistency\": 9}, \"notes\": \"Answer A perfectly matches all constraints: polite tone, specific date 12 Nov 2026 declined, offers 14 Nov at 10:00 UTC, under 100 words, no invented reason. Answer B is correct and complete but uses a slightly less direct structure and includes 'Meeting invitation' as a subject line, which is slightly less aligned with the 'polite email declining a meeting' prompt compared to A's concise format.\"}",
+          "input_tokens": 347,
+          "output_tokens": 215,
+          "latency_ms": 2980.167099973187,
+          "request_id": "gen-1792830315-Gqzr7lzVfoAUxqM6OKSb",
+          "model": "nvidia/nemotron-3.5-lightning:free",
+          "finish_reason": "stop",
+          "usage_source": "provider",
+          "cost_usd": 0,
+          "provider_cost_usd": 0,
+          "reused": false,
+          "request_settings": {
+            "model": "nvidia/nemotron-3.5-lightning:free",
+            "stream": false,
+            "max_tokens": 2048,
+            "provider": {
+              "max_price": {
+                "prompt": 0,
+                "completion": 0,
+                "request": 0
+              },
+              "allow_fallbacks": true
+            },
+            "reasoning": {
+              "enabled": false
+            }
+          },
+          "provider": "openrouter_target"
+        }
+      ],
+      "metadata": {
+        "study_id": "2664801b-55a6-4599-8b34-d5ed5bfdfb39",
+        "combination": "fb0f1cfacb5a9dcbcc3f166dd57d754bc4eef80e3da4b33e2951ac418e6c2f84"
+      },
+      "versions": {
+        "source": "0.2.0",
+        "optimizer_template_sha256": "ca021bef7848066ac41f57fbc4bdc0610524d2db632d901a91e2f6a69e5091ee",
+        "evaluator_template_sha256": "9849e943b0040a69bbbf4a144e7b7d349ea900bd63078a9f912d191eb7da90a8"
+      },
+      "configuration": {
+        "optimizer": {
+          "provider": "openrouter",
+          "model": "cohere/north-mini-code:free",
+          "base_url": "https://openrouter.ai/api/v1",
+          "input_price_per_million": 0,
+          "output_price_per_million": 0,
+          "enable_thinking": null,
+          "reasoning_effort": null
+        },
+        "target": {
+          "provider": "openrouter",
+          "model": "nvidia/nemotron-3.5-lightning:free",
+          "base_url": "https://openrouter.ai/api/v1",
+          "input_price_per_million": 0,
+          "output_price_per_million": 0,
+          "enable_thinking": null,
+          "reasoning_effort": null
+        },
+        "max_output": 2048,
+        "optimizer_max_output": 4096,
+        "target_temperature": null,
+        "optimizer_temperature": 0,
+        "skip_below": 100,
+        "min_quality": 0.95,
+        "tokenizer": {
+          "encoding": "o200k_base",
+          "fallback_used": true,
+          "scope": "text only; billed request usage comes from provider"
+        }
+      },
+      "metrics": {
+        "text_compression_pct": 24.52830188679245,
+        "chatgpt_input_reduction_pct": 16.883116883116884,
+        "optimizer_total_tokens": 363,
+        "baseline_total_tokens": 150,
+        "tokenz_total_tokens": 489,
+        "net_token_difference": -339,
+        "baseline_cost_usd": 0,
+        "tokenz_cost_usd": 0,
+        "cost_difference_usd": 0,
+        "optimizer_latency_ms": 1340.7306999433786,
+        "baseline_chatgpt_latency_ms": 1529.3231999967247,
+        "optimized_chatgpt_latency_ms": 1578.3599000424147,
+        "total_tokenz_latency_ms": 2919.0905999857932,
+        "quality_retention_pct": 111.11111111111111,
+        "baseline_quality": 9,
+        "optimized_quality": 10,
+        "research_spend_usd": 0,
+        "latency_difference_ms": 1389.7673999890685,
+        "baseline_quality_per_1000_tokens": 60.0,
+        "optimized_quality_per_1000_tokens": 20.449897750511248
+      },
+      "billing_uncertain": false,
+      "optimization_decision": "accepted_for_evaluation_semantics_unverified",
+      "baseline": {
+        "text": "Subject: Meeting invitation\n\nDear [Name],\n\nI am writing to politely decline your meeting request on 12 November 2026.\n\nHowever, I am available on 14 November 2026 at 10:00 UTC. Please let me know if that works for you.\n\nBest regards,\n\n[Your Name]",
+        "input_tokens": 77,
+        "output_tokens": 73,
+        "latency_ms": 1529.3231999967247,
+        "request_id": "gen-1792830035-DbkxMIrRYkBidaMTX561",
+        "model": "nvidia/nemotron-3.5-lightning:free",
+        "finish_reason": "stop",
+        "usage_source": "provider",
+        "cost_usd": 0,
+        "provider_cost_usd": 0,
+        "reused": true,
+        "request_settings": {
+          "model": "nvidia/nemotron-3.5-lightning:free",
+          "stream": false,
+          "max_tokens": 2048,
+          "provider": {
+            "max_price": {
+              "prompt": 0,
+              "completion": 0,
+              "request": 0
+            },
+            "allow_fallbacks": true
+          },
+          "reasoning": {
+            "enabled": false
+          }
+        },
+        "provider": "openrouter_target"
+      },
+      "optimized_response": {
+        "text": "Subject: Rescheduling our meeting on 12 November\n\nDear [Name],\n\nI regret that I am unavailable on 12 November and would like to propose an alternative.\n\nCould we meet on 14 November at 10:00 UTC instead?\n\nBest regards,\n\n[Your Name]",
+        "input_tokens": 64,
+        "output_tokens": 62,
+        "latency_ms": 1578.3599000424147,
+        "request_id": "gen-1792830314-aPo3zWBhxGyKk3gQ6hOZ",
+        "model": "nvidia/nemotron-3.5-lightning:free",
+        "finish_reason": "stop",
+        "usage_source": "provider",
+        "cost_usd": 0,
+        "provider_cost_usd": 0,
+        "reused": false,
+        "request_settings": {
+          "model": "nvidia/nemotron-3.5-lightning:free",
+          "stream": false,
+          "max_tokens": 2048,
+          "provider": {
+            "max_price": {
+              "prompt": 0,
+              "completion": 0,
+              "request": 0
+            },
+            "allow_fallbacks": true
+          },
+          "reasoning": {
+            "enabled": false
+          }
+        },
+        "provider": "openrouter_target"
+      },
+      "judge_calls": [
+        {
+          "text": "{\"A\": {\"correctness\": 10, \"completeness\": 10, \"relevance\": 10, \"instruction_following\": 10, \"format_preservation\": 10, \"factual_consistency\": 10}, \"B\": {\"correctness\": 9, \"completeness\": 9, \"relevance\": 9, \"instruction_following\": 9, \"format_preservation\": 9, \"factual_consistency\": 9}, \"notes\": \"Answer A perfectly matches all constraints: polite tone, specific date 12 Nov 2026 declined, offers 14 Nov at 10:00 UTC, under 100 words, no invented reason. Answer B is correct and complete but uses a slightly less direct structure and includes 'Meeting invitation' as a subject line, which is slightly less aligned with the 'polite email declining a meeting' prompt compared to A's concise format.\"}",
+          "input_tokens": 347,
+          "output_tokens": 215,
+          "latency_ms": 2980.167099973187,
+          "request_id": "gen-1792830315-Gqzr7lzVfoAUxqM6OKSb",
+          "model": "nvidia/nemotron-3.5-lightning:free",
+          "finish_reason": "stop",
+          "usage_source": "provider",
+          "cost_usd": 0,
+          "provider_cost_usd": 0,
+          "reused": false,
+          "request_settings": {
+            "model": "nvidia/nemotron-3.5-lightning:free",
+            "stream": false,
+            "max_tokens": 2048,
+            "provider": {
+              "max_price": {
+                "prompt": 0,
+                "completion": 0,
+                "request": 0
+              },
+              "allow_fallbacks": true
+            },
+            "reasoning": {
+              "enabled": false
+            }
+          },
+          "provider": "openrouter_target"
+        }
+      ],
+      "evaluation_history": [
+        {
+          "method": "llm_judge",
+          "evaluator": "nvidia/nemotron-3.5-lightning:free",
+          "baseline": {
+            "correctness": 9,
+            "completeness": 9,
+            "relevance": 9,
+            "instruction_following": 9,
+            "format_preservation": 9,
+            "factual_consistency": 9
+          },
+          "optimized": {
+            "correctness": 10,
+            "completeness": 10,
+            "relevance": 10,
+            "instruction_following": 10,
+            "format_preservation": 10,
+            "factual_consistency": 10
+          },
+          "baseline_quality": 9,
+          "optimized_quality": 10,
+          "quality_retention_pct": 111.11111111111111,
+          "notes": "Answer A perfectly matches all constraints: polite tone, specific date 12 Nov 2026 declined, offers 14 Nov at 10:00 UTC, under 100 words, no invented reason. Answer B is correct and complete but uses a slightly less direct structure and includes 'Meeting invitation' as a subject line, which is slightly less aligned with the 'polite email declining a meeting' prompt compared to A's concise format.",
+          "caveat": "Same target model family; judge bias remains. Human review recommended."
+        }
+      ],
+      "evaluation": {
+        "method": "llm_judge",
+        "evaluator": "nvidia/nemotron-3.5-lightning:free",
+        "baseline": {
+          "correctness": 9,
+          "completeness": 9,
+          "relevance": 9,
+          "instruction_following": 9,
+          "format_preservation": 9,
+          "factual_consistency": 9
+        },
+        "optimized": {
+          "correctness": 10,
+          "completeness": 10,
+          "relevance": 10,
+          "instruction_following": 10,
+          "format_preservation": 10,
+          "factual_consistency": 10
+        },
+        "baseline_quality": 9,
+        "optimized_quality": 10,
+        "quality_retention_pct": 111.11111111111111,
+        "notes": "Answer A perfectly matches all constraints: polite tone, specific date 12 Nov 2026 declined, offers 14 Nov at 10:00 UTC, under 100 words, no invented reason. Answer B is correct and complete but uses a slightly less direct structure and includes 'Meeting invitation' as a subject line, which is slightly less aligned with the 'polite email declining a meeting' prompt compared to A's concise format.",
+        "caveat": "Same target model family; judge bias remains. Human review recommended."
+      }
+    },
+    {
+      "id": "d2eefa34-f147-4e93-a0f3-27b4944480a9",
+      "created_at": "2026-10-24T08:25:27.183350+00:00",
+      "prompt_id": "writing",
+      "category": "writing",
+      "original_prompt": "Hi, I would like you to please write a polite email declining a meeting on 12 November 2026. Offer 14 November at 10:00 UTC instead. Keep it under 100 words and do not invent a reason. Thank you very much.",
+      "original_prompt_tokens": 53,
+      "optimized_prompt": "Write a polite email declining a meeting on 12 November 2026 and offer 14 November at 10:00 UTC instead. Keep it under 100 words and do not invent a reason.",
+      "optimized_prompt_tokens": 40,
+      "length_group": "short",
+      "optimizer_provider": "openrouter_optimizer",
+      "optimizer_model": "cohere/north-mini-code:free",
+      "strategy": "structured",
+      "target_ratio": 0.75,
+      "adaptive": false,
+      "demo": false,
+      "status": "completed",
+      "stage": "done",
+      "failures": [],
+      "target_provider": "openrouter",
+      "target_model": "cohere/north-mini-code:free",
+      "free_only": true,
+      "optimizer_calls": [
+        {
+          "text": "{\"optimized_prompt\":\"Write a polite email declining a meeting on 12 November 2026 and offer 14 November at 10:00 UTC instead. Keep it under 100 words and do not invent a reason.\"}",
+          "input_tokens": 318,
+          "output_tokens": 45,
+          "latency_ms": 1340.7306999433786,
+          "request_id": "gen-1792830312-IHkKPrO9I7Nn3H1O8M3U",
+          "model": "cohere/north-mini-code:free",
+          "finish_reason": "stop",
+          "usage_source": "provider",
+          "cost_usd": 0,
+          "provider_cost_usd": 0,
+          "reused": true,
+          "request_settings": {
+            "model": "cohere/north-mini-code:free",
+            "stream": false,
+            "max_tokens": 4096,
+            "temperature": 0,
+            "provider": {
+              "max_price": {
+                "prompt": 0,
+                "completion": 0,
+                "request": 0
+              },
+              "allow_fallbacks": true
+            },
+            "reasoning": {
+              "enabled": false
+            }
+          },
+          "provider": "openrouter_optimizer"
+        }
+      ],
+      "paid_calls": [
+        {
+          "text": "Subject: Re: Meeting on 12 November 2026  \n\nDear [Name],\n\nThank you for inviting me to the meeting on 12 November 2026. Unfortunately, I’m unable to attend on that date.\n\nWould it be possible to reschedule to **14 November at 10:00 UTC** instead? I’ll be available then and would be happy to discuss the agenda.\n\nPlease let me know if this works for you.  \n\nBest regards,  \n[Your Name]",
+          "input_tokens": 40,
+          "output_tokens": 100,
+          "latency_ms": 1848.2308000093326,
+          "request_id": "gen-1792830328-VHxXQ73q54Dbsi0jp44E",
+          "model": "cohere/north-mini-code:free",
+          "finish_reason": "stop",
+          "usage_source": "provider",
+          "cost_usd": 0,
+          "provider_cost_usd": 0,
+          "reused": false,
+          "request_settings": {
+            "model": "cohere/north-mini-code:free",
+            "stream": false,
+            "max_tokens": 2048,
+            "provider": {
+              "max_price": {
+                "prompt": 0,
+                "completion": 0,
+                "request": 0
+              },
+              "allow_fallbacks": true
+            },
+            "reasoning": {
+              "enabled": false
+            }
+          },
+          "provider": "openrouter_target"
+        },
+        {
+          "text": "{\n  \"A\": {\n    \"correctness\": 9,\n    \"completeness\": 9,\n    \"relevance\": 9,\n    \"instruction_following\": 9,\n    \"format_preservation\": 8,\n    \"factual_consistency\": 9\n  },\n  \"B\": {\n    \"correctness\": 9,\n    \"completeness\": 9,\n    \"relevance\": 9,\n    \"instruction_following\": 9,\n    \"format_preservation\": 9,\n    \"factual_consistency\": 9\n  },\n  \"notes\": \"Both answers meet the core requirements: a polite decline of the Nov 12 2026 meeting and an offer of Nov 14 2026 at 10:00 UTC as an alternative, without inventing a reason. They are under 100 words and maintain a courteous tone. Answer A uses a subject line \\\"Request to Reschedule Our Meeting\\\" and a simple structure. Answer B uses \\\"Re: Meeting on 12 November 2026\\\", includes bold formatting for the alternative date, and has slightly more personalization. Both are factually consistent and follow the instruction. The minor differences are stylistic (subject line, bolding, wording of greeting). Scores are high across all dimensions, with A scoring slightly lower on format_preservation due to the plain subject line, while B scores equally on all dimensions.\"\n}",
+          "input_tokens": 397,
+          "output_tokens": 283,
+          "latency_ms": 8077.871500048786,
+          "request_id": "gen-1792830330-5I7ApAeMZRloWLuIejNV",
+          "model": "cohere/north-mini-code:free",
+          "finish_reason": "stop",
+          "usage_source": "provider",
+          "cost_usd": 0,
+          "provider_cost_usd": 0,
+          "reused": false,
+          "request_settings": {
+            "model": "cohere/north-mini-code:free",
+            "stream": false,
+            "max_tokens": 2048,
+            "provider": {
+              "max_price": {
+                "prompt": 0,
+                "completion": 0,
+                "request": 0
+              },
+              "allow_fallbacks": true
+            },
+            "reasoning": {
+              "enabled": false
+            }
+          },
+          "provider": "openrouter_target"
+        }
+      ],
+      "metadata": {
+        "study_id": "2664801b-55a6-4599-8b34-d5ed5bfdfb39",
+        "combination": "2e0cd5dbf9d1c86f7b48b003a2568f81b304c098f1e9204153e0c2075bba62c6"
+      },
+      "versions": {
+        "source": "0.2.0",
+        "optimizer_template_sha256": "ca021bef7848066ac41f57fbc4bdc0610524d2db632d901a91e2f6a69e5091ee",
+        "evaluator_template_sha256": "9849e943b0040a69bbbf4a144e7b7d349ea900bd63078a9f912d191eb7da90a8"
+      },
+      "configuration": {
+        "optimizer": {
+          "provider": "openrouter",
+          "model": "cohere/north-mini-code:free",
+          "base_url": "https://openrouter.ai/api/v1",
+          "input_price_per_million": 0,
+          "output_price_per_million": 0,
+          "enable_thinking": null,
+          "reasoning_effort": null
+        },
+        "target": {
+          "provider": "openrouter",
+          "model": "cohere/north-mini-code:free",
+          "base_url": "https://openrouter.ai/api/v1",
+          "input_price_per_million": 0,
+          "output_price_per_million": 0,
+          "enable_thinking": null,
+          "reasoning_effort": null
+        },
+        "max_output": 2048,
+        "optimizer_max_output": 4096,
+        "target_temperature": null,
+        "optimizer_temperature": 0,
+        "skip_below": 100,
+        "min_quality": 0.95,
+        "tokenizer": {
+          "encoding": "o200k_base",
+          "fallback_used": true,
+          "scope": "text only; billed request usage comes from provider"
+        }
+      },
+      "metrics": {
+        "text_compression_pct": 24.52830188679245,
+        "chatgpt_input_reduction_pct": 24.528301886792452,
+        "optimizer_total_tokens": 363,
+        "baseline_total_tokens": 138,
+        "tokenz_total_tokens": 503,
+        "net_token_difference": -365,
+        "baseline_cost_usd": 0,
+        "tokenz_cost_usd": 0,
+        "cost_difference_usd": 0,
+        "optimizer_latency_ms": 1340.7306999433786,
+        "baseline_chatgpt_latency_ms": 2383.7951000314206,
+        "optimized_chatgpt_latency_ms": 1848.2308000093326,
+        "total_tokenz_latency_ms": 3188.961499952711,
+        "quality_retention_pct": 101.88679245283019,
+        "baseline_quality": 8.833333333333334,
+        "optimized_quality": 9,
+        "research_spend_usd": 0,
+        "latency_difference_ms": 805.1663999212906,
+        "baseline_quality_per_1000_tokens": 64.0096618357488,
+        "optimized_quality_per_1000_tokens": 17.892644135188867
+      },
+      "billing_uncertain": false,
+      "optimization_decision": "accepted_for_evaluation_semantics_unverified",
+      "baseline": {
+        "text": "Subject: Request to Reschedule Our Meeting\n\nDear [Name],\n\nThank you for proposing a meeting on November 12, 2026. Unfortunately, I’m unable to attend on that date. I’d like to propose an alternative: Friday, November 14 at 10:00 UTC.\n\nPlease let me know if this time works for you. I look forward to our discussion.\n\nBest regards,\n[Your Name]",
+        "input_tokens": 53,
+        "output_tokens": 85,
+        "latency_ms": 2383.7951000314206,
+        "request_id": "gen-1792830049-eY0N8U7wss86RdXwswXI",
+        "model": "cohere/north-mini-code:free",
+        "finish_reason": "stop",
+        "usage_source": "provider",
+        "cost_usd": 0,
+        "provider_cost_usd": 0,
+        "reused": true,
+        "request_settings": {
+          "model": "cohere/north-mini-code:free",
+          "stream": false,
+          "max_tokens": 2048,
+          "provider": {
+            "max_price": {
+              "prompt": 0,
+              "completion": 0,
+              "request": 0
+            },
+            "allow_fallbacks": true
+          },
+          "reasoning": {
+            "enabled": false
+          }
+        },
+        "provider": "openrouter_target"
+      },
+      "optimized_response": {
+        "text": "Subject: Re: Meeting on 12 November 2026  \n\nDear [Name],\n\nThank you for inviting me to the meeting on 12 November 2026. Unfortunately, I’m unable to attend on that date.\n\nWould it be possible to reschedule to **14 November at 10:00 UTC** instead? I’ll be available then and would be happy to discuss the agenda.\n\nPlease let me know if this works for you.  \n\nBest regards,  \n[Your Name]",
+        "input_tokens": 40,
+        "output_tokens": 100,
+        "latency_ms": 1848.2308000093326,
+        "request_id": "gen-1792830328-VHxXQ73q54Dbsi0jp44E",
+        "model": "cohere/north-mini-code:free",
+        "finish_reason": "stop",
+        "usage_source": "provider",
+        "cost_usd": 0,
+        "provider_cost_usd": 0,
+        "reused": false,
+        "request_settings": {
+          "model": "cohere/north-mini-code:free",
+          "stream": false,
+          "max_tokens": 2048,
+          "provider": {
+            "max_price": {
+              "prompt": 0,
+              "completion": 0,
+              "request": 0
+            },
+            "allow_fallbacks": true
+          },
+          "reasoning": {
+            "enabled": false
+          }
+        },
+        "provider": "openrouter_target"
+      },
+      "judge_calls": [
+        {
+          "text": "{\n  \"A\": {\n    \"correctness\": 9,\n    \"completeness\": 9,\n    \"relevance\": 9,\n    \"instruction_following\": 9,\n    \"format_preservation\": 8,\n    \"factual_consistency\": 9\n  },\n  \"B\": {\n    \"correctness\": 9,\n    \"completeness\": 9,\n    \"relevance\": 9,\n    \"instruction_following\": 9,\n    \"format_preservation\": 9,\n    \"factual_consistency\": 9\n  },\n  \"notes\": \"Both answers meet the core requirements: a polite decline of the Nov 12 2026 meeting and an offer of Nov 14 2026 at 10:00 UTC as an alternative, without inventing a reason. They are under 100 words and maintain a courteous tone. Answer A uses a subject line \\\"Request to Reschedule Our Meeting\\\" and a simple structure. Answer B uses \\\"Re: Meeting on 12 November 2026\\\", includes bold formatting for the alternative date, and has slightly more personalization. Both are factually consistent and follow the instruction. The minor differences are stylistic (subject line, bolding, wording of greeting). Scores are high across all dimensions, with A scoring slightly lower on format_preservation due to the plain subject line, while B scores equally on all dimensions.\"\n}",
+          "input_tokens": 397,
+          "output_tokens": 283,
+          "latency_ms": 8077.871500048786,
+          "request_id": "gen-1792830330-5I7ApAeMZRloWLuIejNV",
+          "model": "cohere/north-mini-code:free",
+          "finish_reason": "stop",
+          "usage_source": "provider",
+          "cost_usd": 0,
+          "provider_cost_usd": 0,
+          "reused": false,
+          "request_settings": {
+            "model": "cohere/north-mini-code:free",
+            "stream": false,
+            "max_tokens": 2048,
+            "provider": {
+              "max_price": {
+                "prompt": 0,
+                "completion": 0,
+                "request": 0
+              },
+              "allow_fallbacks": true
+            },
+            "reasoning": {
+              "enabled": false
+            }
+          },
+          "provider": "openrouter_target"
+        }
+      ],
+      "evaluation_history": [
+        {
+          "method": "llm_judge",
+          "evaluator": "cohere/north-mini-code:free",
+          "baseline": {
+            "correctness": 9,
+            "completeness": 9,
+            "relevance": 9,
+            "instruction_following": 9,
+            "format_preservation": 8,
+            "factual_consistency": 9
+          },
+          "optimized": {
+            "correctness": 9,
+            "completeness": 9,
+            "relevance": 9,
+            "instruction_following": 9,
+            "format_preservation": 9,
+            "factual_consistency": 9
+          },
+          "baseline_quality": 8.833333333333334,
+          "optimized_quality": 9,
+          "quality_retention_pct": 101.88679245283019,
+          "notes": "Both answers meet the core requirements: a polite decline of the Nov 12 2026 meeting and an offer of Nov 14 2026 at 10:00 UTC as an alternative, without inventing a reason. They are under 100 words and maintain a courteous tone. Answer A uses a subject line \"Request to Reschedule Our Meeting\" and a simple structure. Answer B uses \"Re: Meeting on 12 November 2026\", includes bold formatting for the alternative date, and has slightly more personalization. Both are factually consistent and follow the instruction. The minor differences are stylistic (subject line, bolding, wording of greeting). Scores are high across all dimensions, with A scoring slightly lower on format_preservation due to the plain subject line, while B scores equally on all dimensions.",
+          "caveat": "Same target model family; judge bias remains. Human review recommended."
+        }
+      ],
+      "evaluation": {
+        "method": "llm_judge",
+        "evaluator": "cohere/north-mini-code:free",
+        "baseline": {
+          "correctness": 9,
+          "completeness": 9,
+          "relevance": 9,
+          "instruction_following": 9,
+          "format_preservation": 8,
+          "factual_consistency": 9
+        },
+        "optimized": {
+          "correctness": 9,
+          "completeness": 9,
+          "relevance": 9,
+          "instruction_following": 9,
+          "format_preservation": 9,
+          "factual_consistency": 9
+        },
+        "baseline_quality": 8.833333333333334,
+        "optimized_quality": 9,
+        "quality_retention_pct": 101.88679245283019,
+        "notes": "Both answers meet the core requirements: a polite decline of the Nov 12 2026 meeting and an offer of Nov 14 2026 at 10:00 UTC as an alternative, without inventing a reason. They are under 100 words and maintain a courteous tone. Answer A uses a subject line \"Request to Reschedule Our Meeting\" and a simple structure. Answer B uses \"Re: Meeting on 12 November 2026\", includes bold formatting for the alternative date, and has slightly more personalization. Both are factually consistent and follow the instruction. The minor differences are stylistic (subject line, bolding, wording of greeting). Scores are high across all dimensions, with A scoring slightly lower on format_preservation due to the plain subject line, while B scores equally on all dimensions.",
+        "caveat": "Same target model family; judge bias remains. Human review recommended."
+      }
+    },
+    {
+      "id": "3925c7f0-9240-4df5-97a9-4f5a9865d6e8",
+      "created_at": "2026-10-24T08:26:27.755335+00:00",
+      "prompt_id": "reasoning",
+      "category": "reasoning",
+      "original_prompt": "Hi, I would like you to please solve this arithmetic question carefully. A train travels 120 km at 60 km/h and then another 120 km at 120 km/h. What is its average speed in km/h for the entire journey? Return only the numeric value, with no unit or explanation. Thank you very much.",
+      "original_prompt_tokens": 67,
+      "optimized_prompt": "Solve the arithmetic question: A train travels 120 km at 60 km/h and then another 120 km at 120 km/h. What is its average speed in km/h for the entire journey? Return only the numeric value, with no unit or explanation.",
+      "optimized_prompt_tokens": 53,
+      "length_group": "short",
+      "optimizer_provider": "openrouter_optimizer",
+      "optimizer_model": "cohere/north-mini-code:free",
+      "strategy": "structured",
+      "target_ratio": 0.75,
+      "adaptive": false,
+      "demo": false,
+      "status": "completed",
+      "stage": "done",
+      "failures": [],
+      "target_provider": "openrouter",
+      "target_model": "cohere/north-mini-code:free",
+      "free_only": true,
+      "optimizer_calls": [
+        {
+          "text": "{\"optimized_prompt\":\"Solve the arithmetic question: A train travels 120 km at 60 km/h and then another 120 km at 120 km/h. What is its average speed in km/h for the entire journey? Return only the numeric value, with no unit or explanation.\"}",
+          "input_tokens": 332,
+          "output_tokens": 58,
+          "latency_ms": 1266.723299981095,
+          "request_id": "gen-1792830389-4wcjS7VgaWcEBpZJeJC4",
+          "model": "cohere/north-mini-code:free",
+          "finish_reason": "stop",
+          "usage_source": "provider",
+          "cost_usd": 0,
+          "provider_cost_usd": 0,
+          "reused": false,
+          "request_settings": {
+            "model": "cohere/north-mini-code:free",
+            "stream": false,
+            "max_tokens": 4096,
+            "temperature": 0,
+            "provider": {
+              "max_price": {
+                "prompt": 0,
+                "completion": 0,
+                "request": 0
+              },
+              "allow_fallbacks": true
+            },
+            "reasoning": {
+              "enabled": false
+            }
+          },
+          "provider": "openrouter_optimizer"
+        }
+      ],
+      "paid_calls": [
+        {
+          "text": "{\"optimized_prompt\":\"Solve the arithmetic question: A train travels 120 km at 60 km/h and then another 120 km at 120 km/h. What is its average speed in km/h for the entire journey? Return only the numeric value, with no unit or explanation.\"}",
+          "input_tokens": 332,
+          "output_tokens": 58,
+          "latency_ms": 1266.723299981095,
+          "request_id": "gen-1792830389-4wcjS7VgaWcEBpZJeJC4",
+          "model": "cohere/north-mini-code:free",
+          "finish_reason": "stop",
+          "usage_source": "provider",
+          "cost_usd": 0,
+          "provider_cost_usd": 0,
+          "reused": false,
+          "request_settings": {
+            "model": "cohere/north-mini-code:free",
+            "stream": false,
+            "max_tokens": 4096,
+            "temperature": 0,
+            "provider": {
+              "max_price": {
+                "prompt": 0,
+                "completion": 0,
+                "request": 0
+              },
+              "allow_fallbacks": true
+            },
+            "reasoning": {
+              "enabled": false
+            }
+          },
+          "provider": "openrouter_optimizer"
+        },
+        {
+          "text": "80",
+          "input_tokens": 53,
+          "output_tokens": 1,
+          "latency_ms": 723.6318000359461,
+          "request_id": "gen-1792830390-ndQ7WdvS9Q7TiGVHEgRK",
+          "model": "cohere/north-mini-code:free",
+          "finish_reason": "stop",
+          "usage_source": "provider",
+          "cost_usd": 0,
+          "provider_cost_usd": 0,
+          "reused": false,
+          "request_settings": {
+            "model": "cohere/north-mini-code:free",
+            "stream": false,
+            "max_tokens": 2048,
+            "provider": {
+              "max_price": {
+                "prompt": 0,
+                "completion": 0,
+                "request": 0
+              },
+              "allow_fallbacks": true
+            },
+            "reasoning": {
+              "enabled": false
+            }
+          },
+          "provider": "openrouter_target"
+        },
+        {
+          "text": "{\"A\": {\"correctness\": 5, \"completeness\": 5, \"relevance\": 5, \"instruction_following\": 5, \"format_preservation\": 5, \"factual_consistency\": 5}, \"B\": {\"correctness\": 5, \"completeness\": 5, \"relevance\": 5, \"instruction_following\": 5, \"format_preservation\": 5, \"factual_consistency\": 5}, \"notes\": \"Both answers give the numeric result 80, which matches the correct average speed (total distance 240 km, total time 2 h + 1 h = 3 h, average speed = 240/3 = 80 km/h). They follow the instruction to return only the numeric value, so they are correct. Scores are equal across all dimensions.\"}",
+          "input_tokens": 179,
+          "output_tokens": 173,
+          "latency_ms": 1278.474900056608,
+          "request_id": "gen-1792830391-fKGcUIi8krml9MiGVYau",
+          "model": "cohere/north-mini-code:free",
+          "finish_reason": "stop",
+          "usage_source": "provider",
+          "cost_usd": 0,
+          "provider_cost_usd": 0,
+          "reused": false,
+          "request_settings": {
+            "model": "cohere/north-mini-code:free",
+            "stream": false,
+            "max_tokens": 2048,
+            "provider": {
+              "max_price": {
+                "prompt": 0,
+                "completion": 0,
+                "request": 0
+              },
+              "allow_fallbacks": true
+            },
+            "reasoning": {
+              "enabled": false
+            }
+          },
+          "provider": "openrouter_target"
+        }
+      ],
+      "metadata": {
+        "study_id": "2664801b-55a6-4599-8b34-d5ed5bfdfb39",
+        "combination": "bf947be47c2865557718d7b6a615594bc35c11f83bee1360940d6d671e979e5a"
+      },
+      "versions": {
+        "source": "0.2.0",
+        "optimizer_template_sha256": "ca021bef7848066ac41f57fbc4bdc0610524d2db632d901a91e2f6a69e5091ee",
+        "evaluator_template_sha256": "9849e943b0040a69bbbf4a144e7b7d349ea900bd63078a9f912d191eb7da90a8"
+      },
+      "configuration": {
+        "optimizer": {
+          "provider": "openrouter",
+          "model": "cohere/north-mini-code:free",
+          "base_url": "https://openrouter.ai/api/v1",
+          "input_price_per_million": 0,
+          "output_price_per_million": 0,
+          "enable_thinking": null,
+          "reasoning_effort": null
+        },
+        "target": {
+          "provider": "openrouter",
+          "model": "cohere/north-mini-code:free",
+          "base_url": "https://openrouter.ai/api/v1",
+          "input_price_per_million": 0,
+          "output_price_per_million": 0,
+          "enable_thinking": null,
+          "reasoning_effort": null
+        },
+        "max_output": 2048,
+        "optimizer_max_output": 4096,
+        "target_temperature": null,
+        "optimizer_temperature": 0,
+        "skip_below": 100,
+        "min_quality": 0.95,
+        "tokenizer": {
+          "encoding": "o200k_base",
+          "fallback_used": true,
+          "scope": "text only; billed request usage comes from provider"
+        }
+      },
+      "metrics": {
+        "text_compression_pct": 20.895522388059707,
+        "chatgpt_input_reduction_pct": 20.8955223880597,
+        "optimizer_total_tokens": 390,
+        "baseline_total_tokens": 68,
+        "tokenz_total_tokens": 444,
+        "net_token_difference": -376,
+        "baseline_cost_usd": 0,
+        "tokenz_cost_usd": 0,
+        "cost_difference_usd": 0,
+        "optimizer_latency_ms": 1266.723299981095,
+        "baseline_chatgpt_latency_ms": 821.639799978584,
+        "optimized_chatgpt_latency_ms": 723.6318000359461,
+        "total_tokenz_latency_ms": 1990.355100017041,
+        "quality_retention_pct": 100.0,
+        "baseline_quality": 5,
+        "optimized_quality": 5,
+        "research_spend_usd": 0,
+        "latency_difference_ms": 1168.715300038457,
+        "baseline_quality_per_1000_tokens": 73.52941176470588,
+        "optimized_quality_per_1000_tokens": 11.26126126126126
+      },
+      "billing_uncertain": false,
+      "optimization_decision": "accepted_for_evaluation_semantics_unverified",
+      "baseline": {
+        "text": "80",
+        "input_tokens": 67,
+        "output_tokens": 1,
+        "latency_ms": 821.639799978584,
+        "request_id": "gen-1792830173-fwuLdmIWJvJLhmd15sNJ",
+        "model": "cohere/north-mini-code:free",
+        "finish_reason": "stop",
+        "usage_source": "provider",
+        "cost_usd": 0,
+        "provider_cost_usd": 0,
+        "reused": true,
+        "request_settings": {
+          "model": "cohere/north-mini-code:free",
+          "stream": false,
+          "max_tokens": 2048,
+          "provider": {
+            "max_price": {
+              "prompt": 0,
+              "completion": 0,
+              "request": 0
+            },
+            "allow_fallbacks": true
+          },
+          "reasoning": {
+            "enabled": false
+          }
+        },
+        "provider": "openrouter_target"
+      },
+      "optimized_response": {
+        "text": "80",
+        "input_tokens": 53,
+        "output_tokens": 1,
+        "latency_ms": 723.6318000359461,
+        "request_id": "gen-1792830390-ndQ7WdvS9Q7TiGVHEgRK",
+        "model": "cohere/north-mini-code:free",
+        "finish_reason": "stop",
+        "usage_source": "provider",
+        "cost_usd": 0,
+        "provider_cost_usd": 0,
+        "reused": false,
+        "request_settings": {
+          "model": "cohere/north-mini-code:free",
+          "stream": false,
+          "max_tokens": 2048,
+          "provider": {
+            "max_price": {
+              "prompt": 0,
+              "completion": 0,
+              "request": 0
+            },
+            "allow_fallbacks": true
+          },
+          "reasoning": {
+            "enabled": false
+          }
+        },
+        "provider": "openrouter_target"
+      },
+      "automatic_checks": {
+        "baseline": true,
+        "optimized_response": true
+      },
+      "automatic_check_spec": {
+        "kind": "numeric",
+        "expected": 80
+      },
+      "judge_calls": [
+        {
+          "text": "{\"A\": {\"correctness\": 5, \"completeness\": 5, \"relevance\": 5, \"instruction_following\": 5, \"format_preservation\": 5, \"factual_consistency\": 5}, \"B\": {\"correctness\": 5, \"completeness\": 5, \"relevance\": 5, \"instruction_following\": 5, \"format_preservation\": 5, \"factual_consistency\": 5}, \"notes\": \"Both answers give the numeric result 80, which matches the correct average speed (total distance 240 km, total time 2 h + 1 h = 3 h, average speed = 240/3 = 80 km/h). They follow the instruction to return only the numeric value, so they are correct. Scores are equal across all dimensions.\"}",
+          "input_tokens": 179,
+          "output_tokens": 173,
+          "latency_ms": 1278.474900056608,
+          "request_id": "gen-1792830391-fKGcUIi8krml9MiGVYau",
+          "model": "cohere/north-mini-code:free",
+          "finish_reason": "stop",
+          "usage_source": "provider",
+          "cost_usd": 0,
+          "provider_cost_usd": 0,
+          "reused": false,
+          "request_settings": {
+            "model": "cohere/north-mini-code:free",
+            "stream": false,
+            "max_tokens": 2048,
+            "provider": {
+              "max_price": {
+                "prompt": 0,
+                "completion": 0,
+                "request": 0
+              },
+              "allow_fallbacks": true
+            },
+            "reasoning": {
+              "enabled": false
+            }
+          },
+          "provider": "openrouter_target"
+        }
+      ],
+      "evaluation_history": [
+        {
+          "method": "llm_judge",
+          "evaluator": "cohere/north-mini-code:free",
+          "baseline": {
+            "correctness": 5,
+            "completeness": 5,
+            "relevance": 5,
+            "instruction_following": 5,
+            "format_preservation": 5,
+            "factual_consistency": 5
+          },
+          "optimized": {
+            "correctness": 5,
+            "completeness": 5,
+            "relevance": 5,
+            "instruction_following": 5,
+            "format_preservation": 5,
+            "factual_consistency": 5
+          },
+          "baseline_quality": 5,
+          "optimized_quality": 5,
+          "quality_retention_pct": 100.0,
+          "notes": "Both answers give the numeric result 80, which matches the correct average speed (total distance 240 km, total time 2 h + 1 h = 3 h, average speed = 240/3 = 80 km/h). They follow the instruction to return only the numeric value, so they are correct. Scores are equal across all dimensions.",
+          "caveat": "Same target model family; judge bias remains. Human review recommended."
+        }
+      ],
+      "evaluation": {
+        "method": "llm_judge",
+        "evaluator": "cohere/north-mini-code:free",
+        "baseline": {
+          "correctness": 5,
+          "completeness": 5,
+          "relevance": 5,
+          "instruction_following": 5,
+          "format_preservation": 5,
+          "factual_consistency": 5
+        },
+        "optimized": {
+          "correctness": 5,
+          "completeness": 5,
+          "relevance": 5,
+          "instruction_following": 5,
+          "format_preservation": 5,
+          "factual_consistency": 5
+        },
+        "baseline_quality": 5,
+        "optimized_quality": 5,
+        "quality_retention_pct": 100.0,
+        "notes": "Both answers give the numeric result 80, which matches the correct average speed (total distance 240 km, total time 2 h + 1 h = 3 h, average speed = 240/3 = 80 km/h). They follow the instruction to return only the numeric value, so they are correct. Scores are equal across all dimensions.",
+        "caveat": "Same target model family; judge bias remains. Human review recommended."
+      }
+    },
+    {
+      "id": "4575b22d-a955-408f-821f-d11e06babbd3",
+      "created_at": "2026-10-24T08:28:03.014739+00:00",
+      "prompt_id": "extraction",
+      "category": "extraction",
+      "original_prompt": "Hi, please help me extract the names from this fictional note. Return a JSON array only, without explanation or code fences. Preserve the order and keep duplicates. The note is: Ada met Ben, and Ada returned later. Thank you very much.",
+      "original_prompt_tokens": 50,
+      "optimized_prompt": "Extract the names from the note. Return a JSON array only, without explanation or code fences. Preserve order and keep duplicates. Note: Ada met Ben, and Ada returned later.",
+      "optimized_prompt_tokens": 36,
+      "length_group": "short",
+      "optimizer_provider": "openrouter_optimizer",
+      "optimizer_model": "cohere/north-mini-code:free",
+      "strategy": "structured",
+      "target_ratio": 0.75,
+      "adaptive": false,
+      "demo": false,
+      "status": "completed",
+      "stage": "done",
+      "failures": [],
+      "target_provider": "openrouter",
+      "target_model": "nvidia/nemotron-3.5-lightning:free",
+      "free_only": true,
+      "optimizer_calls": [
+        {
+          "text": "{\"optimized_prompt\":\"Extract the names from the note. Return a JSON array only, without explanation or code fences. Preserve order and keep duplicates. Note: Ada met Ben, and Ada returned later.\"}",
+          "input_tokens": 315,
+          "output_tokens": 41,
+          "latency_ms": 1329.1349000064656,
+          "request_id": "gen-1792830484-8dXMecw9y2Xi5r8Zvwuu",
+          "model": "cohere/north-mini-code:free",
+          "finish_reason": "stop",
+          "usage_source": "provider",
+          "cost_usd": 0,
+          "provider_cost_usd": 0,
+          "reused": false,
+          "request_settings": {
+            "model": "cohere/north-mini-code:free",
+            "stream": false,
+            "max_tokens": 4096,
+            "temperature": 0,
+            "provider": {
+              "max_price": {
+                "prompt": 0,
+                "completion": 0,
+                "request": 0
+              },
+              "allow_fallbacks": true
+            },
+            "reasoning": {
+              "enabled": false
+            }
+          },
+          "provider": "openrouter_optimizer"
+        }
+      ],
+      "paid_calls": [
+        {
+          "text": "{\"optimized_prompt\":\"Extract the names from the note. Return a JSON array only, without explanation or code fences. Preserve order and keep duplicates. Note: Ada met Ben, and Ada returned later.\"}",
+          "input_tokens": 315,
+          "output_tokens": 41,
+          "latency_ms": 1329.1349000064656,
+          "request_id": "gen-1792830484-8dXMecw9y2Xi5r8Zvwuu",
+          "model": "cohere/north-mini-code:free",
+          "finish_reason": "stop",
+          "usage_source": "provider",
+          "cost_usd": 0,
+          "provider_cost_usd": 0,
+          "reused": false,
+          "request_settings": {
+            "model": "cohere/north-mini-code:free",
+            "stream": false,
+            "max_tokens": 4096,
+            "temperature": 0,
+            "provider": {
+              "max_price": {
+                "prompt": 0,
+                "completion": 0,
+                "request": 0
+              },
+              "allow_fallbacks": true
+            },
+            "reasoning": {
+              "enabled": false
+            }
+          },
+          "provider": "openrouter_optimizer"
+        },
+        {
+          "text": "Ada, Ben, Ada",
+          "input_tokens": 54,
+          "output_tokens": 7,
+          "latency_ms": 983.3729999372736,
+          "request_id": "gen-1792830485-4lJetnxNJ7KQBABonOPf",
+          "model": "nvidia/nemotron-3.5-lightning:free",
+          "finish_reason": "stop",
+          "usage_source": "provider",
+          "cost_usd": 0,
+          "provider_cost_usd": 0,
+          "reused": false,
+          "request_settings": {
+            "model": "nvidia/nemotron-3.5-lightning:free",
+            "stream": false,
+            "max_tokens": 2048,
+            "provider": {
+              "max_price": {
+                "prompt": 0,
+                "completion": 0,
+                "request": 0
+              },
+              "allow_fallbacks": true
+            },
+            "reasoning": {
+              "enabled": false
+            }
+          },
+          "provider": "openrouter_target"
+        },
+        {
+          "text": "{\n  \"A\": {\n    \"correctness\": 10,\n    \"completeness\": 10,\n    \"relevance\": 10,\n    \"instruction_following\": 10,\n    \"format_preservation\": 10,\n    \"factual_consistency\": 10\n  },\n  \"B\": {\n    \"correctness\": 7,\n    \"completeness\": 6,\n    \"relevance\": 10,\n    \"instruction_following\": 5,\n    \"format_preservation\": 2,\n    \"factual_consistency\": 8\n  },\n  \"notes\": \"A perfectly matches all requirements: correct names, full set, proper order, duplicates preserved, JSON array format. B fails format_preservation (not JSON array), loses instruction_following points for not returning array format, and completeness drops because the output isn't the requested structured format.\"\n}",
+          "input_tokens": 205,
+          "output_tokens": 200,
+          "latency_ms": 2761.009000008926,
+          "request_id": "gen-1792830486-TtxpOxxLSLpbsNjDQ1v3",
+          "model": "nvidia/nemotron-3.5-lightning:free",
+          "finish_reason": "stop",
+          "usage_source": "provider",
+          "cost_usd": 0,
+          "provider_cost_usd": 0,
+          "reused": false,
+          "request_settings": {
+            "model": "nvidia/nemotron-3.5-lightning:free",
+            "stream": false,
+            "max_tokens": 2048,
+            "provider": {
+              "max_price": {
+                "prompt": 0,
+                "completion": 0,
+                "request": 0
+              },
+              "allow_fallbacks": true
+            },
+            "reasoning": {
+              "enabled": false
+            }
+          },
+          "provider": "openrouter_target"
+        }
+      ],
+      "metadata": {
+        "study_id": "2664801b-55a6-4599-8b34-d5ed5bfdfb39",
+        "combination": "3682defbf9951872a31db4422ffa4cd4565d73f27203158ad7f973b58af40aa4"
+      },
+      "versions": {
+        "source": "0.2.0",
+        "optimizer_template_sha256": "ca021bef7848066ac41f57fbc4bdc0610524d2db632d901a91e2f6a69e5091ee",
+        "evaluator_template_sha256": "9849e943b0040a69bbbf4a144e7b7d349ea900bd63078a9f912d191eb7da90a8"
+      },
+      "configuration": {
+        "optimizer": {
+          "provider": "openrouter",
+          "model": "cohere/north-mini-code:free",
+          "base_url": "https://openrouter.ai/api/v1",
+          "input_price_per_million": 0,
+          "output_price_per_million": 0,
+          "enable_thinking": null,
+          "reasoning_effort": null
+        },
+        "target": {
+          "provider": "openrouter",
+          "model": "nvidia/nemotron-3.5-lightning:free",
+          "base_url": "https://openrouter.ai/api/v1",
+          "input_price_per_million": 0,
+          "output_price_per_million": 0,
+          "enable_thinking": null,
+          "reasoning_effort": null
+        },
+        "max_output": 2048,
+        "optimizer_max_output": 4096,
+        "target_temperature": null,
+        "optimizer_temperature": 0,
+        "skip_below": 100,
+        "min_quality": 0.95,
+        "tokenizer": {
+          "encoding": "o200k_base",
+          "fallback_used": true,
+          "scope": "text only; billed request usage comes from provider"
+        }
+      },
+      "metrics": {
+        "text_compression_pct": 28.000000000000004,
+        "chatgpt_input_reduction_pct": 20.588235294117645,
+        "optimizer_total_tokens": 356,
+        "baseline_total_tokens": 80,
+        "tokenz_total_tokens": 417,
+        "net_token_difference": -337,
+        "baseline_cost_usd": 0,
+        "tokenz_cost_usd": 0,
+        "cost_difference_usd": 0,
+        "optimizer_latency_ms": 1329.1349000064656,
+        "baseline_chatgpt_latency_ms": 1016.5998000884429,
+        "optimized_chatgpt_latency_ms": 983.3729999372736,
+        "total_tokenz_latency_ms": 2312.507899943739,
+        "quality_retention_pct": 63.33333333333333,
+        "baseline_quality": 10,
+        "optimized_quality": 6.333333333333333,
+        "research_spend_usd": 0,
+        "latency_difference_ms": 1295.9080998552963,
+        "baseline_quality_per_1000_tokens": 125.0,
+        "optimized_quality_per_1000_tokens": 15.18784972022382
+      },
+      "billing_uncertain": false,
+      "optimization_decision": "accepted_for_evaluation_semantics_unverified",
+      "baseline": {
+        "text": "[\"Ada\", \"Ben\", \"Ada\"]",
+        "input_tokens": 68,
+        "output_tokens": 12,
+        "latency_ms": 1016.5998000884429,
+        "request_id": "gen-1792830076-6JZH74iP8BrZQ1XdMbE1",
+        "model": "nvidia/nemotron-3.5-lightning:free",
+        "finish_reason": "stop",
+        "usage_source": "provider",
+        "cost_usd": 0,
+        "provider_cost_usd": 0,
+        "reused": true,
+        "request_settings": {
+          "model": "nvidia/nemotron-3.5-lightning:free",
+          "stream": false,
+          "max_tokens": 2048,
+          "provider": {
+            "max_price": {
+              "prompt": 0,
+              "completion": 0,
+              "request": 0
+            },
+            "allow_fallbacks": true
+          },
+          "reasoning": {
+            "enabled": false
+          }
+        },
+        "provider": "openrouter_target"
+      },
+      "optimized_response": {
+        "text": "Ada, Ben, Ada",
+        "input_tokens": 54,
+        "output_tokens": 7,
+        "latency_ms": 983.3729999372736,
+        "request_id": "gen-1792830485-4lJetnxNJ7KQBABonOPf",
+        "model": "nvidia/nemotron-3.5-lightning:free",
+        "finish_reason": "stop",
+        "usage_source": "provider",
+        "cost_usd": 0,
+        "provider_cost_usd": 0,
+        "reused": false,
+        "request_settings": {
+          "model": "nvidia/nemotron-3.5-lightning:free",
+          "stream": false,
+          "max_tokens": 2048,
+          "provider": {
+            "max_price": {
+              "prompt": 0,
+              "completion": 0,
+              "request": 0
+            },
+            "allow_fallbacks": true
+          },
+          "reasoning": {
+            "enabled": false
+          }
+        },
+        "provider": "openrouter_target"
+      },
+      "automatic_checks": {
+        "baseline": true,
+        "optimized_response": false
+      },
+      "automatic_check_spec": {
+        "kind": "json",
+        "expected": [
+          "Ada",
+          "Ben",
+          "Ada"
+        ]
+      },
+      "judge_calls": [
+        {
+          "text": "{\n  \"A\": {\n    \"correctness\": 10,\n    \"completeness\": 10,\n    \"relevance\": 10,\n    \"instruction_following\": 10,\n    \"format_preservation\": 10,\n    \"factual_consistency\": 10\n  },\n  \"B\": {\n    \"correctness\": 7,\n    \"completeness\": 6,\n    \"relevance\": 10,\n    \"instruction_following\": 5,\n    \"format_preservation\": 2,\n    \"factual_consistency\": 8\n  },\n  \"notes\": \"A perfectly matches all requirements: correct names, full set, proper order, duplicates preserved, JSON array format. B fails format_preservation (not JSON array), loses instruction_following points for not returning array format, and completeness drops because the output isn't the requested structured format.\"\n}",
+          "input_tokens": 205,
+          "output_tokens": 200,
+          "latency_ms": 2761.009000008926,
+          "request_id": "gen-1792830486-TtxpOxxLSLpbsNjDQ1v3",
+          "model": "nvidia/nemotron-3.5-lightning:free",
+          "finish_reason": "stop",
+          "usage_source": "provider",
+          "cost_usd": 0,
+          "provider_cost_usd": 0,
+          "reused": false,
+          "request_settings": {
+            "model": "nvidia/nemotron-3.5-lightning:free",
+            "stream": false,
+            "max_tokens": 2048,
+            "provider": {
+              "max_price": {
+                "prompt": 0,
+                "completion": 0,
+                "request": 0
+              },
+              "allow_fallbacks": true
+            },
+            "reasoning": {
+              "enabled": false
+            }
+          },
+          "provider": "openrouter_target"
+        }
+      ],
+      "evaluation_history": [
+        {
+          "method": "llm_judge",
+          "evaluator": "nvidia/nemotron-3.5-lightning:free",
+          "baseline": {
+            "correctness": 10,
+            "completeness": 10,
+            "relevance": 10,
+            "instruction_following": 10,
+            "format_preservation": 10,
+            "factual_consistency": 10
+          },
+          "optimized": {
+            "correctness": 7,
+            "completeness": 6,
+            "relevance": 10,
+            "instruction_following": 5,
+            "format_preservation": 2,
+            "factual_consistency": 8
+          },
+          "baseline_quality": 10,
+          "optimized_quality": 6.333333333333333,
+          "quality_retention_pct": 63.33333333333333,
+          "notes": "A perfectly matches all requirements: correct names, full set, proper order, duplicates preserved, JSON array format. B fails format_preservation (not JSON array), loses instruction_following points for not returning array format, and completeness drops because the output isn't the requested structured format.",
+          "caveat": "Same target model family; judge bias remains. Human review recommended."
+        }
+      ],
+      "evaluation": {
+        "method": "llm_judge",
+        "evaluator": "nvidia/nemotron-3.5-lightning:free",
+        "baseline": {
+          "correctness": 10,
+          "completeness": 10,
+          "relevance": 10,
+          "instruction_following": 10,
+          "format_preservation": 10,
+          "factual_consistency": 10
+        },
+        "optimized": {
+          "correctness": 7,
+          "completeness": 6,
+          "relevance": 10,
+          "instruction_following": 5,
+          "format_preservation": 2,
+          "factual_consistency": 8
+        },
+        "baseline_quality": 10,
+        "optimized_quality": 6.333333333333333,
+        "quality_retention_pct": 63.33333333333333,
+        "notes": "A perfectly matches all requirements: correct names, full set, proper order, duplicates preserved, JSON array format. B fails format_preservation (not JSON array), loses instruction_following points for not returning array format, and completeness drops because the output isn't the requested structured format.",
+        "caveat": "Same target model family; judge bias remains. Human review recommended."
+      }
+    },
+    {
+      "id": "8e8f39ab-9fef-4b28-bd83-b653eb115526",
+      "created_at": "2026-10-24T08:28:18.199894+00:00",
+      "prompt_id": "extraction",
+      "category": "extraction",
+      "original_prompt": "Hi, please help me extract the names from this fictional note. Return a JSON array only, without explanation or code fences. Preserve the order and keep duplicates. The note is: Ada met Ben, and Ada returned later. Thank you very much.",
+      "original_prompt_tokens": 50,
+      "optimized_prompt": "Extract the names from the note. Return a JSON array only, without explanation or code fences. Preserve order and keep duplicates. Note: Ada met Ben, and Ada returned later.",
+      "optimized_prompt_tokens": 36,
+      "length_group": "short",
+      "optimizer_provider": "openrouter_optimizer",
+      "optimizer_model": "cohere/north-mini-code:free",
+      "strategy": "structured",
+      "target_ratio": 0.75,
+      "adaptive": false,
+      "demo": false,
+      "status": "completed",
+      "stage": "done",
+      "failures": [],
+      "target_provider": "openrouter",
+      "target_model": "cohere/north-mini-code:free",
+      "free_only": true,
+      "optimizer_calls": [
+        {
+          "text": "{\"optimized_prompt\":\"Extract the names from the note. Return a JSON array only, without explanation or code fences. Preserve order and keep duplicates. Note: Ada met Ben, and Ada returned later.\"}",
+          "input_tokens": 315,
+          "output_tokens": 41,
+          "latency_ms": 1329.1349000064656,
+          "request_id": "gen-1792830484-8dXMecw9y2Xi5r8Zvwuu",
+          "model": "cohere/north-mini-code:free",
+          "finish_reason": "stop",
+          "usage_source": "provider",
+          "cost_usd": 0,
+          "provider_cost_usd": 0,
+          "reused": true,
+          "request_settings": {
+            "model": "cohere/north-mini-code:free",
+            "stream": false,
+            "max_tokens": 4096,
+            "temperature": 0,
+            "provider": {
+              "max_price": {
+                "prompt": 0,
+                "completion": 0,
+                "request": 0
+              },
+              "allow_fallbacks": true
+            },
+            "reasoning": {
+              "enabled": false
+            }
+          },
+          "provider": "openrouter_optimizer"
+        }
+      ],
+      "paid_calls": [
+        {
+          "text": "[\"Ada\",\"Ben\"]",
+          "input_tokens": 36,
+          "output_tokens": 5,
+          "latency_ms": 1397.141500026919,
+          "request_id": "gen-1792830499-CMiztARLpN2FlUYpsF4H",
+          "model": "cohere/north-mini-code:free",
+          "finish_reason": "stop",
+          "usage_source": "provider",
+          "cost_usd": 0,
+          "provider_cost_usd": 0,
+          "reused": false,
+          "request_settings": {
+            "model": "cohere/north-mini-code:free",
+            "stream": false,
+            "max_tokens": 2048,
+            "provider": {
+              "max_price": {
+                "prompt": 0,
+                "completion": 0,
+                "request": 0
+              },
+              "allow_fallbacks": true
+            },
+            "reasoning": {
+              "enabled": false
+            }
+          },
+          "provider": "openrouter_target"
+        },
+        {
+          "text": "{\"A\": {\"correctness\": 5, \"completeness\": 5, \"relevance\": 5, \"instruction_following\": 5, \"format_preservation\": 10, \"factual_consistency\": 5}, \"B\": {\"correctness\": 7, \"completeness\": 10, \"relevance\": 7, \"instruction_following\": 10, \"format_preservation\": 10, \"factual_consistency\": 7}, \"notes\": \"Both answers output a JSON array with the names extracted from the note. Answer A includes \\\"Ada\\\" and \\\"Ben\\\" once each, preserving order but omitting the duplicate \\\"Ada\\\". Answer B includes both \\\"Ada\\\" and \\\"Ben\\\" and also includes the duplicate \\\"Ada\\\", which matches the instruction to keep duplicates. Both are valid JSON arrays without extra text. Answer B is more complete and follows the instruction fully, while Answer A is partially correct but missing the duplicate. Thus B scores higher overall.\"}",
+          "input_tokens": 174,
+          "output_tokens": 201,
+          "latency_ms": 1605.333000072278,
+          "request_id": "gen-1792830500-k9DVqU0lA1XwMZig28d0",
+          "model": "cohere/north-mini-code:free",
+          "finish_reason": "stop",
+          "usage_source": "provider",
+          "cost_usd": 0,
+          "provider_cost_usd": 0,
+          "reused": false,
+          "request_settings": {
+            "model": "cohere/north-mini-code:free",
+            "stream": false,
+            "max_tokens": 2048,
+            "provider": {
+              "max_price": {
+                "prompt": 0,
+                "completion": 0,
+                "request": 0
+              },
+              "allow_fallbacks": true
+            },
+            "reasoning": {
+              "enabled": false
+            }
+          },
+          "provider": "openrouter_target"
+        }
+      ],
+      "metadata": {
+        "study_id": "2664801b-55a6-4599-8b34-d5ed5bfdfb39",
+        "combination": "4d11ce1bf47d27bbdcf383801a38fd2260133da17c57fd1ef5c48c98ee1b9a00"
+      },
+      "versions": {
+        "source": "0.2.0",
+        "optimizer_template_sha256": "ca021bef7848066ac41f57fbc4bdc0610524d2db632d901a91e2f6a69e5091ee",
+        "evaluator_template_sha256": "9849e943b0040a69bbbf4a144e7b7d349ea900bd63078a9f912d191eb7da90a8"
+      },
+      "configuration": {
+        "optimizer": {
+          "provider": "openrouter",
+          "model": "cohere/north-mini-code:free",
+          "base_url": "https://openrouter.ai/api/v1",
+          "input_price_per_million": 0,
+          "output_price_per_million": 0,
+          "enable_thinking": null,
+          "reasoning_effort": null
+        },
+        "target": {
+          "provider": "openrouter",
+          "model": "cohere/north-mini-code:free",
+          "base_url": "https://openrouter.ai/api/v1",
+          "input_price_per_million": 0,
+          "output_price_per_million": 0,
+          "enable_thinking": null,
+          "reasoning_effort": null
+        },
+        "max_output": 2048,
+        "optimizer_max_output": 4096,
+        "target_temperature": null,
+        "optimizer_temperature": 0,
+        "skip_below": 100,
+        "min_quality": 0.95,
+        "tokenizer": {
+          "encoding": "o200k_base",
+          "fallback_used": true,
+          "scope": "text only; billed request usage comes from provider"
+        }
+      },
+      "metrics": {
+        "text_compression_pct": 28.000000000000004,
+        "chatgpt_input_reduction_pct": 28.000000000000004,
+        "optimizer_total_tokens": 356,
+        "baseline_total_tokens": 59,
+        "tokenz_total_tokens": 397,
+        "net_token_difference": -338,
+        "baseline_cost_usd": 0,
+        "tokenz_cost_usd": 0,
+        "cost_difference_usd": 0,
+        "optimizer_latency_ms": 1329.1349000064656,
+        "baseline_chatgpt_latency_ms": 1179.9259000690654,
+        "optimized_chatgpt_latency_ms": 1397.141500026919,
+        "total_tokenz_latency_ms": 2726.2764000333846,
+        "quality_retention_pct": 68.62745098039215,
+        "baseline_quality": 8.5,
+        "optimized_quality": 5.833333333333333,
+        "research_spend_usd": 0,
+        "latency_difference_ms": 1546.3504999643192,
+        "baseline_quality_per_1000_tokens": 144.0677966101695,
+        "optimized_quality_per_1000_tokens": 14.693534844668346
+      },
+      "billing_uncertain": false,
+      "optimization_decision": "accepted_for_evaluation_semantics_unverified",
+      "baseline": {
+        "text": "[\"Ada\", \"Ben\", \"Ada\"]",
+        "input_tokens": 50,
+        "output_tokens": 9,
+        "latency_ms": 1179.9259000690654,
+        "request_id": "gen-1792830108-unKMfUdt9lnVZY6lI98T",
+        "model": "cohere/north-mini-code:free",
+        "finish_reason": "stop",
+        "usage_source": "provider",
+        "cost_usd": 0,
+        "provider_cost_usd": 0,
+        "reused": true,
+        "request_settings": {
+          "model": "cohere/north-mini-code:free",
+          "stream": false,
+          "max_tokens": 2048,
+          "provider": {
+            "max_price": {
+              "prompt": 0,
+              "completion": 0,
+              "request": 0
+            },
+            "allow_fallbacks": true
+          },
+          "reasoning": {
+            "enabled": false
+          }
+        },
+        "provider": "openrouter_target"
+      },
+      "optimized_response": {
+        "text": "[\"Ada\",\"Ben\"]",
+        "input_tokens": 36,
+        "output_tokens": 5,
+        "latency_ms": 1397.141500026919,
+        "request_id": "gen-1792830499-CMiztARLpN2FlUYpsF4H",
+        "model": "cohere/north-mini-code:free",
+        "finish_reason": "stop",
+        "usage_source": "provider",
+        "cost_usd": 0,
+        "provider_cost_usd": 0,
+        "reused": false,
+        "request_settings": {
+          "model": "cohere/north-mini-code:free",
+          "stream": false,
+          "max_tokens": 2048,
+          "provider": {
+            "max_price": {
+              "prompt": 0,
+              "completion": 0,
+              "request": 0
+            },
+            "allow_fallbacks": true
+          },
+          "reasoning": {
+            "enabled": false
+          }
+        },
+        "provider": "openrouter_target"
+      },
+      "automatic_checks": {
+        "baseline": true,
+        "optimized_response": false
+      },
+      "automatic_check_spec": {
+        "kind": "json",
+        "expected": [
+          "Ada",
+          "Ben",
+          "Ada"
+        ]
+      },
+      "judge_calls": [
+        {
+          "text": "{\"A\": {\"correctness\": 5, \"completeness\": 5, \"relevance\": 5, \"instruction_following\": 5, \"format_preservation\": 10, \"factual_consistency\": 5}, \"B\": {\"correctness\": 7, \"completeness\": 10, \"relevance\": 7, \"instruction_following\": 10, \"format_preservation\": 10, \"factual_consistency\": 7}, \"notes\": \"Both answers output a JSON array with the names extracted from the note. Answer A includes \\\"Ada\\\" and \\\"Ben\\\" once each, preserving order but omitting the duplicate \\\"Ada\\\". Answer B includes both \\\"Ada\\\" and \\\"Ben\\\" and also includes the duplicate \\\"Ada\\\", which matches the instruction to keep duplicates. Both are valid JSON arrays without extra text. Answer B is more complete and follows the instruction fully, while Answer A is partially correct but missing the duplicate. Thus B scores higher overall.\"}",
+          "input_tokens": 174,
+          "output_tokens": 201,
+          "latency_ms": 1605.333000072278,
+          "request_id": "gen-1792830500-k9DVqU0lA1XwMZig28d0",
+          "model": "cohere/north-mini-code:free",
+          "finish_reason": "stop",
+          "usage_source": "provider",
+          "cost_usd": 0,
+          "provider_cost_usd": 0,
+          "reused": false,
+          "request_settings": {
+            "model": "cohere/north-mini-code:free",
+            "stream": false,
+            "max_tokens": 2048,
+            "provider": {
+              "max_price": {
+                "prompt": 0,
+                "completion": 0,
+                "request": 0
+              },
+              "allow_fallbacks": true
+            },
+            "reasoning": {
+              "enabled": false
+            }
+          },
+          "provider": "openrouter_target"
+        }
+      ],
+      "evaluation_history": [
+        {
+          "method": "llm_judge",
+          "evaluator": "cohere/north-mini-code:free",
+          "baseline": {
+            "correctness": 7,
+            "completeness": 10,
+            "relevance": 7,
+            "instruction_following": 10,
+            "format_preservation": 10,
+            "factual_consistency": 7
+          },
+          "optimized": {
+            "correctness": 5,
+            "completeness": 5,
+            "relevance": 5,
+            "instruction_following": 5,
+            "format_preservation": 10,
+            "factual_consistency": 5
+          },
+          "baseline_quality": 8.5,
+          "optimized_quality": 5.833333333333333,
+          "quality_retention_pct": 68.62745098039215,
+          "notes": "Both answers output a JSON array with the names extracted from the note. Answer A includes \"Ada\" and \"Ben\" once each, preserving order but omitting the duplicate \"Ada\". Answer B includes both \"Ada\" and \"Ben\" and also includes the duplicate \"Ada\", which matches the instruction to keep duplicates. Both are valid JSON arrays without extra text. Answer B is more complete and follows the instruction fully, while Answer A is partially correct but missing the duplicate. Thus B scores higher overall.",
+          "caveat": "Same target model family; judge bias remains. Human review recommended."
+        }
+      ],
+      "evaluation": {
+        "method": "llm_judge",
+        "evaluator": "cohere/north-mini-code:free",
+        "baseline": {
+          "correctness": 7,
+          "completeness": 10,
+          "relevance": 7,
+          "instruction_following": 10,
+          "format_preservation": 10,
+          "factual_consistency": 7
+        },
+        "optimized": {
+          "correctness": 5,
+          "completeness": 5,
+          "relevance": 5,
+          "instruction_following": 5,
+          "format_preservation": 10,
+          "factual_consistency": 5
+        },
+        "baseline_quality": 8.5,
+        "optimized_quality": 5.833333333333333,
+        "quality_retention_pct": 68.62745098039215,
+        "notes": "Both answers output a JSON array with the names extracted from the note. Answer A includes \"Ada\" and \"Ben\" once each, preserving order but omitting the duplicate \"Ada\". Answer B includes both \"Ada\" and \"Ben\" and also includes the duplicate \"Ada\", which matches the instruction to keep duplicates. Both are valid JSON arrays without extra text. Answer B is more complete and follows the instruction fully, while Answer A is partially correct but missing the duplicate. Thus B scores higher overall.",
+        "caveat": "Same target model family; judge bias remains. Human review recommended."
+      }
+    },
+    {
+      "id": "aff145ca-e80f-43fe-b6e5-1ac297d2f304",
+      "created_at": "2026-10-24T08:28:31.301000+00:00",
+      "prompt_id": "reasoning",
+      "category": "reasoning",
+      "original_prompt": "Hi, I would like you to please solve this arithmetic question carefully. A train travels 120 km at 60 km/h and then another 120 km at 120 km/h. What is its average speed in km/h for the entire journey? Return only the numeric value, with no unit or explanation. Thank you very much.",
+      "original_prompt_tokens": 67,
+      "optimized_prompt": "Solve the arithmetic question: A train travels 120 km at 60 km/h and then another 120 km at 120 km/h. What is its average speed in km/h for the entire journey? Return only the numeric value, with no unit or explanation.",
+      "optimized_prompt_tokens": 53,
+      "length_group": "short",
+      "optimizer_provider": "openrouter_optimizer",
+      "optimizer_model": "cohere/north-mini-code:free",
+      "strategy": "structured",
+      "target_ratio": 0.75,
+      "adaptive": false,
+      "demo": false,
+      "status": "completed",
+      "stage": "done",
+      "failures": [],
+      "target_provider": "openrouter",
+      "target_model": "nvidia/nemotron-3.5-lightning:free",
+      "free_only": true,
+      "optimizer_calls": [
+        {
+          "text": "{\"optimized_prompt\":\"Solve the arithmetic question: A train travels 120 km at 60 km/h and then another 120 km at 120 km/h. What is its average speed in km/h for the entire journey? Return only the numeric value, with no unit or explanation.\"}",
+          "input_tokens": 332,
+          "output_tokens": 58,
+          "latency_ms": 1266.723299981095,
+          "request_id": "gen-1792830389-4wcjS7VgaWcEBpZJeJC4",
+          "model": "cohere/north-mini-code:free",
+          "finish_reason": "stop",
+          "usage_source": "provider",
+          "cost_usd": 0,
+          "provider_cost_usd": 0,
+          "reused": true,
+          "request_settings": {
+            "model": "cohere/north-mini-code:free",
+            "stream": false,
+            "max_tokens": 4096,
+            "temperature": 0,
+            "provider": {
+              "max_price": {
+                "prompt": 0,
+                "completion": 0,
+                "request": 0
+              },
+              "allow_fallbacks": true
+            },
+            "reasoning": {
+              "enabled": false
+            }
+          },
+          "provider": "openrouter_optimizer"
+        }
+      ],
+      "paid_calls": [
+        {
+          "text": "60",
+          "input_tokens": 77,
+          "output_tokens": 3,
+          "latency_ms": 762.9859000444412,
+          "request_id": "gen-1792830512-grryKFkZWltOMpHOVfzF",
+          "model": "nvidia/nemotron-3.5-lightning:free",
+          "finish_reason": "stop",
+          "usage_source": "provider",
+          "cost_usd": 0,
+          "provider_cost_usd": 0,
+          "reused": false,
+          "request_settings": {
+            "model": "nvidia/nemotron-3.5-lightning:free",
+            "stream": false,
+            "max_tokens": 2048,
+            "provider": {
+              "max_price": {
+                "prompt": 0,
+                "completion": 0,
+                "request": 0
+              },
+              "allow_fallbacks": true
+            },
+            "reasoning": {
+              "enabled": false
+            }
+          },
+          "provider": "openrouter_target"
+        },
+        {
+          "text": "{\n  \"A\": {\n    \"correctness\": 0,\n    \"completeness\": 0,\n    \"relevance\": 1,\n    \"instruction_following\": 1,\n    \"format_preservation\": 1,\n    \"factual_consistency\": 1\n  },\n  \"B\": {\n    \"correctness\": 0,\n    \"completeness\": 0,\n    \"relevance\": 1,\n    \"instruction_following\": 1,\n    \"format_preservation\": 1,\n    \"factual_consistency\": 1\n  },\n  \"notes\": \"Both answers A and B are incorrect. The correct average speed for the journey is 80 km/h. The formula for average speed when two equal distances are traveled at different speeds v1 and v2 is 2*v1*v2/(v1+v2). Plugging in 60 and 120 gives 2*60*120/(60+120) = 14400/180 = 80. Answer A (144) appears to be the product of the speeds rather than the correct average. Answer B (60) is simply the speed of the first leg, ignoring the second leg entirely.\"\n}",
+          "input_tokens": 214,
+          "output_tokens": 280,
+          "latency_ms": 3130.004500038922,
+          "request_id": "gen-1792830513-CrciiOh8lOgmVCuQo4Eb",
+          "model": "nvidia/nemotron-3.5-lightning:free",
+          "finish_reason": "stop",
+          "usage_source": "provider",
+          "cost_usd": 0,
+          "provider_cost_usd": 0,
+          "reused": false,
+          "request_settings": {
+            "model": "nvidia/nemotron-3.5-lightning:free",
+            "stream": false,
+            "max_tokens": 2048,
+            "provider": {
+              "max_price": {
+                "prompt": 0,
+                "completion": 0,
+                "request": 0
+              },
+              "allow_fallbacks": true
+            },
+            "reasoning": {
+              "enabled": false
+            }
+          },
+          "provider": "openrouter_target"
+        }
+      ],
+      "metadata": {
+        "study_id": "2664801b-55a6-4599-8b34-d5ed5bfdfb39",
+        "combination": "248e522a8229a0d05acc2227217adcca73a43c73858ebde3f8be3de61783501d"
+      },
+      "versions": {
+        "source": "0.2.0",
+        "optimizer_template_sha256": "ca021bef7848066ac41f57fbc4bdc0610524d2db632d901a91e2f6a69e5091ee",
+        "evaluator_template_sha256": "9849e943b0040a69bbbf4a144e7b7d349ea900bd63078a9f912d191eb7da90a8"
+      },
+      "configuration": {
+        "optimizer": {
+          "provider": "openrouter",
+          "model": "cohere/north-mini-code:free",
+          "base_url": "https://openrouter.ai/api/v1",
+          "input_price_per_million": 0,
+          "output_price_per_million": 0,
+          "enable_thinking": null,
+          "reasoning_effort": null
+        },
+        "target": {
+          "provider": "openrouter",
+          "model": "nvidia/nemotron-3.5-lightning:free",
+          "base_url": "https://openrouter.ai/api/v1",
+          "input_price_per_million": 0,
+          "output_price_per_million": 0,
+          "enable_thinking": null,
+          "reasoning_effort": null
+        },
+        "max_output": 2048,
+        "optimizer_max_output": 4096,
+        "target_temperature": null,
+        "optimizer_temperature": 0,
+        "skip_below": 100,
+        "min_quality": 0.95,
+        "tokenizer": {
+          "encoding": "o200k_base",
+          "fallback_used": true,
+          "scope": "text only; billed request usage comes from provider"
+        }
+      },
+      "metrics": {
+        "text_compression_pct": 20.895522388059707,
+        "chatgpt_input_reduction_pct": 14.444444444444443,
+        "optimizer_total_tokens": 390,
+        "baseline_total_tokens": 94,
+        "tokenz_total_tokens": 470,
+        "net_token_difference": -376,
+        "baseline_cost_usd": 0,
+        "tokenz_cost_usd": 0,
+        "cost_difference_usd": 0,
+        "optimizer_latency_ms": 1266.723299981095,
+        "baseline_chatgpt_latency_ms": 1117.9891000501812,
+        "optimized_chatgpt_latency_ms": 762.9859000444412,
+        "total_tokenz_latency_ms": 2029.7092000255361,
+        "quality_retention_pct": 100.0,
+        "baseline_quality": 0.6666666666666666,
+        "optimized_quality": 0.6666666666666666,
+        "research_spend_usd": 0,
+        "latency_difference_ms": 911.720099975355,
+        "baseline_quality_per_1000_tokens": 7.092198581560283,
+        "optimized_quality_per_1000_tokens": 1.4184397163120566
+      },
+      "billing_uncertain": false,
+      "optimization_decision": "accepted_for_evaluation_semantics_unverified",
+      "baseline": {
+        "text": "144",
+        "input_tokens": 90,
+        "output_tokens": 4,
+        "latency_ms": 1117.9891000501812,
+        "request_id": "gen-1792830135-SqWeusxu7lwmJSVz7lDd",
+        "model": "nvidia/nemotron-3.5-lightning:free",
+        "finish_reason": "stop",
+        "usage_source": "provider",
+        "cost_usd": 0,
+        "provider_cost_usd": 0,
+        "reused": true,
+        "request_settings": {
+          "model": "nvidia/nemotron-3.5-lightning:free",
+          "stream": false,
+          "max_tokens": 2048,
+          "provider": {
+            "max_price": {
+              "prompt": 0,
+              "completion": 0,
+              "request": 0
+            },
+            "allow_fallbacks": true
+          },
+          "reasoning": {
+            "enabled": false
+          }
+        },
+        "provider": "openrouter_target"
+      },
+      "optimized_response": {
+        "text": "60",
+        "input_tokens": 77,
+        "output_tokens": 3,
+        "latency_ms": 762.9859000444412,
+        "request_id": "gen-1792830512-grryKFkZWltOMpHOVfzF",
+        "model": "nvidia/nemotron-3.5-lightning:free",
+        "finish_reason": "stop",
+        "usage_source": "provider",
+        "cost_usd": 0,
+        "provider_cost_usd": 0,
+        "reused": false,
+        "request_settings": {
+          "model": "nvidia/nemotron-3.5-lightning:free",
+          "stream": false,
+          "max_tokens": 2048,
+          "provider": {
+            "max_price": {
+              "prompt": 0,
+              "completion": 0,
+              "request": 0
+            },
+            "allow_fallbacks": true
+          },
+          "reasoning": {
+            "enabled": false
+          }
+        },
+        "provider": "openrouter_target"
+      },
+      "automatic_checks": {
+        "baseline": false,
+        "optimized_response": false
+      },
+      "automatic_check_spec": {
+        "kind": "numeric",
+        "expected": 80
+      },
+      "judge_calls": [
+        {
+          "text": "{\n  \"A\": {\n    \"correctness\": 0,\n    \"completeness\": 0,\n    \"relevance\": 1,\n    \"instruction_following\": 1,\n    \"format_preservation\": 1,\n    \"factual_consistency\": 1\n  },\n  \"B\": {\n    \"correctness\": 0,\n    \"completeness\": 0,\n    \"relevance\": 1,\n    \"instruction_following\": 1,\n    \"format_preservation\": 1,\n    \"factual_consistency\": 1\n  },\n  \"notes\": \"Both answers A and B are incorrect. The correct average speed for the journey is 80 km/h. The formula for average speed when two equal distances are traveled at different speeds v1 and v2 is 2*v1*v2/(v1+v2). Plugging in 60 and 120 gives 2*60*120/(60+120) = 14400/180 = 80. Answer A (144) appears to be the product of the speeds rather than the correct average. Answer B (60) is simply the speed of the first leg, ignoring the second leg entirely.\"\n}",
+          "input_tokens": 214,
+          "output_tokens": 280,
+          "latency_ms": 3130.004500038922,
+          "request_id": "gen-1792830513-CrciiOh8lOgmVCuQo4Eb",
+          "model": "nvidia/nemotron-3.5-lightning:free",
+          "finish_reason": "stop",
+          "usage_source": "provider",
+          "cost_usd": 0,
+          "provider_cost_usd": 0,
+          "reused": false,
+          "request_settings": {
+            "model": "nvidia/nemotron-3.5-lightning:free",
+            "stream": false,
+            "max_tokens": 2048,
+            "provider": {
+              "max_price": {
+                "prompt": 0,
+                "completion": 0,
+                "request": 0
+              },
+              "allow_fallbacks": true
+            },
+            "reasoning": {
+              "enabled": false
+            }
+          },
+          "provider": "openrouter_target"
+        }
+      ],
+      "evaluation_history": [
+        {
+          "method": "llm_judge",
+          "evaluator": "nvidia/nemotron-3.5-lightning:free",
+          "baseline": {
+            "correctness": 0,
+            "completeness": 0,
+            "relevance": 1,
+            "instruction_following": 1,
+            "format_preservation": 1,
+            "factual_consistency": 1
+          },
+          "optimized": {
+            "correctness": 0,
+            "completeness": 0,
+            "relevance": 1,
+            "instruction_following": 1,
+            "format_preservation": 1,
+            "factual_consistency": 1
+          },
+          "baseline_quality": 0.6666666666666666,
+          "optimized_quality": 0.6666666666666666,
+          "quality_retention_pct": 100.0,
+          "notes": "Both answers A and B are incorrect. The correct average speed for the journey is 80 km/h. The formula for average speed when two equal distances are traveled at different speeds v1 and v2 is 2*v1*v2/(v1+v2). Plugging in 60 and 120 gives 2*60*120/(60+120) = 14400/180 = 80. Answer A (144) appears to be the product of the speeds rather than the correct average. Answer B (60) is simply the speed of the first leg, ignoring the second leg entirely.",
+          "caveat": "Same target model family; judge bias remains. Human review recommended."
+        }
+      ],
+      "evaluation": {
+        "method": "llm_judge",
+        "evaluator": "nvidia/nemotron-3.5-lightning:free",
+        "baseline": {
+          "correctness": 0,
+          "completeness": 0,
+          "relevance": 1,
+          "instruction_following": 1,
+          "format_preservation": 1,
+          "factual_consistency": 1
+        },
+        "optimized": {
+          "correctness": 0,
+          "completeness": 0,
+          "relevance": 1,
+          "instruction_following": 1,
+          "format_preservation": 1,
+          "factual_consistency": 1
+        },
+        "baseline_quality": 0.6666666666666666,
+        "optimized_quality": 0.6666666666666666,
+        "quality_retention_pct": 100.0,
+        "notes": "Both answers A and B are incorrect. The correct average speed for the journey is 80 km/h. The formula for average speed when two equal distances are traveled at different speeds v1 and v2 is 2*v1*v2/(v1+v2). Plugging in 60 and 120 gives 2*60*120/(60+120) = 14400/180 = 80. Answer A (144) appears to be the product of the speeds rather than the correct average. Answer B (60) is simply the speed of the first leg, ignoring the second leg entirely.",
+        "caveat": "Same target model family; judge bias remains. Human review recommended."
+      }
+    }
+  ],
+  "status": "completed",
+  "min_quality": 0.95,
+  "attempt_history": [
+    {
+      "id": "12d7df68-c052-4dee-8c82-d08c66d6d920",
+      "created_at": "2026-10-24T08:25:47.217763+00:00",
+      "prompt_id": "extraction",
+      "category": "extraction",
+      "original_prompt": "Hi, please help me extract the names from this fictional note. Return a JSON array only, without explanation or code fences. Preserve the order and keep duplicates. The note is: Ada met Ben, and Ada returned later. Thank you very much.",
+      "original_prompt_tokens": 50,
+      "optimized_prompt": null,
+      "optimized_prompt_tokens": null,
+      "length_group": "short",
+      "optimizer_provider": "openrouter_optimizer",
+      "optimizer_model": "cohere/north-mini-code:free",
+      "strategy": "structured",
+      "target_ratio": 0.75,
+      "adaptive": false,
+      "demo": false,
+      "status": "failed",
+      "stage": "optimizer",
+      "failures": [
+        "PROVIDER_UNAVAILABLE"
+      ],
+      "target_provider": "openrouter",
+      "target_model": "nvidia/nemotron-3.5-lightning:free",
+      "free_only": true,
+      "optimizer_calls": [],
+      "paid_calls": [],
+      "metadata": {
+        "study_id": "2664801b-55a6-4599-8b34-d5ed5bfdfb39",
+        "combination": "3682defbf9951872a31db4422ffa4cd4565d73f27203158ad7f973b58af40aa4"
+      },
+      "versions": {
+        "source": "0.2.0",
+        "optimizer_template_sha256": "ca021bef7848066ac41f57fbc4bdc0610524d2db632d901a91e2f6a69e5091ee"
+      },
+      "configuration": {
+        "optimizer": {
+          "provider": "openrouter",
+          "model": "cohere/north-mini-code:free",
+          "base_url": "https://openrouter.ai/api/v1",
+          "input_price_per_million": 0,
+          "output_price_per_million": 0,
+          "enable_thinking": null,
+          "reasoning_effort": null
+        },
+        "target": {
+          "provider": "openrouter",
+          "model": "nvidia/nemotron-3.5-lightning:free",
+          "base_url": "https://openrouter.ai/api/v1",
+          "input_price_per_million": 0,
+          "output_price_per_million": 0,
+          "enable_thinking": null,
+          "reasoning_effort": null
+        },
+        "max_output": 2048,
+        "optimizer_max_output": 4096,
+        "target_temperature": null,
+        "optimizer_temperature": 0,
+        "skip_below": 100,
+        "min_quality": 0.95,
+        "tokenizer": {
+          "encoding": "o200k_base",
+          "fallback_used": true,
+          "scope": "text only; billed request usage comes from provider"
+        }
+      },
+      "metrics": {
+        "text_compression_pct": null,
+        "chatgpt_input_reduction_pct": null,
+        "optimizer_total_tokens": 0,
+        "baseline_total_tokens": null,
+        "tokenz_total_tokens": null,
+        "net_token_difference": null,
+        "baseline_cost_usd": null,
+        "tokenz_cost_usd": null,
+        "cost_difference_usd": null,
+        "optimizer_latency_ms": 0,
+        "baseline_chatgpt_latency_ms": null,
+        "optimized_chatgpt_latency_ms": null,
+        "total_tokenz_latency_ms": null,
+        "quality_retention_pct": null,
+        "baseline_quality": null,
+        "optimized_quality": null,
+        "research_spend_usd": 0,
+        "latency_difference_ms": null,
+        "baseline_quality_per_1000_tokens": null,
+        "optimized_quality_per_1000_tokens": null
+      },
+      "billing_uncertain": false,
+      "error": {
+        "code": "PROVIDER_UNAVAILABLE",
+        "message": "Could not connect to provider.",
+        "stage": "optimizer"
+      }
+    },
+    {
+      "id": "0364200b-9b61-4cb5-ba1e-69e1fe2a9361",
+      "created_at": "2026-10-24T08:26:07.606303+00:00",
+      "prompt_id": "extraction",
+      "category": "extraction",
+      "original_prompt": "Hi, please help me extract the names from this fictional note. Return a JSON array only, without explanation or code fences. Preserve the order and keep duplicates. The note is: Ada met Ben, and Ada returned later. Thank you very much.",
+      "original_prompt_tokens": 50,
+      "optimized_prompt": null,
+      "optimized_prompt_tokens": null,
+      "length_group": "short",
+      "optimizer_provider": "openrouter_optimizer",
+      "optimizer_model": "cohere/north-mini-code:free",
+      "strategy": "structured",
+      "target_ratio": 0.75,
+      "adaptive": false,
+      "demo": false,
+      "status": "failed",
+      "stage": "optimizer",
+      "failures": [
+        "PROVIDER_UNAVAILABLE"
+      ],
+      "target_provider": "openrouter",
+      "target_model": "cohere/north-mini-code:free",
+      "free_only": true,
+      "optimizer_calls": [],
+      "paid_calls": [],
+      "metadata": {
+        "study_id": "2664801b-55a6-4599-8b34-d5ed5bfdfb39",
+        "combination": "4d11ce1bf47d27bbdcf383801a38fd2260133da17c57fd1ef5c48c98ee1b9a00"
+      },
+      "versions": {
+        "source": "0.2.0",
+        "optimizer_template_sha256": "ca021bef7848066ac41f57fbc4bdc0610524d2db632d901a91e2f6a69e5091ee"
+      },
+      "configuration": {
+        "optimizer": {
+          "provider": "openrouter",
+          "model": "cohere/north-mini-code:free",
+          "base_url": "https://openrouter.ai/api/v1",
+          "input_price_per_million": 0,
+          "output_price_per_million": 0,
+          "enable_thinking": null,
+          "reasoning_effort": null
+        },
+        "target": {
+          "provider": "openrouter",
+          "model": "cohere/north-mini-code:free",
+          "base_url": "https://openrouter.ai/api/v1",
+          "input_price_per_million": 0,
+          "output_price_per_million": 0,
+          "enable_thinking": null,
+          "reasoning_effort": null
+        },
+        "max_output": 2048,
+        "optimizer_max_output": 4096,
+        "target_temperature": null,
+        "optimizer_temperature": 0,
+        "skip_below": 100,
+        "min_quality": 0.95,
+        "tokenizer": {
+          "encoding": "o200k_base",
+          "fallback_used": true,
+          "scope": "text only; billed request usage comes from provider"
+        }
+      },
+      "metrics": {
+        "text_compression_pct": null,
+        "chatgpt_input_reduction_pct": null,
+        "optimizer_total_tokens": 0,
+        "baseline_total_tokens": null,
+        "tokenz_total_tokens": null,
+        "net_token_difference": null,
+        "baseline_cost_usd": null,
+        "tokenz_cost_usd": null,
+        "cost_difference_usd": null,
+        "optimizer_latency_ms": 0,
+        "baseline_chatgpt_latency_ms": null,
+        "optimized_chatgpt_latency_ms": null,
+        "total_tokenz_latency_ms": null,
+        "quality_retention_pct": null,
+        "baseline_quality": null,
+        "optimized_quality": null,
+        "research_spend_usd": 0,
+        "latency_difference_ms": null,
+        "baseline_quality_per_1000_tokens": null,
+        "optimized_quality_per_1000_tokens": null
+      },
+      "billing_uncertain": false,
+      "error": {
+        "code": "PROVIDER_UNAVAILABLE",
+        "message": "Could not connect to provider.",
+        "stage": "optimizer"
+      }
+    },
+    {
+      "id": "2ca8a8e7-707d-41a9-868b-b56e6e4dfd12",
+      "created_at": "2026-10-24T08:26:17.678104+00:00",
+      "prompt_id": "reasoning",
+      "category": "reasoning",
+      "original_prompt": "Hi, I would like you to please solve this arithmetic question carefully. A train travels 120 km at 60 km/h and then another 120 km at 120 km/h. What is its average speed in km/h for the entire journey? Return only the numeric value, with no unit or explanation. Thank you very much.",
+      "original_prompt_tokens": 67,
+      "optimized_prompt": null,
+      "optimized_prompt_tokens": null,
+      "length_group": "short",
+      "optimizer_provider": "openrouter_optimizer",
+      "optimizer_model": "cohere/north-mini-code:free",
+      "strategy": "structured",
+      "target_ratio": 0.75,
+      "adaptive": false,
+      "demo": false,
+      "status": "failed",
+      "stage": "optimizer",
+      "failures": [
+        "PROVIDER_UNAVAILABLE"
+      ],
+      "target_provider": "openrouter",
+      "target_model": "nvidia/nemotron-3.5-lightning:free",
+      "free_only": true,
+      "optimizer_calls": [],
+      "paid_calls": [],
+      "metadata": {
+        "study_id": "2664801b-55a6-4599-8b34-d5ed5bfdfb39",
+        "combination": "248e522a8229a0d05acc2227217adcca73a43c73858ebde3f8be3de61783501d"
+      },
+      "versions": {
+        "source": "0.2.0",
+        "optimizer_template_sha256": "ca021bef7848066ac41f57fbc4bdc0610524d2db632d901a91e2f6a69e5091ee"
+      },
+      "configuration": {
+        "optimizer": {
+          "provider": "openrouter",
+          "model": "cohere/north-mini-code:free",
+          "base_url": "https://openrouter.ai/api/v1",
+          "input_price_per_million": 0,
+          "output_price_per_million": 0,
+          "enable_thinking": null,
+          "reasoning_effort": null
+        },
+        "target": {
+          "provider": "openrouter",
+          "model": "nvidia/nemotron-3.5-lightning:free",
+          "base_url": "https://openrouter.ai/api/v1",
+          "input_price_per_million": 0,
+          "output_price_per_million": 0,
+          "enable_thinking": null,
+          "reasoning_effort": null
+        },
+        "max_output": 2048,
+        "optimizer_max_output": 4096,
+        "target_temperature": null,
+        "optimizer_temperature": 0,
+        "skip_below": 100,
+        "min_quality": 0.95,
+        "tokenizer": {
+          "encoding": "o200k_base",
+          "fallback_used": true,
+          "scope": "text only; billed request usage comes from provider"
+        }
+      },
+      "metrics": {
+        "text_compression_pct": null,
+        "chatgpt_input_reduction_pct": null,
+        "optimizer_total_tokens": 0,
+        "baseline_total_tokens": null,
+        "tokenz_total_tokens": null,
+        "net_token_difference": null,
+        "baseline_cost_usd": null,
+        "tokenz_cost_usd": null,
+        "cost_difference_usd": null,
+        "optimizer_latency_ms": 0,
+        "baseline_chatgpt_latency_ms": null,
+        "optimized_chatgpt_latency_ms": null,
+        "total_tokenz_latency_ms": null,
+        "quality_retention_pct": null,
+        "baseline_quality": null,
+        "optimized_quality": null,
+        "research_spend_usd": 0,
+        "latency_difference_ms": null,
+        "baseline_quality_per_1000_tokens": null,
+        "optimized_quality_per_1000_tokens": null
+      },
+      "billing_uncertain": false,
+      "error": {
+        "code": "PROVIDER_UNAVAILABLE",
+        "message": "Could not connect to provider.",
+        "stage": "optimizer"
+      }
+    }
+  ]
+}

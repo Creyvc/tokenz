@@ -1,0 +1,14 @@
+{
+  "status": "completed",
+  "study_id": "e5036081-cd52-4872-b29a-7627defaece5",
+  "models": [
+    "qwen/qwen3.8-27b",
+    "gemini-3.6-flash"
+  ],
+  "interface_errors": 0,
+  "comparison_cards": 2,
+  "response_sections_collapsed": true,
+  "raw_json_controls": 0,
+  "repeat_generation_requests": 0,
+  "total_request_cost_usd": 0
+}

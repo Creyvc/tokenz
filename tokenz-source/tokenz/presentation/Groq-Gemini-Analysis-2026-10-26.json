@@ -1,0 +1,712 @@
+{
+  "id": "e5036081-cd52-4872-b29a-7627defaece5",
+  "signature": "40dca7f36f4e6d98f6e2568f40bbbe001b22c5d9d256f091d632f0209bfd22c0",
+  "created_at": "2026-10-26T09:37:36.718011+00:00",
+  "status": "completed",
+  "demo": false,
+  "workflow": "groq_gemini_v1",
+  "prompts": [
+    {
+      "id": "my_prompt",
+      "category": "custom",
+      "prompt": "Please write a short, friendly email to a customer explaining that their order will arrive on Friday instead of Wednesday. Apologize once, keep it under 100 words, and do not invent a reason for the delay. Please make sure to mention the new delivery day clearly. I would like the email to have a subject line and a polite closing. Please do not add discounts or promises that were not mentioned above."
+    }
+  ],
+  "optimizers": [
+    "qwen/qwen3.8-27b",
+    "gemini-3.6-flash"
+  ],
+  "targets": [
+    "qwen/qwen3.8-27b",
+    "gemini-3.6-flash"
+  ],
+  "judge": true,
+  "planned_comparisons": 2,
+  "min_quality": 0.95,
+  "experiments": [
+    {
+      "id": "d48a1f47-6ca1-4210-97b0-676bcd1a8fd4",
+      "created_at": "2026-10-26T09:37:37.230395+00:00",
+      "prompt_id": "my_prompt",
+      "category": "custom",
+      "original_prompt": "Please write a short, friendly email to a customer explaining that their order will arrive on Friday instead of Wednesday. Apologize once, keep it under 100 words, and do not invent a reason for the delay. Please make sure to mention the new delivery day clearly. I would like the email to have a subject line and a polite closing. Please do not add discounts or promises that were not mentioned above.",
+      "original_prompt_tokens": 83,
+      "optimized_prompt": "Write a friendly email (<100 words) to a customer stating their order arrives Friday instead of Wednesday. Include a subject line and polite closing. Apologize once. Do not invent delay reasons, offer discounts, or make unmentioned promises.",
+      "optimized_prompt_tokens": 48,
+      "length_group": "short",
+      "optimizer_provider": "openrouter_optimizer",
+      "optimizer_model": "qwen/qwen3.8-27b",
+      "strategy": "structured",
+      "target_ratio": 0.75,
+      "adaptive": false,
+      "demo": false,
+      "status": "completed",
+      "stage": "done",
+      "failures": [],
+      "target_provider": "groq",
+      "target_model": "qwen/qwen3.8-27b",
+      "free_only": true,
+      "optimizer_calls": [
+        {
+          "text": "Write a friendly email (<100 words) to a customer stating their order arrives Friday instead of Wednesday. Include a subject line and polite closing. Apologize once. Do not invent delay reasons, offer discounts, or make unmentioned promises.",
+          "input_tokens": 288,
+          "output_tokens": 51,
+          "latency_ms": 798.8957000197843,
+          "request_id": "req_01m5vs57g4em7sq00am65t5adp",
+          "model": "qwen/qwen3.8-27b",
+          "finish_reason": "stop",
+          "usage_source": "provider",
+          "cost_usd": 0,
+          "provider_cost_usd": null,
+          "reused": false,
+          "request_settings": {
+            "model": "qwen/qwen3.8-27b",
+            "stream": false,
+            "max_completion_tokens": 4096,
+            "temperature": 0.1,
+            "reasoning_effort": "none"
+          },
+          "provider": "openrouter_optimizer",
+          "cost_source": "user_confirmed_free_tier"
+        }
+      ],
+      "paid_calls": [
+        {
+          "text": "Subject: Update on Your Delivery Date\n\nHi [Customer Name],\n\nI hope you’re doing well. I’m writing to let you know that your order is scheduled to arrive on **Friday** instead of Wednesday.\n\nI’m sorry for any inconvenience this change may cause. We are working hard to ensure your package gets to you as quickly as possible.\n\nPlease let us know if you have any questions.\n\nBest regards,\n\n[Your Name]\n[Your Company]",
+          "input_tokens": 97,
+          "output_tokens": 97,
+          "latency_ms": 2080.98010008689,
+          "request_id": "req_01m5vs56czeytbvez9bmgy2d1p",
+          "model": "qwen/qwen3.8-27b",
+          "finish_reason": "stop",
+          "usage_source": "provider",
+          "cost_usd": 0,
+          "provider_cost_usd": null,
+          "reused": false,
+          "request_settings": {
+            "model": "qwen/qwen3.8-27b",
+            "stream": false,
+            "max_completion_tokens": 2048,
+            "reasoning_effort": "none"
+          },
+          "provider": "openrouter_target",
+          "cost_source": "user_confirmed_free_tier"
+        },
+        {
+          "text": "Write a friendly email (<100 words) to a customer stating their order arrives Friday instead of Wednesday. Include a subject line and polite closing. Apologize once. Do not invent delay reasons, offer discounts, or make unmentioned promises.",
+          "input_tokens": 288,
+          "output_tokens": 51,
+          "latency_ms": 798.8957000197843,
+          "request_id": "req_01m5vs57g4em7sq00am65t5adp",
+          "model": "qwen/qwen3.8-27b",
+          "finish_reason": "stop",
+          "usage_source": "provider",
+          "cost_usd": 0,
+          "provider_cost_usd": null,
+          "reused": false,
+          "request_settings": {
+            "model": "qwen/qwen3.8-27b",
+            "stream": false,
+            "max_completion_tokens": 4096,
+            "temperature": 0.1,
+            "reasoning_effort": "none"
+          },
+          "provider": "openrouter_optimizer",
+          "cost_source": "user_confirmed_free_tier"
+        },
+        {
+          "text": "Subject: Update on your delivery schedule\n\nHi [Customer Name],\n\nQuick update on your order: it will now arrive on Friday instead of Wednesday. I apologize for the change in your expected delivery day.\n\nPlease let us know if you have any questions.\n\nBest regards,\n\n[Your Name]\n[Your Company]",
+          "input_tokens": 62,
+          "output_tokens": 67,
+          "latency_ms": 776.4549000421539,
+          "request_id": "req_01m5vs588se0xrvxsgyk7p3qtc",
+          "model": "qwen/qwen3.8-27b",
+          "finish_reason": "stop",
+          "usage_source": "provider",
+          "cost_usd": 0,
+          "provider_cost_usd": null,
+          "reused": false,
+          "request_settings": {
+            "model": "qwen/qwen3.8-27b",
+            "stream": false,
+            "max_completion_tokens": 2048,
+            "reasoning_effort": "none"
+          },
+          "provider": "openrouter_target",
+          "cost_source": "user_confirmed_free_tier"
+        },
+        {
+          "text": "{\"A\": {\"correctness\": 10, \"completeness\": 10, \"relevance\": 10, \"instruction_following\": 10, \"format_preservation\": 10, \"factual_consistency\": 10}, \"B\": {\"correctness\": 0, \"completeness\": 9, \"relevance\": 8, \"instruction_following\": 2, \"format_preservation\": 9, \"factual_consistency\": 3}, \"notes\": \"Answer A is fully compliant with all instructions. It defines the new day (Friday), apologizes exactly once, remains under 100 words (approx 45 words), and avoids inventing reasons, discounts, or additional promises. Answer B violates the single-apology rule (contains 'I'm sorry' and strong apologetic framing), introduces an unauthorized reason/explanation ('We are working hard...'), and is significantly longer (approx 80+ words), approaching the limit but primarily failing the 'do not invent a reason' and apologetic constraints.\"}",
+          "input_tokens": 407,
+          "output_tokens": 227,
+          "latency_ms": 1411.5335999522358,
+          "request_id": "req_01m5vs5972ekbbd35wb3ad5f0m",
+          "model": "qwen/qwen3.8-27b",
+          "finish_reason": "stop",
+          "usage_source": "provider",
+          "cost_usd": 0,
+          "provider_cost_usd": null,
+          "reused": false,
+          "request_settings": {
+            "model": "qwen/qwen3.8-27b",
+            "stream": false,
+            "max_completion_tokens": 2048,
+            "reasoning_effort": "none"
+          },
+          "provider": "openrouter_target",
+          "cost_source": "user_confirmed_free_tier"
+        }
+      ],
+      "metadata": {
+        "study_id": "e5036081-cd52-4872-b29a-7627defaece5",
+        "combination": "qwen/qwen3.8-27b"
+      },
+      "versions": {
+        "source": "0.2.0",
+        "optimizer_template_sha256": "0eafa308befefb1c608d0997007167e5fd832870fda99adc0788b3baf8f5ff56",
+        "evaluator_template_sha256": "9849e943b0040a69bbbf4a144e7b7d349ea900bd63078a9f912d191eb7da90a8"
+      },
+      "configuration": {
+        "optimizer": {
+          "provider": "groq",
+          "model": "qwen/qwen3.8-27b",
+          "base_url": "https://api.groq.com/openai/v1",
+          "input_price_per_million": 0,
+          "output_price_per_million": 0,
+          "enable_thinking": null,
+          "reasoning_effort": "none",
+          "free_tier_confirmed": true
+        },
+        "target": {
+          "provider": "groq",
+          "model": "qwen/qwen3.8-27b",
+          "base_url": "https://api.groq.com/openai/v1",
+          "input_price_per_million": 0,
+          "output_price_per_million": 0,
+          "enable_thinking": null,
+          "reasoning_effort": "none",
+          "free_tier_confirmed": true
+        },
+        "max_output": 2048,
+        "optimizer_max_output": 4096,
+        "target_temperature": null,
+        "optimizer_temperature": 0.1,
+        "skip_below": 100,
+        "min_quality": 0.95,
+        "tokenizer": {
+          "encoding": "o200k_base",
+          "fallback_used": true,
+          "scope": "text only; billed request usage comes from provider"
+        }
+      },
+      "metrics": {
+        "text_compression_pct": 42.168674698795186,
+        "chatgpt_input_reduction_pct": 36.08247422680412,
+        "optimizer_total_tokens": 339,
+        "baseline_total_tokens": 194,
+        "tokenz_total_tokens": 468,
+        "net_token_difference": -274,
+        "baseline_cost_usd": 0,
+        "tokenz_cost_usd": 0,
+        "cost_difference_usd": 0,
+        "optimizer_latency_ms": 798.8957000197843,
+        "baseline_chatgpt_latency_ms": 2080.98010008689,
+        "optimized_chatgpt_latency_ms": 776.4549000421539,
+        "total_tokenz_latency_ms": 1575.3506000619382,
+        "quality_retention_pct": 193.54838709677418,
+        "baseline_quality": 5.166666666666667,
+        "optimized_quality": 10,
+        "research_spend_usd": 0,
+        "latency_difference_ms": -505.629500024952,
+        "baseline_quality_per_1000_tokens": 26.632302405498283,
+        "optimized_quality_per_1000_tokens": 21.367521367521366
+      },
+      "optimizer_prompt_version": "optimizer_prompt_v1",
+      "billing_uncertain": false,
+      "baseline": {
+        "text": "Subject: Update on Your Delivery Date\n\nHi [Customer Name],\n\nI hope you’re doing well. I’m writing to let you know that your order is scheduled to arrive on **Friday** instead of Wednesday.\n\nI’m sorry for any inconvenience this change may cause. We are working hard to ensure your package gets to you as quickly as possible.\n\nPlease let us know if you have any questions.\n\nBest regards,\n\n[Your Name]\n[Your Company]",
+        "input_tokens": 97,
+        "output_tokens": 97,
+        "latency_ms": 2080.98010008689,
+        "request_id": "req_01m5vs56czeytbvez9bmgy2d1p",
+        "model": "qwen/qwen3.8-27b",
+        "finish_reason": "stop",
+        "usage_source": "provider",
+        "cost_usd": 0,
+        "provider_cost_usd": null,
+        "reused": false,
+        "request_settings": {
+          "model": "qwen/qwen3.8-27b",
+          "stream": false,
+          "max_completion_tokens": 2048,
+          "reasoning_effort": "none"
+        },
+        "provider": "openrouter_target",
+        "cost_source": "user_confirmed_free_tier"
+      },
+      "optimization_decision": "accepted_for_evaluation_semantics_unverified",
+      "optimized_response": {
+        "text": "Subject: Update on your delivery schedule\n\nHi [Customer Name],\n\nQuick update on your order: it will now arrive on Friday instead of Wednesday. I apologize for the change in your expected delivery day.\n\nPlease let us know if you have any questions.\n\nBest regards,\n\n[Your Name]\n[Your Company]",
+        "input_tokens": 62,
+        "output_tokens": 67,
+        "latency_ms": 776.4549000421539,
+        "request_id": "req_01m5vs588se0xrvxsgyk7p3qtc",
+        "model": "qwen/qwen3.8-27b",
+        "finish_reason": "stop",
+        "usage_source": "provider",
+        "cost_usd": 0,
+        "provider_cost_usd": null,
+        "reused": false,
+        "request_settings": {
+          "model": "qwen/qwen3.8-27b",
+          "stream": false,
+          "max_completion_tokens": 2048,
+          "reasoning_effort": "none"
+        },
+        "provider": "openrouter_target",
+        "cost_source": "user_confirmed_free_tier"
+      },
+      "judge_calls": [
+        {
+          "text": "{\"A\": {\"correctness\": 10, \"completeness\": 10, \"relevance\": 10, \"instruction_following\": 10, \"format_preservation\": 10, \"factual_consistency\": 10}, \"B\": {\"correctness\": 0, \"completeness\": 9, \"relevance\": 8, \"instruction_following\": 2, \"format_preservation\": 9, \"factual_consistency\": 3}, \"notes\": \"Answer A is fully compliant with all instructions. It defines the new day (Friday), apologizes exactly once, remains under 100 words (approx 45 words), and avoids inventing reasons, discounts, or additional promises. Answer B violates the single-apology rule (contains 'I'm sorry' and strong apologetic framing), introduces an unauthorized reason/explanation ('We are working hard...'), and is significantly longer (approx 80+ words), approaching the limit but primarily failing the 'do not invent a reason' and apologetic constraints.\"}",
+          "input_tokens": 407,
+          "output_tokens": 227,
+          "latency_ms": 1411.5335999522358,
+          "request_id": "req_01m5vs5972ekbbd35wb3ad5f0m",
+          "model": "qwen/qwen3.8-27b",
+          "finish_reason": "stop",
+          "usage_source": "provider",
+          "cost_usd": 0,
+          "provider_cost_usd": null,
+          "reused": false,
+          "request_settings": {
+            "model": "qwen/qwen3.8-27b",
+            "stream": false,
+            "max_completion_tokens": 2048,
+            "reasoning_effort": "none"
+          },
+          "provider": "openrouter_target",
+          "cost_source": "user_confirmed_free_tier"
+        }
+      ],
+      "evaluation_history": [
+        {
+          "method": "llm_judge",
+          "evaluator": "qwen/qwen3.8-27b",
+          "baseline": {
+            "correctness": 0,
+            "completeness": 9,
+            "relevance": 8,
+            "instruction_following": 2,
+            "format_preservation": 9,
+            "factual_consistency": 3
+          },
+          "optimized": {
+            "correctness": 10,
+            "completeness": 10,
+            "relevance": 10,
+            "instruction_following": 10,
+            "format_preservation": 10,
+            "factual_consistency": 10
+          },
+          "baseline_quality": 5.166666666666667,
+          "optimized_quality": 10,
+          "quality_retention_pct": 193.54838709677418,
+          "notes": "Answer A is fully compliant with all instructions. It defines the new day (Friday), apologizes exactly once, remains under 100 words (approx 45 words), and avoids inventing reasons, discounts, or additional promises. Answer B violates the single-apology rule (contains 'I'm sorry' and strong apologetic framing), introduces an unauthorized reason/explanation ('We are working hard...'), and is significantly longer (approx 80+ words), approaching the limit but primarily failing the 'do not invent a reason' and apologetic constraints.",
+          "caveat": "Same target model family; judge bias remains. Human review recommended."
+        }
+      ],
+      "evaluation": {
+        "method": "llm_judge",
+        "evaluator": "qwen/qwen3.8-27b",
+        "baseline": {
+          "correctness": 0,
+          "completeness": 9,
+          "relevance": 8,
+          "instruction_following": 2,
+          "format_preservation": 9,
+          "factual_consistency": 3
+        },
+        "optimized": {
+          "correctness": 10,
+          "completeness": 10,
+          "relevance": 10,
+          "instruction_following": 10,
+          "format_preservation": 10,
+          "factual_consistency": 10
+        },
+        "baseline_quality": 5.166666666666667,
+        "optimized_quality": 10,
+        "quality_retention_pct": 193.54838709677418,
+        "notes": "Answer A is fully compliant with all instructions. It defines the new day (Friday), apologizes exactly once, remains under 100 words (approx 45 words), and avoids inventing reasons, discounts, or additional promises. Answer B violates the single-apology rule (contains 'I'm sorry' and strong apologetic framing), introduces an unauthorized reason/explanation ('We are working hard...'), and is significantly longer (approx 80+ words), approaching the limit but primarily failing the 'do not invent a reason' and apologetic constraints.",
+        "caveat": "Same target model family; judge bias remains. Human review recommended."
+      }
+    },
+    {
+      "id": "0aa4a45a-6d1f-4eec-b687-49549201b606",
+      "created_at": "2026-10-26T09:37:42.426329+00:00",
+      "prompt_id": "my_prompt",
+      "category": "custom",
+      "original_prompt": "Please write a short, friendly email to a customer explaining that their order will arrive on Friday instead of Wednesday. Apologize once, keep it under 100 words, and do not invent a reason for the delay. Please make sure to mention the new delivery day clearly. I would like the email to have a subject line and a polite closing. Please do not add discounts or promises that were not mentioned above.",
+      "original_prompt_tokens": 83,
+      "optimized_prompt": "Please write a short, friendly email to a customer explaining that their order will arrive on Friday instead of Wednesday. Apologize once, keep it under 100 words, and do not invent a reason for the delay. Please make sure to mention the new delivery day clearly. I would like the email to have a subject line and a polite closing. Please do not add discounts or promises that were not mentioned above.",
+      "optimized_prompt_tokens": 83,
+      "length_group": "short",
+      "optimizer_provider": "openrouter_optimizer",
+      "optimizer_model": "gemini-3.6-flash",
+      "strategy": "structured",
+      "target_ratio": 0.75,
+      "adaptive": false,
+      "demo": false,
+      "status": "completed",
+      "stage": "done",
+      "failures": [
+        "CRITICAL_NUMBER_LOST"
+      ],
+      "target_provider": "gemini",
+      "target_model": "gemini-3.6-flash",
+      "free_only": true,
+      "optimizer_calls": [
+        {
+          "text": "Subject: Update on your order delivery date\n\nHi [Customer Name],\n\nYour order delivery has been rescheduled and will now arrive on Friday instead of Wednesday. We apologize for this change. \n\nIf you have any questions, please feel free to reach out.\n\nBest regards,  \n[Your Name]",
+          "input_tokens": 276,
+          "output_tokens": 62,
+          "latency_ms": 2262.5620999606326,
+          "request_id": "dh_favH2N5msz7sP64ah0Q4",
+          "model": "gemini-3.6-flash",
+          "finish_reason": "stop",
+          "usage_source": "provider",
+          "cost_usd": 0,
+          "provider_cost_usd": null,
+          "reused": false,
+          "request_settings": {
+            "model": "gemini-3.6-flash",
+            "maxOutputTokens": 4096,
+            "temperature": 0.1,
+            "thinkingConfig": {
+              "thinkingLevel": "low"
+            }
+          },
+          "provider": "openrouter_optimizer",
+          "cost_source": "user_confirmed_free_tier"
+        }
+      ],
+      "paid_calls": [
+        {
+          "text": "Subject: Update regarding your order delivery date\n\nHi [Customer Name],\n\nThank you for your recent order! We are writing to let you know that your estimated delivery date has changed. Instead of arriving on Wednesday, your package is now scheduled to arrive on **Friday**. \n\nWe apologize for this delay and any inconvenience it may cause. We really appreciate your patience, and we look forward to getting your items to you soon. \n\nBest regards,\n\n[Your Name]  \n[Company Name]",
+          "input_tokens": 86,
+          "output_tokens": 478,
+          "latency_ms": 15737.250300007872,
+          "request_id": "Zx_farixA7HAg8UPkoi6wQk",
+          "model": "gemini-3.6-flash",
+          "finish_reason": "stop",
+          "usage_source": "provider",
+          "cost_usd": 0,
+          "provider_cost_usd": null,
+          "reused": false,
+          "request_settings": {
+            "model": "gemini-3.6-flash",
+            "maxOutputTokens": 2048,
+            "thinkingConfig": {
+              "thinkingLevel": "low"
+            }
+          },
+          "provider": "openrouter_target",
+          "cost_source": "user_confirmed_free_tier"
+        },
+        {
+          "text": "Subject: Update on your order delivery date\n\nHi [Customer Name],\n\nYour order delivery has been rescheduled and will now arrive on Friday instead of Wednesday. We apologize for this change. \n\nIf you have any questions, please feel free to reach out.\n\nBest regards,  \n[Your Name]",
+          "input_tokens": 276,
+          "output_tokens": 62,
+          "latency_ms": 2262.5620999606326,
+          "request_id": "dh_favH2N5msz7sP64ah0Q4",
+          "model": "gemini-3.6-flash",
+          "finish_reason": "stop",
+          "usage_source": "provider",
+          "cost_usd": 0,
+          "provider_cost_usd": null,
+          "reused": false,
+          "request_settings": {
+            "model": "gemini-3.6-flash",
+            "maxOutputTokens": 4096,
+            "temperature": 0.1,
+            "thinkingConfig": {
+              "thinkingLevel": "low"
+            }
+          },
+          "provider": "openrouter_optimizer",
+          "cost_source": "user_confirmed_free_tier"
+        },
+        {
+          "text": "{\"A\": {\"correctness\": 10, \"completeness\": 10, \"relevance\": 10, \"instruction_following\": 10, \"format_preservation\": 10, \"factual_consistency\": 10}, \"B\": {\"correctness\": 10, \"completeness\": 10, \"relevance\": 10, \"instruction_following\": 10, \"format_preservation\": 10, \"factual_consistency\": 10}, \"notes\": \"Both answers are identical and successfully follow all instructions, constraints, and negative constraints.\"}",
+          "input_tokens": 432,
+          "output_tokens": 316,
+          "latency_ms": 12642.495800042525,
+          "request_id": "eR_faryUCL7djuMP6pWh6AE",
+          "model": "gemini-3.6-flash",
+          "finish_reason": "stop",
+          "usage_source": "provider",
+          "cost_usd": 0,
+          "provider_cost_usd": null,
+          "reused": false,
+          "request_settings": {
+            "model": "gemini-3.6-flash",
+            "maxOutputTokens": 2048,
+            "thinkingConfig": {
+              "thinkingLevel": "low"
+            }
+          },
+          "provider": "openrouter_target",
+          "cost_source": "user_confirmed_free_tier"
+        }
+      ],
+      "metadata": {
+        "study_id": "e5036081-cd52-4872-b29a-7627defaece5",
+        "combination": "gemini-3.6-flash"
+      },
+      "versions": {
+        "source": "0.2.0",
+        "optimizer_template_sha256": "0eafa308befefb1c608d0997007167e5fd832870fda99adc0788b3baf8f5ff56",
+        "evaluator_template_sha256": "9849e943b0040a69bbbf4a144e7b7d349ea900bd63078a9f912d191eb7da90a8"
+      },
+      "configuration": {
+        "optimizer": {
+          "provider": "gemini",
+          "model": "gemini-3.6-flash",
+          "base_url": "https://generativelanguage.googleapis.com/v1beta",
+          "input_price_per_million": 0,
+          "output_price_per_million": 0,
+          "enable_thinking": null,
+          "reasoning_effort": null,
+          "free_tier_confirmed": true
+        },
+        "target": {
+          "provider": "gemini",
+          "model": "gemini-3.6-flash",
+          "base_url": "https://generativelanguage.googleapis.com/v1beta",
+          "input_price_per_million": 0,
+          "output_price_per_million": 0,
+          "enable_thinking": null,
+          "reasoning_effort": null,
+          "free_tier_confirmed": true
+        },
+        "max_output": 2048,
+        "optimizer_max_output": 4096,
+        "target_temperature": null,
+        "optimizer_temperature": 0.1,
+        "skip_below": 100,
+        "min_quality": 0.95,
+        "tokenizer": {
+          "encoding": "o200k_base",
+          "fallback_used": true,
+          "scope": "text only; billed request usage comes from provider"
+        }
+      },
+      "metrics": {
+        "text_compression_pct": 0.0,
+        "chatgpt_input_reduction_pct": 0.0,
+        "optimizer_total_tokens": 338,
+        "baseline_total_tokens": 564,
+        "tokenz_total_tokens": 902,
+        "net_token_difference": -338,
+        "baseline_cost_usd": 0,
+        "tokenz_cost_usd": 0,
+        "cost_difference_usd": 0,
+        "optimizer_latency_ms": 2262.5620999606326,
+        "baseline_chatgpt_latency_ms": 15737.250300007872,
+        "optimized_chatgpt_latency_ms": 15737.250300007872,
+        "total_tokenz_latency_ms": 17999.812399968505,
+        "quality_retention_pct": 100.0,
+        "baseline_quality": 10,
+        "optimized_quality": 10,
+        "research_spend_usd": 0,
+        "latency_difference_ms": 2262.5620999606326,
+        "baseline_quality_per_1000_tokens": 17.73049645390071,
+        "optimized_quality_per_1000_tokens": 11.086474501108649
+      },
+      "optimizer_prompt_version": "optimizer_prompt_v1",
+      "billing_uncertain": false,
+      "baseline": {
+        "text": "Subject: Update regarding your order delivery date\n\nHi [Customer Name],\n\nThank you for your recent order! We are writing to let you know that your estimated delivery date has changed. Instead of arriving on Wednesday, your package is now scheduled to arrive on **Friday**. \n\nWe apologize for this delay and any inconvenience it may cause. We really appreciate your patience, and we look forward to getting your items to you soon. \n\nBest regards,\n\n[Your Name]  \n[Company Name]",
+        "input_tokens": 86,
+        "output_tokens": 478,
+        "latency_ms": 15737.250300007872,
+        "request_id": "Zx_farixA7HAg8UPkoi6wQk",
+        "model": "gemini-3.6-flash",
+        "finish_reason": "stop",
+        "usage_source": "provider",
+        "cost_usd": 0,
+        "provider_cost_usd": null,
+        "reused": false,
+        "request_settings": {
+          "model": "gemini-3.6-flash",
+          "maxOutputTokens": 2048,
+          "thinkingConfig": {
+            "thinkingLevel": "low"
+          }
+        },
+        "provider": "openrouter_target",
+        "cost_source": "user_confirmed_free_tier"
+      },
+      "optimization_decision": "fallback_to_original",
+      "optimized_response": {
+        "text": "Subject: Update regarding your order delivery date\n\nHi [Customer Name],\n\nThank you for your recent order! We are writing to let you know that your estimated delivery date has changed. Instead of arriving on Wednesday, your package is now scheduled to arrive on **Friday**. \n\nWe apologize for this delay and any inconvenience it may cause. We really appreciate your patience, and we look forward to getting your items to you soon. \n\nBest regards,\n\n[Your Name]  \n[Company Name]",
+        "input_tokens": 86,
+        "output_tokens": 478,
+        "latency_ms": 15737.250300007872,
+        "request_id": "Zx_farixA7HAg8UPkoi6wQk",
+        "model": "gemini-3.6-flash",
+        "finish_reason": "stop",
+        "usage_source": "provider",
+        "cost_usd": 0,
+        "provider_cost_usd": null,
+        "reused": false,
+        "request_settings": {
+          "model": "gemini-3.6-flash",
+          "maxOutputTokens": 2048,
+          "thinkingConfig": {
+            "thinkingLevel": "low"
+          }
+        },
+        "provider": "openrouter_target",
+        "cost_source": "user_confirmed_free_tier"
+      },
+      "optimized_response_reused": true,
+      "judge_calls": [
+        {
+          "text": "{\"A\": {\"correctness\": 10, \"completeness\": 10, \"relevance\": 10, \"instruction_following\": 10, \"format_preservation\": 10, \"factual_consistency\": 10}, \"B\": {\"correctness\": 10, \"completeness\": 10, \"relevance\": 10, \"instruction_following\": 10, \"format_preservation\": 10, \"factual_consistency\": 10}, \"notes\": \"Both answers are identical and successfully follow all instructions, constraints, and negative constraints.\"}",
+          "input_tokens": 432,
+          "output_tokens": 316,
+          "latency_ms": 12642.495800042525,
+          "request_id": "eR_faryUCL7djuMP6pWh6AE",
+          "model": "gemini-3.6-flash",
+          "finish_reason": "stop",
+          "usage_source": "provider",
+          "cost_usd": 0,
+          "provider_cost_usd": null,
+          "reused": false,
+          "request_settings": {
+            "model": "gemini-3.6-flash",
+            "maxOutputTokens": 2048,
+            "thinkingConfig": {
+              "thinkingLevel": "low"
+            }
+          },
+          "provider": "openrouter_target",
+          "cost_source": "user_confirmed_free_tier"
+        }
+      ],
+      "evaluation_history": [
+        {
+          "method": "llm_judge",
+          "evaluator": "gemini-3.6-flash",
+          "baseline": {
+            "correctness": 10,
+            "completeness": 10,
+            "relevance": 10,
+            "instruction_following": 10,
+            "format_preservation": 10,
+            "factual_consistency": 10
+          },
+          "optimized": {
+            "correctness": 10,
+            "completeness": 10,
+            "relevance": 10,
+            "instruction_following": 10,
+            "format_preservation": 10,
+            "factual_consistency": 10
+          },
+          "baseline_quality": 10,
+          "optimized_quality": 10,
+          "quality_retention_pct": 100.0,
+          "notes": "Both answers are identical and successfully follow all instructions, constraints, and negative constraints.",
+          "caveat": "Same target model family; judge bias remains. Human review recommended."
+        }
+      ],
+      "evaluation": {
+        "method": "llm_judge",
+        "evaluator": "gemini-3.6-flash",
+        "baseline": {
+          "correctness": 10,
+          "completeness": 10,
+          "relevance": 10,
+          "instruction_following": 10,
+          "format_preservation": 10,
+          "factual_consistency": 10
+        },
+        "optimized": {
+          "correctness": 10,
+          "completeness": 10,
+          "relevance": 10,
+          "instruction_following": 10,
+          "format_preservation": 10,
+          "factual_consistency": 10
+        },
+        "baseline_quality": 10,
+        "optimized_quality": 10,
+        "quality_retention_pct": 100.0,
+        "notes": "Both answers are identical and successfully follow all instructions, constraints, and negative constraints.",
+        "caveat": "Same target model family; judge bias remains. Human review recommended."
+      }
+    }
+  ],
+  "workflow_events": [
+    {
+      "stage": "baseline",
+      "state": "complete",
+      "model": "qwen/qwen3.8-27b",
+      "experiment_id": "d48a1f47-6ca1-4210-97b0-676bcd1a8fd4",
+      "reused": false
+    },
+    {
+      "stage": "optimizer",
+      "state": "complete",
+      "model": "qwen/qwen3.8-27b",
+      "experiment_id": "d48a1f47-6ca1-4210-97b0-676bcd1a8fd4",
+      "reused": false
+    },
+    {
+      "stage": "optimized_target",
+      "state": "complete",
+      "model": "qwen/qwen3.8-27b",
+      "experiment_id": "d48a1f47-6ca1-4210-97b0-676bcd1a8fd4",
+      "reused": false
+    },
+    {
+      "stage": "done",
+      "state": "complete",
+      "model": "qwen/qwen3.8-27b",
+      "experiment_id": "d48a1f47-6ca1-4210-97b0-676bcd1a8fd4",
+      "reused": false
+    },
+    {
+      "stage": "baseline",
+      "state": "complete",
+      "model": "gemini-3.6-flash",
+      "experiment_id": "0aa4a45a-6d1f-4eec-b687-49549201b606",
+      "reused": false
+    },
+    {
+      "stage": "optimizer",
+      "state": "complete",
+      "model": "gemini-3.6-flash",
+      "experiment_id": "0aa4a45a-6d1f-4eec-b687-49549201b606",
+      "reused": false
+    },
+    {
+      "stage": "optimized_target",
+      "state": "complete",
+      "reused": true,
+      "model": "gemini-3.6-flash",
+      "experiment_id": "0aa4a45a-6d1f-4eec-b687-49549201b606"
+    },
+    {
+      "stage": "done",
+      "state": "complete",
+      "model": "gemini-3.6-flash",
+      "experiment_id": "0aa4a45a-6d1f-4eec-b687-49549201b606",
+      "reused": false
+    }
+  ],
+  "target_disclosure": "Each model rewrites the original independently and answers both versions. Only these two free models are used."
+}

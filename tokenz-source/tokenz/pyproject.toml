@@ -1,0 +1,12 @@
+[project]
+name = "tokenz"
+version = "0.2.0"
+requires-python = ">=3.11"
+description = "Prompt compression research workbench"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 110

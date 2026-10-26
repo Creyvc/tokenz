@@ -1,0 +1,339 @@
+{
+  "id": "ab315041-598b-4be7-9c83-4db44222e694",
+  "created_at": "2026-10-26T08:09:54.781157+00:00",
+  "signature": "ef561cf59a6ca58a4a487fb2286e956f2ce903c1747ca95d77385940520ebe6c",
+  "demo": false,
+  "prompts": [
+    {
+      "id": "my_prompt",
+      "category": "custom",
+      "prompt": "Using this synthetic CSV (order_id,region,units,unit_price), write pandas code to calculate revenue by region, excluding order IDs 010 and 050. Return code, not computed totals. Keep currency values in decimal arithmetic, and sort descending by revenue.\n001,South,11,21\n002,East,12,22\n003,North,13,23\n004,South,14,24\n005,East,15,25\n006,North,16,26\n007,South,17,20\n008,East,18,21\n009,North,19,22\n010,South,20,23\n011,East,10,24\n012,North,11,25\n013,South,12,26\n014,East,13,20\n015,North,14,21\n016,South,15,22\n017,East,16,23\n018,North,17,24\n019,South,18,25\n020,East,19,26\n021,North,20,20\n022,South,10,21\n023,East,11,22\n024,North,12,23\n025,South,13,24\n026,East,14,25\n027,North,15,26\n028,South,16,20\n029,East,17,21\n030,North,18,22\n031,South,19,23\n032,East,20,24\n033,North,10,25\n034,South,11,26\n035,East,12,20\n036,North,13,21\n037,South,14,22\n038,East,15,23\n039,North,16,24\n040,South,17,25\n041,East,18,26\n042,North,19,20\n043,South,20,21\n044,East,10,22\n045,North,11,23\n046,South,12,24\n047,East,13,25\n048,North,14,26\n049,South,15,20\n050,East,16,21\n051,North,17,22\n052,South,18,23\n053,East,19,24\n054,North,20,25\n055,South,10,26\n056,East,11,20\n057,North,12,21\n058,South,13,22\n059,East,14,23\n060,North,15,24\n061,South,16,25\n062,East,17,26\n063,North,18,20\n064,South,19,21\n065,East,20,22\n066,North,10,23\n067,South,11,24\n068,East,12,25\n069,North,13,26\n070,South,14,20\n071,East,15,21\n072,North,16,22\n073,South,17,23\n074,East,18,24\n075,North,19,25\n076,South,20,26\n077,East,10,20\n078,North,11,21\n079,South,12,22\n080,East,13,23\n081,North,14,24\n082,South,15,25\n083,East,16,26\n084,North,17,20\n085,South,18,21\n086,East,19,22\n087,North,20,23\n088,South,10,24\n089,East,11,25\n090,North,12,26\n091,South,13,20\n092,East,14,21\n093,North,15,22\n094,South,16,23\n095,East,17,24\n096,North,18,25\n097,South,19,26\n098,East,20,20\n099,North,10,21\n100,South,11,22\n101,East,12,23\n102,North,13,24\n103,South,14,25\n104,East,15,26\n105,North,16,20\n106,South,17,21\n107,East,18,22\n108,North,19,23\n109,South,20,24\n110,East,10,25\n111,North,11,26\n112,South,12,20\n113,East,13,21\n114,North,14,22\n115,South,15,23\n116,East,16,24\n117,North,17,25\n118,South,18,26\n119,East,19,20\n120,North,20,21"
+    }
+  ],
+  "optimizers": [
+    "openrouter/free"
+  ],
+  "targets": [
+    "nvidia/nemotron-3.5-lightning:free"
+  ],
+  "judge": false,
+  "experiments": [
+    {
+      "id": "eb888f31-33ad-4f9e-b45c-ab5b199cf4a1",
+      "created_at": "2026-10-26T08:09:55.270073+00:00",
+      "prompt_id": "my_prompt",
+      "category": "custom",
+      "original_prompt": "Using this synthetic CSV (order_id,region,units,unit_price), write pandas code to calculate revenue by region, excluding order IDs 010 and 050. Return code, not computed totals. Keep currency values in decimal arithmetic, and sort descending by revenue.\n001,South,11,21\n002,East,12,22\n003,North,13,23\n004,South,14,24\n005,East,15,25\n006,North,16,26\n007,South,17,20\n008,East,18,21\n009,North,19,22\n010,South,20,23\n011,East,10,24\n012,North,11,25\n013,South,12,26\n014,East,13,20\n015,North,14,21\n016,South,15,22\n017,East,16,23\n018,North,17,24\n019,South,18,25\n020,East,19,26\n021,North,20,20\n022,South,10,21\n023,East,11,22\n024,North,12,23\n025,South,13,24\n026,East,14,25\n027,North,15,26\n028,South,16,20\n029,East,17,21\n030,North,18,22\n031,South,19,23\n032,East,20,24\n033,North,10,25\n034,South,11,26\n035,East,12,20\n036,North,13,21\n037,South,14,22\n038,East,15,23\n039,North,16,24\n040,South,17,25\n041,East,18,26\n042,North,19,20\n043,South,20,21\n044,East,10,22\n045,North,11,23\n046,South,12,24\n047,East,13,25\n048,North,14,26\n049,South,15,20\n050,East,16,21\n051,North,17,22\n052,South,18,23\n053,East,19,24\n054,North,20,25\n055,South,10,26\n056,East,11,20\n057,North,12,21\n058,South,13,22\n059,East,14,23\n060,North,15,24\n061,South,16,25\n062,East,17,26\n063,North,18,20\n064,South,19,21\n065,East,20,22\n066,North,10,23\n067,South,11,24\n068,East,12,25\n069,North,13,26\n070,South,14,20\n071,East,15,21\n072,North,16,22\n073,South,17,23\n074,East,18,24\n075,North,19,25\n076,South,20,26\n077,East,10,20\n078,North,11,21\n079,South,12,22\n080,East,13,23\n081,North,14,24\n082,South,15,25\n083,East,16,26\n084,North,17,20\n085,South,18,21\n086,East,19,22\n087,North,20,23\n088,South,10,24\n089,East,11,25\n090,North,12,26\n091,South,13,20\n092,East,14,21\n093,North,15,22\n094,South,16,23\n095,East,17,24\n096,North,18,25\n097,South,19,26\n098,East,20,20\n099,North,10,21\n100,South,11,22\n101,East,12,23\n102,North,13,24\n103,South,14,25\n104,East,15,26\n105,North,16,20\n106,South,17,21\n107,East,18,22\n108,North,19,23\n109,South,20,24\n110,East,10,25\n111,North,11,26\n112,South,12,20\n113,East,13,21\n114,North,14,22\n115,South,15,23\n116,East,16,24\n117,North,17,25\n118,South,18,26\n119,East,19,20\n120,North,20,21",
+      "original_prompt_tokens": 1012,
+      "optimized_prompt": "Write pandas code to calculate revenue by region from CSV (order_id,region,units,unit_price), excluding order IDs 010 and 050. Return code only, not computed totals. Use decimal arithmetic for currency; sort descending by revenue.\n\n001,South,11,21\n002,East,12,22\n003,North,13,23\n004,South,14,24\n005,East,15,25\n006,North,16,26\n007,South,17,20\n008,East,18,21\n009,North,19,22\n010,South,20,23\n011,East,10,24\n012,North,11,25\n013,South,12,26\n014,East,13,20\n015,North,14,21\n016,South,15,22\n017,East,16,23\n018,North,17,24\n019,South,18,25\n020,East,19,26\n021,North,20,20\n022,South,10,21\n023,East,11,22\n024,North,12,23\n025,South,13,24\n026,East,14,25\n027,North,15,26\n028,South,16,20\n029,East,17,21\n030,North,18,22\n031,South,19,23\n032,East,20,24\n033,North,10,25\n034,South,11,26\n035,East,12,20\n036,North,13,21\n037,South,14,22\n038,East,15,23\n039,North,16,24\n040,South,17,25\n041,East,18,26\n042,North,19,20\n043,South,20,21\n044,East,10,22\n045,North,11,23\n046,South,12,24\n047,East,13,25\n048,North,14,26\n049,South,15,20\n050,East,16,21\n051,North,17,22\n052,South,18,23\n053,East,19,24\n054,North,20,25\n055,South,10,26\n056,East,11,20\n057,North,12,21\n058,South,13,22\n059,East,14,23\n060,North,15,24\n061,South,16,25\n062,East,17,26\n063,North,18,20\n064,South,19,21\n065,East,20,22\n066,North,10,23\n067,South,11,24\n068,East,12,25\n069,North,13,26\n070,South,14,20\n071,East,15,21\n072,North,16,22\n073,South,17,23\n074,East,18,24\n075,North,19,25\n076,South,20,26\n077,East,10,20\n078,North,11,21\n079,South,12,22\n080,East,13,23\n081,North,14,24\n082,South,15,25\n083,East,16,26\n084,North,17,20\n085,South,18,21\n086,East,19,22\n087,North,20,23\n088,South,10,24\n089,East,11,25\n090,North,12,26\n091,South,13,20\n092,East,14,21\n093,North,15,22\n094,South,16,23\n095,East,17,24\n096,North,18,25\n097,South,19,26\n098,East,20,20\n099,North,10,21\n100,South,11,22\n101,East,12,23\n102,North,13,24\n103,South,14,25\n104,East,15,26\n105,North,16,20\n106,South,17,21\n107,East,18,22\n108,North,19,23\n109,South,20,24\n110,East,10,25\n111,North,11,26\n112,South,12,20\n113,East,13,21\n114,North,14,22\n115,South,15,23\n116,East,16,24\n117,North,17,25\n118,South,18,26\n119,East,19,20\n120,North,20,21",
+      "optimized_prompt_tokens": 1008,
+      "length_group": "long",
+      "optimizer_provider": "openrouter",
+      "optimizer_model": "openrouter/free",
+      "strategy": "structured",
+      "target_ratio": 0.75,
+      "adaptive": false,
+      "demo": false,
+      "status": "completed",
+      "stage": "done",
+      "failures": [],
+      "target_provider": "openrouter",
+      "target_model": "nvidia/nemotron-3.5-lightning:free",
+      "free_only": true,
+      "optimizer_calls": [
+        {
+          "text": "Write pandas code to calculate revenue by region from CSV (order_id,region,units,unit_price), excluding order IDs 010 and 050. Return code only, not computed totals. Use decimal arithmetic for currency; sort descending by revenue.\n\n001,South,11,21\n002,East,12,22\n003,North,13,23\n004,South,14,24\n005,East,15,25\n006,North,16,26\n007,South,17,20\n008,East,18,21\n009,North,19,22\n010,South,20,23\n011,East,10,24\n012,North,11,25\n013,South,12,26\n014,East,13,20\n015,North,14,21\n016,South,15,22\n017,East,16,23\n018,North,17,24\n019,South,18,25\n020,East,19,26\n021,North,20,20\n022,South,10,21\n023,East,11,22\n024,North,12,23\n025,South,13,24\n026,East,14,25\n027,North,15,26\n028,South,16,20\n029,East,17,21\n030,North,18,22\n031,South,19,23\n032,East,20,24\n033,North,10,25\n034,South,11,26\n035,East,12,20\n036,North,13,21\n037,South,14,22\n038,East,15,23\n039,North,16,24\n040,South,17,25\n041,East,18,26\n042,North,19,20\n043,South,20,21\n044,East,10,22\n045,North,11,23\n046,South,12,24\n047,East,13,25\n048,North,14,26\n049,South,15,20\n050,East,16,21\n051,North,17,22\n052,South,18,23\n053,East,19,24\n054,North,20,25\n055,South,10,26\n056,East,11,20\n057,North,12,21\n058,South,13,22\n059,East,14,23\n060,North,15,24\n061,South,16,25\n062,East,17,26\n063,North,18,20\n064,South,19,21\n065,East,20,22\n066,North,10,23\n067,South,11,24\n068,East,12,25\n069,North,13,26\n070,South,14,20\n071,East,15,21\n072,North,16,22\n073,South,17,23\n074,East,18,24\n075,North,19,25\n076,South,20,26\n077,East,10,20\n078,North,11,21\n079,South,12,22\n080,East,13,23\n081,North,14,24\n082,South,15,25\n083,East,16,26\n084,North,17,20\n085,South,18,21\n086,East,19,22\n087,North,20,23\n088,South,10,24\n089,East,11,25\n090,North,12,26\n091,South,13,20\n092,East,14,21\n093,North,15,22\n094,South,16,23\n095,East,17,24\n096,North,18,25\n097,South,19,26\n098,East,20,20\n099,North,10,21\n100,South,11,22\n101,East,12,23\n102,North,13,24\n103,South,14,25\n104,East,15,26\n105,North,16,20\n106,South,17,21\n107,East,18,22\n108,North,19,23\n109,South,20,24\n110,East,10,25\n111,North,11,26\n112,South,12,20\n113,East,13,21\n114,North,14,22\n115,South,15,23\n116,East,16,24\n117,North,17,25\n118,South,18,26\n119,East,19,20\n120,North,20,21",
+          "input_tokens": 1712,
+          "output_tokens": 3927,
+          "latency_ms": 55500.196500099264,
+          "request_id": "gen-1793002210-cGW2Dvp44yhLGVGox0fI",
+          "model": "nvidia/nemotron-3.5-super-vl:free",
+          "finish_reason": "stop",
+          "usage_source": "provider",
+          "cost_usd": 0,
+          "provider_cost_usd": 0,
+          "reused": false,
+          "request_settings": {
+            "model": "openrouter/free",
+            "stream": false,
+            "max_tokens": 4096,
+            "temperature": 0.1,
+            "provider": {
+              "max_price": {
+                "prompt": 0,
+                "completion": 0,
+                "request": 0
+              },
+              "allow_fallbacks": true
+            }
+          },
+          "provider": "openrouter_free",
+          "cost_source": "provider"
+        }
+      ],
+      "paid_calls": [
+        {
+          "text": "import pandas as pd\ncsv_data = \"\"\"order_id,region,units,unit_price\n001,South,11,21\n002,East,12,22\n003,North,13,23\n004,South,14,24\n005,East,15,25\n006,North,16,26\n007,South,17,20\n008,East,18,21\n009,North,19,22\n010,South,20,23\n011,East,10,24\n012,North,11,25\n013,South,12,26\n014,East,13,20\n015,North,14,21\n016,South,15,22\n017,East,16,23\n018,North,17,24\n019,South,18,25\n020,East,19,26\n021,North,20,20\n022,South,10,21\n023,East,11,22\n024,North,12,23\n025,South,13,24\n026,East,14,25\n027,North,15,26\n028,South,16,20\n029,East,17,21\n030,North,18,22\n031,South,19,23\n032,East,20,24\n033,North,10,25\n034,South,11,26\n035,East,12,20\n036,North,13,21\n037,South,14,22\n038,East,15,23\n039,North,16,24\n040,South,17,25\n041,East,18,26\n042,North,19,20\n043,South,20,21\n044,East,10,22\n045,North,11,23\n046,South,12,24\n047,East,13,25\n048,North,14,26\n049,South,15,20\n050,East,16,21\n051,North,17,22\n052,South,18,23\n053,East,19,24\n054,North,20,25\n055,South,10,26\n056,East,11,20\n057,North,12,21\n058,South,13,22\n059,East,14,23\n060,North,15,24\n061,South,16,25\n062,East,17,26\n063,North,18,20\n064,South,19,21\n065,East,20,22\n066,North,10,23\n067,South,11,24\n068,East,12,25\n069,North,13,26\n070,South,14,20\n071,East,15,21\n072,North,16,22\n073,South,17,23\n074,East,18,24\n075,North,19,25\n076,South,20,26\n077,East,10,20\n078,North,11,21\n079,South,12,22\n080,East,13,23\n081,North,14,24\n082,South,15,25\n083,East,16,26\n084,North,17,20\n085,South,18,21\n086,East,19,22\n087,North,20,23\n088,South,10,24\n089,East,11,25\n090,North,12,26\n091,South,13,20\n092,East,14,21\n093,North,15,22\n094,South,16,23\n095,East,17,24\n096,North,18,25\n097,South,19,26\n098,East,20,20\n099,North,10,21\n100,South,11,22\n101,East,12,23\n102,North,13,24\n103,South,14,25\n104,East,15,26\n105,North,16,20\n106,South,17,21\n107,East,18,22\n108,North,19,23\n109,South,20,24\n110,East,10,25\n111,North,11,26\n112,South,12,20\n113,East,13,21\n114,North,14,22\n115,South,15,23\n116,East,16,24\n117,North,17,25\n118,South,18,26\n119,East,19,20\n120,North,20,21\"\"\"\ndata = pd.read_csv(pd.io.common.StringIO(csv_data))\n# Convert columns to appropriate types to ensure decimal arithmetic\ndata['units'] = data['units'].astype(int)\ndata['unit_price'] = data['unit_price'].astype(float)\n# Exclude order IDs 010 and 050\nfiltered_data = data[~data['order_id'].isin(['010', '050'])]\n# Calculate revenue\nfiltered_data['revenue'] = filtered_data['units'] * filtered_data['unit_price']\n# Calculate total revenue by region, sorted descending\nresult = filtered_data.groupby('region')['revenue'].sum().sort_values(ascending=False)\nresult\n\nNote: The final output is the Series `result` containing revenue by region sorted descending.",
+          "input_tokens": 1512,
+          "output_tokens": 1624,
+          "latency_ms": 15223.701700102538,
+          "request_id": "gen-1793002195-g3SSQHJd69wlpBRdwLWC",
+          "model": "nvidia/nemotron-3.5-lightning:free",
+          "finish_reason": "stop",
+          "usage_source": "provider",
+          "cost_usd": 0,
+          "provider_cost_usd": 0,
+          "reused": false,
+          "request_settings": {
+            "model": "nvidia/nemotron-3.5-lightning:free",
+            "stream": false,
+            "max_tokens": 2048,
+            "provider": {
+              "max_price": {
+                "prompt": 0,
+                "completion": 0,
+                "request": 0
+              },
+              "allow_fallbacks": true
+            },
+            "reasoning": {
+              "enabled": false
+            }
+          },
+          "provider": "openrouter_target",
+          "cost_source": "provider"
+        },
+        {
+          "text": "Write pandas code to calculate revenue by region from CSV (order_id,region,units,unit_price), excluding order IDs 010 and 050. Return code only, not computed totals. Use decimal arithmetic for currency; sort descending by revenue.\n\n001,South,11,21\n002,East,12,22\n003,North,13,23\n004,South,14,24\n005,East,15,25\n006,North,16,26\n007,South,17,20\n008,East,18,21\n009,North,19,22\n010,South,20,23\n011,East,10,24\n012,North,11,25\n013,South,12,26\n014,East,13,20\n015,North,14,21\n016,South,15,22\n017,East,16,23\n018,North,17,24\n019,South,18,25\n020,East,19,26\n021,North,20,20\n022,South,10,21\n023,East,11,22\n024,North,12,23\n025,South,13,24\n026,East,14,25\n027,North,15,26\n028,South,16,20\n029,East,17,21\n030,North,18,22\n031,South,19,23\n032,East,20,24\n033,North,10,25\n034,South,11,26\n035,East,12,20\n036,North,13,21\n037,South,14,22\n038,East,15,23\n039,North,16,24\n040,South,17,25\n041,East,18,26\n042,North,19,20\n043,South,20,21\n044,East,10,22\n045,North,11,23\n046,South,12,24\n047,East,13,25\n048,North,14,26\n049,South,15,20\n050,East,16,21\n051,North,17,22\n052,South,18,23\n053,East,19,24\n054,North,20,25\n055,South,10,26\n056,East,11,20\n057,North,12,21\n058,South,13,22\n059,East,14,23\n060,North,15,24\n061,South,16,25\n062,East,17,26\n063,North,18,20\n064,South,19,21\n065,East,20,22\n066,North,10,23\n067,South,11,24\n068,East,12,25\n069,North,13,26\n070,South,14,20\n071,East,15,21\n072,North,16,22\n073,South,17,23\n074,East,18,24\n075,North,19,25\n076,South,20,26\n077,East,10,20\n078,North,11,21\n079,South,12,22\n080,East,13,23\n081,North,14,24\n082,South,15,25\n083,East,16,26\n084,North,17,20\n085,South,18,21\n086,East,19,22\n087,North,20,23\n088,South,10,24\n089,East,11,25\n090,North,12,26\n091,South,13,20\n092,East,14,21\n093,North,15,22\n094,South,16,23\n095,East,17,24\n096,North,18,25\n097,South,19,26\n098,East,20,20\n099,North,10,21\n100,South,11,22\n101,East,12,23\n102,North,13,24\n103,South,14,25\n104,East,15,26\n105,North,16,20\n106,South,17,21\n107,East,18,22\n108,North,19,23\n109,South,20,24\n110,East,10,25\n111,North,11,26\n112,South,12,20\n113,East,13,21\n114,North,14,22\n115,South,15,23\n116,East,16,24\n117,North,17,25\n118,South,18,26\n119,East,19,20\n120,North,20,21",
+          "input_tokens": 1712,
+          "output_tokens": 3927,
+          "latency_ms": 55500.196500099264,
+          "request_id": "gen-1793002210-cGW2Dvp44yhLGVGox0fI",
+          "model": "nvidia/nemotron-3.5-super-vl:free",
+          "finish_reason": "stop",
+          "usage_source": "provider",
+          "cost_usd": 0,
+          "provider_cost_usd": 0,
+          "reused": false,
+          "request_settings": {
+            "model": "openrouter/free",
+            "stream": false,
+            "max_tokens": 4096,
+            "temperature": 0.1,
+            "provider": {
+              "max_price": {
+                "prompt": 0,
+                "completion": 0,
+                "request": 0
+              },
+              "allow_fallbacks": true
+            }
+          },
+          "provider": "openrouter_free",
+          "cost_source": "provider"
+        },
+        {
+          "text": "```python\nimport pandas as pd\nfrom decimal import Decimal\n\n# Read the data, ensuring unit_price is treated as Decimal for currency precision\ndf = pd.read_csv('data.csv', dtype={'order_id': str, 'region': str, 'units': int, 'unit_price': str})\ndf['unit_price'] = df['unit_price'].apply(Decimal)\n\n# Exclude orders 010 and 050\ndf = df[~df['order_id'].isin(['010', '050'])]\n\n# Calculate revenue per row using Decimal arithmetic\ndf['revenue'] = df['units'] * df['unit_price']\n\n# Aggregate revenue by region, sort descending, and return the result\nresult = df.groupby('region')['revenue'].sum().sort_values(ascending=False)\n\nprint(result)\n```",
+          "input_tokens": 1508,
+          "output_tokens": 176,
+          "latency_ms": 3255.4776000324637,
+          "request_id": "gen-1793002266-kADet8eVWTkrKB4LAOq9",
+          "model": "nvidia/nemotron-3.5-lightning:free",
+          "finish_reason": "stop",
+          "usage_source": "provider",
+          "cost_usd": 0,
+          "provider_cost_usd": 0,
+          "reused": false,
+          "request_settings": {
+            "model": "nvidia/nemotron-3.5-lightning:free",
+            "stream": false,
+            "max_tokens": 2048,
+            "provider": {
+              "max_price": {
+                "prompt": 0,
+                "completion": 0,
+                "request": 0
+              },
+              "allow_fallbacks": true
+            },
+            "reasoning": {
+              "enabled": false
+            }
+          },
+          "provider": "openrouter_target",
+          "cost_source": "provider"
+        }
+      ],
+      "metadata": {
+        "study_id": "ab315041-598b-4be7-9c83-4db44222e694",
+        "combination": "29522b65e970143bc5873394ceaffd929addc69f95b68cb6ad0b9089f7e5959e",
+        "optimizer_key": "openrouter_free",
+        "methodology": "methodology_1_free_target_alternative"
+      },
+      "versions": {
+        "source": "0.2.0",
+        "optimizer_template_sha256": "2be5cb9f058935eacf0178abc864b5d9aff43f74db0bfc9d350dcf142f8cf07f"
+      },
+      "configuration": {
+        "optimizer": {
+          "provider": "openrouter",
+          "model": "openrouter/free",
+          "base_url": "https://openrouter.ai/api/v1",
+          "input_price_per_million": 0,
+          "output_price_per_million": 0,
+          "enable_thinking": null,
+          "reasoning_effort": null,
+          "free_tier_confirmed": true
+        },
+        "target": {
+          "provider": "openrouter",
+          "model": "nvidia/nemotron-3.5-lightning:free",
+          "base_url": "https://openrouter.ai/api/v1",
+          "input_price_per_million": 0,
+          "output_price_per_million": 0,
+          "enable_thinking": null,
+          "reasoning_effort": null,
+          "free_tier_confirmed": false
+        },
+        "max_output": 2048,
+        "optimizer_max_output": 4096,
+        "target_temperature": null,
+        "optimizer_temperature": 0.1,
+        "skip_below": 100,
+        "min_quality": 0.95,
+        "tokenizer": {
+          "encoding": "o200k_base",
+          "fallback_used": true,
+          "scope": "text only; billed request usage comes from provider"
+        }
+      },
+      "metrics": {
+        "text_compression_pct": 0.39525691699604515,
+        "chatgpt_input_reduction_pct": 0.26455026455026454,
+        "optimizer_total_tokens": 5639,
+        "baseline_total_tokens": 3136,
+        "tokenz_total_tokens": 7323,
+        "net_token_difference": -4187,
+        "baseline_cost_usd": 0,
+        "tokenz_cost_usd": 0,
+        "cost_difference_usd": 0,
+        "optimizer_latency_ms": 55500.196500099264,
+        "baseline_chatgpt_latency_ms": 15223.701700102538,
+        "optimized_chatgpt_latency_ms": 3255.4776000324637,
+        "total_tokenz_latency_ms": 58755.67410013173,
+        "quality_retention_pct": null,
+        "baseline_quality": null,
+        "optimized_quality": null,
+        "research_spend_usd": 0,
+        "latency_difference_ms": 43531.97240002919,
+        "baseline_quality_per_1000_tokens": null,
+        "optimized_quality_per_1000_tokens": null
+      },
+      "optimizer_prompt_version": "optimizer_prompt_v1",
+      "billing_uncertain": false,
+      "baseline": {
+        "text": "import pandas as pd\ncsv_data = \"\"\"order_id,region,units,unit_price\n001,South,11,21\n002,East,12,22\n003,North,13,23\n004,South,14,24\n005,East,15,25\n006,North,16,26\n007,South,17,20\n008,East,18,21\n009,North,19,22\n010,South,20,23\n011,East,10,24\n012,North,11,25\n013,South,12,26\n014,East,13,20\n015,North,14,21\n016,South,15,22\n017,East,16,23\n018,North,17,24\n019,South,18,25\n020,East,19,26\n021,North,20,20\n022,South,10,21\n023,East,11,22\n024,North,12,23\n025,South,13,24\n026,East,14,25\n027,North,15,26\n028,South,16,20\n029,East,17,21\n030,North,18,22\n031,South,19,23\n032,East,20,24\n033,North,10,25\n034,South,11,26\n035,East,12,20\n036,North,13,21\n037,South,14,22\n038,East,15,23\n039,North,16,24\n040,South,17,25\n041,East,18,26\n042,North,19,20\n043,South,20,21\n044,East,10,22\n045,North,11,23\n046,South,12,24\n047,East,13,25\n048,North,14,26\n049,South,15,20\n050,East,16,21\n051,North,17,22\n052,South,18,23\n053,East,19,24\n054,North,20,25\n055,South,10,26\n056,East,11,20\n057,North,12,21\n058,South,13,22\n059,East,14,23\n060,North,15,24\n061,South,16,25\n062,East,17,26\n063,North,18,20\n064,South,19,21\n065,East,20,22\n066,North,10,23\n067,South,11,24\n068,East,12,25\n069,North,13,26\n070,South,14,20\n071,East,15,21\n072,North,16,22\n073,South,17,23\n074,East,18,24\n075,North,19,25\n076,South,20,26\n077,East,10,20\n078,North,11,21\n079,South,12,22\n080,East,13,23\n081,North,14,24\n082,South,15,25\n083,East,16,26\n084,North,17,20\n085,South,18,21\n086,East,19,22\n087,North,20,23\n088,South,10,24\n089,East,11,25\n090,North,12,26\n091,South,13,20\n092,East,14,21\n093,North,15,22\n094,South,16,23\n095,East,17,24\n096,North,18,25\n097,South,19,26\n098,East,20,20\n099,North,10,21\n100,South,11,22\n101,East,12,23\n102,North,13,24\n103,South,14,25\n104,East,15,26\n105,North,16,20\n106,South,17,21\n107,East,18,22\n108,North,19,23\n109,South,20,24\n110,East,10,25\n111,North,11,26\n112,South,12,20\n113,East,13,21\n114,North,14,22\n115,South,15,23\n116,East,16,24\n117,North,17,25\n118,South,18,26\n119,East,19,20\n120,North,20,21\"\"\"\ndata = pd.read_csv(pd.io.common.StringIO(csv_data))\n# Convert columns to appropriate types to ensure decimal arithmetic\ndata['units'] = data['units'].astype(int)\ndata['unit_price'] = data['unit_price'].astype(float)\n# Exclude order IDs 010 and 050\nfiltered_data = data[~data['order_id'].isin(['010', '050'])]\n# Calculate revenue\nfiltered_data['revenue'] = filtered_data['units'] * filtered_data['unit_price']\n# Calculate total revenue by region, sorted descending\nresult = filtered_data.groupby('region')['revenue'].sum().sort_values(ascending=False)\nresult\n\nNote: The final output is the Series `result` containing revenue by region sorted descending.",
+        "input_tokens": 1512,
+        "output_tokens": 1624,
+        "latency_ms": 15223.701700102538,
+        "request_id": "gen-1793002195-g3SSQHJd69wlpBRdwLWC",
+        "model": "nvidia/nemotron-3.5-lightning:free",
+        "finish_reason": "stop",
+        "usage_source": "provider",
+        "cost_usd": 0,
+        "provider_cost_usd": 0,
+        "reused": false,
+        "request_settings": {
+          "model": "nvidia/nemotron-3.5-lightning:free",
+          "stream": false,
+          "max_tokens": 2048,
+          "provider": {
+            "max_price": {
+              "prompt": 0,
+              "completion": 0,
+              "request": 0
+            },
+            "allow_fallbacks": true
+          },
+          "reasoning": {
+            "enabled": false
+          }
+        },
+        "provider": "openrouter_target",
+        "cost_source": "provider"
+      },
+      "optimization_decision": "accepted_for_evaluation_semantics_unverified",
+      "optimized_response": {
+        "text": "```python\nimport pandas as pd\nfrom decimal import Decimal\n\n# Read the data, ensuring unit_price is treated as Decimal for currency precision\ndf = pd.read_csv('data.csv', dtype={'order_id': str, 'region': str, 'units': int, 'unit_price': str})\ndf['unit_price'] = df['unit_price'].apply(Decimal)\n\n# Exclude orders 010 and 050\ndf = df[~df['order_id'].isin(['010', '050'])]\n\n# Calculate revenue per row using Decimal arithmetic\ndf['revenue'] = df['units'] * df['unit_price']\n\n# Aggregate revenue by region, sort descending, and return the result\nresult = df.groupby('region')['revenue'].sum().sort_values(ascending=False)\n\nprint(result)\n```",
+        "input_tokens": 1508,
+        "output_tokens": 176,
+        "latency_ms": 3255.4776000324637,
+        "request_id": "gen-1793002266-kADet8eVWTkrKB4LAOq9",
+        "model": "nvidia/nemotron-3.5-lightning:free",
+        "finish_reason": "stop",
+        "usage_source": "provider",
+        "cost_usd": 0,
+        "provider_cost_usd": 0,
+        "reused": false,
+        "request_settings": {
+          "model": "nvidia/nemotron-3.5-lightning:free",
+          "stream": false,
+          "max_tokens": 2048,
+          "provider": {
+            "max_price": {
+              "prompt": 0,
+              "completion": 0,
+              "request": 0
+            },
+            "allow_fallbacks": true
+          },
+          "reasoning": {
+            "enabled": false
+          }
+        },
+        "provider": "openrouter_target",
+        "cost_source": "provider"
+      },
+      "optimizer_strategy": "balanced",
+      "optimizer_selection": "openrouter_free",
+      "target_disclosure": "Fixed free OpenRouter target. This does not measure OpenAI or ChatGPT."
+    }
+  ],
+  "min_quality": 0.95,
+  "methodology": "methodology_1_free_target_alternative",
+  "optimizer_selections": [
+    "openrouter_free"
+  ],
+  "compression_strategy": "balanced",
+  "target_ratio": 0.75,
+  "adaptive": false,
+  "target_disclosure": "Fixed free OpenRouter target. This does not measure OpenAI or ChatGPT.",
+  "evaluation_mode": "human_1_to_5",
+  "status": "completed",
+  "workflow_events": [
+    {
+      "stage": "baseline",
+      "state": "complete",
+      "model": "nvidia/nemotron-3.5-lightning:free",
+      "experiment_id": "eb888f31-33ad-4f9e-b45c-ab5b199cf4a1",
+      "reused": false,
+      "optimizer": "openrouter_free"
+    },
+    {
+      "stage": "optimizer",
+      "state": "complete",
+      "model": "nvidia/nemotron-3.5-super-vl:free",
+      "experiment_id": "eb888f31-33ad-4f9e-b45c-ab5b199cf4a1",
+      "reused": false,
+      "optimizer": "openrouter_free"
+    },
+    {
+      "stage": "optimized_target",
+      "state": "complete",
+      "model": "nvidia/nemotron-3.5-lightning:free",
+      "experiment_id": "eb888f31-33ad-4f9e-b45c-ab5b199cf4a1",
+      "reused": false,
+      "optimizer": "openrouter_free"
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "study_id": "48f5d090-6f93-4b92-9d79-9709df460e82",
+  "workflow": "prompt_optimization_v1",
+  "status": "completed",
+  "task_answer_requests": 0,
+  "quality_judge_requests": 0,
+  "optimizer_results": [
+    {
+      "provider": "groq",
+      "model": "qwen/qwen3.8-27b",
+      "status": "accepted",
+      "selected_prompt_tokens": 40,
+      "prompt_saving_pct": 54.02298850574713,
+      "error": null
+    },
+    {
+      "provider": "gemini",
+      "model": "gemini-3.6-flash",
+      "status": "accepted",
+      "selected_prompt_tokens": 40,
+      "prompt_saving_pct": 54.02298850574713,
+      "error": null
+    }
+  ],
+  "interface_exceptions": 0,
+  "prompt_cards": 2,
+  "answer_generation_controls": 0,
+  "quality_score_controls": 0,
+  "repeat_optimizer_requests": 0,
+  "handoff_components": 2,
+  "clipboard_popup_browser_verification": "Not performed; browser policy blocks live inspection"
+}

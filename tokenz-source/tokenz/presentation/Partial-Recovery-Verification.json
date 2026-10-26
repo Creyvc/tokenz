@@ -1,0 +1,13 @@
+{
+  "study_id": "e8ab1f05-c81d-479d-844d-084d713a395e",
+  "status": "partial",
+  "original_answers_available": 1,
+  "groq_original_complete": true,
+  "interface_exceptions": 0,
+  "resume_restores_saved_prompt": true,
+  "resume_opens_run_step": true,
+  "remaining_provider_errors": {
+    "groq": "RATE_LIMIT",
+    "gemini": "TIMEOUT"
+  }
+}
