@@ -1,6 +1,10 @@
 $ErrorActionPreference = 'Stop'
 Set-Location -LiteralPath $PSScriptRoot
-$runtime = Join-Path $PSScriptRoot '.venv\Scripts\python.exe'
+# Inside the Tokenz backend this shares ..\.venv with TokenSaver; a .venv of its own still works.
+$runtime = Join-Path $PSScriptRoot '..\.venv\Scripts\python.exe'
+if (-not (Test-Path -LiteralPath $runtime)) {
+    $runtime = Join-Path $PSScriptRoot '.venv\Scripts\python.exe'
+}
 if (-not (Test-Path -LiteralPath $runtime)) {
     Write-Error 'Run the setup commands in README.md first to create .venv.'
 }

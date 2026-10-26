@@ -1,15 +1,19 @@
-"""Local web API for the Tokenz website: serves ../frontend and the two local methods.
+"""Local web API for the Tokenz website: serves ../frontend, the two local methods and the AI rewrite.
 
 Run from this folder: ./start-web.sh (or .venv/bin/python web_api.py), then open
-http://127.0.0.1:8000/compare.html. Only NLP and TF-IDF are offered: nothing leaves this
-computer, and the server answers on 127.0.0.1 only. Prompts are never logged; the request
-log shows paths, not bodies. This adapter calls the public service functions and leaves the
-backend contract unchanged (see docs/FRONTEND_HANDOFF.md).
+http://127.0.0.1:8000/compare.html. NLP and TF-IDF (/api/compress) run here and nothing leaves this
+computer. The AI rewrite (/api/optimize) is the one exception: it sends the prompt to Groq (Qwen) and
+Google (Gemini) through optimizer/, and only once both are set up in optimizer/.env. The server
+answers on 127.0.0.1 only. Prompts are never logged or saved; the request log shows paths, not bodies.
+This adapter calls the public service functions and leaves the backend contract unchanged
+(see docs/FRONTEND_HANDOFF.md).
 """
 import json
 import os
+import subprocess
 import sys
 import threading
+import time
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -19,16 +23,27 @@ from compressors.nlp_compressor import NLP_MODES
 from compressors.tfidf_compressor import inspect_tfidf_input
 
 FRONTEND = Path(__file__).resolve().parent.parent / "frontend"
+OPTIMIZER = Path(__file__).resolve().parent / "optimizer"
 ENCODINGS = ("o200k_base", "cl100k_base")
 MAX_BODY_BYTES = 400_000
 MAX_TEXT = 40_000  # Same limit as the Streamlit prompt box.
 MAX_BUDGET = 6000
 # spaCy and the TF-IDF vectorizer are used from one request at a time.
 ENGINE_LOCK = threading.Lock()
+# One AI rewrite at a time: two of them at once would only run into the free plans' rate limits.
+AI_LOCK = threading.Lock()
+# Each model gets up to a minute, plus one short wait if Groq asks for it.
+AI_SECONDS = 300
+AI_STATUS_SECONDS = 5
+_ai_status = {"at": 0.0, "value": None}
 
 
 class BadRequest(ValueError):
     pass
+
+
+class Unavailable(RuntimeError):
+    """The AI rewrite isn't set up on this computer yet (503)."""
 
 
 def text_field(body, name):
@@ -64,8 +79,34 @@ def encoding_field(body):
     return value
 
 
+def run_bridge(command, payload=None):
+    """Runs optimizer/app/bridge.py in its own process. The optimizer's package is called `app`, like
+    this folder's app.py, so the two are never imported into the same Python."""
+    env = {key: value for key, value in os.environ.items() if key != "PYTHONPATH"}
+    done = subprocess.run([sys.executable, "-m", "app.bridge", command], cwd=OPTIMIZER, env=env,
+                          input=json.dumps(payload or {}), capture_output=True, text=True,
+                          timeout=AI_SECONDS)
+    lines = done.stdout.strip().splitlines()
+    if done.returncode or not lines:
+        raise RuntimeError("The optimizer stopped without an answer.")
+    return json.loads(lines[-1])
+
+
+def ai_status():
+    # Checked at most every 5 seconds, so health stays quick; it reads local settings only
+    now = time.monotonic()
+    if _ai_status["value"] is None or now - _ai_status["at"] > AI_STATUS_SECONDS:
+        try:
+            _ai_status["value"] = run_bridge("status")
+        except (OSError, RuntimeError, ValueError, subprocess.TimeoutExpired):
+            _ai_status["value"] = dict(available=False, optimizers=[])
+        _ai_status["at"] = now
+    return _ai_status["value"]
+
+
 def health(_body=None):
-    return dict(ok=True, methods=["nlp", "tfidf"], nlp_modes=list(NLP_MODES), encodings=list(ENCODINGS))
+    return dict(ok=True, methods=["nlp", "tfidf"], nlp_modes=list(NLP_MODES), encodings=list(ENCODINGS),
+                ai=ai_status())
 
 
 def inspect(body):
@@ -87,7 +128,7 @@ def inspect(body):
 def compress(body):
     method = body.get("method")
     if method not in ("nlp", "tfidf"):
-        raise BadRequest("Choose NLP or TF-IDF. Qwen isn't available on the website.")
+        raise BadRequest("Choose NLP or TF-IDF. The Qwen and Gemini AI rewrite is at /api/optimize.")
     mode = body.get("nlp_mode", "conservative")
     if mode not in NLP_MODES:
         raise BadRequest("Unknown NLP strength.")
@@ -104,7 +145,39 @@ def compress(body):
     return dict(result=result.to_dict(), nlp_mode=mode if method == "nlp" else None, encoding=encoding)
 
 
-ROUTES = {"/api/inspect": inspect, "/api/compress": compress}
+def optimize(body):
+    """The AI rewrite: Groq's Qwen and Google's Gemini each rewrite the same prompt. A rewrite that
+    loses a number, saves nothing or comes back incomplete is rejected and the original is kept."""
+    text = text_field(body, "text")
+    if not text.strip():
+        raise BadRequest("Paste a prompt first.")
+    encoding = encoding_field(body)
+    if not AI_LOCK.acquire(blocking=False):
+        raise Unavailable("An AI rewrite is already running. Try again when it finishes.")
+    try:
+        study = run_bridge("optimize", dict(prompt=text, encoding=encoding))
+    finally:
+        AI_LOCK.release()
+    if study.get("code") == "NOT_CONFIGURED":
+        raise Unavailable(study["error"])
+    if study.get("code") == "BAD_REQUEST":
+        raise BadRequest(study["error"])
+    original = study["original_tokens"]
+    candidates = []
+    for row in study["optimizations"]:
+        tokens = row.get("optimized_tokens")
+        candidates.append(dict(
+            provider=row["provider"], model=row["model"], status=row["status"],
+            optimized_prompt=row.get("optimized_prompt"), optimized_tokens=tokens,
+            tokens_saved=None if tokens is None else original - tokens,
+            reduction_percent=row.get("token_saving_pct"), checks=row.get("checks", []),
+            error=(row.get("error") or {}).get("message")))
+    return dict(status=study["status"], original_tokens=original, encoding=encoding, candidates=candidates,
+                note="Sent to Groq and Google to rewrite. Check that every task and constraint survived "
+                     "before you use a suggestion.")
+
+
+ROUTES = {"/api/inspect": inspect, "/api/compress": compress, "/api/optimize": optimize}
 
 
 def local_origin(origin):
@@ -205,6 +278,10 @@ class Handler(SimpleHTTPRequestHandler):
         except (BadRequest, json.JSONDecodeError, UnicodeDecodeError) as exc:
             message = str(exc) if isinstance(exc, BadRequest) else "Send valid JSON."
             return self.send_json(400, dict(error=message))
+        except Unavailable as exc:
+            return self.send_json(503, dict(error=str(exc)))
+        except subprocess.TimeoutExpired:
+            return self.send_json(504, dict(error="The AI rewrite took too long. Try again."))
         except Exception:
             # No exception text in the reply: it could quote the prompt.
             return self.send_json(500, dict(error="The engine hit a problem with that request."))

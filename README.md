@@ -8,8 +8,9 @@ A token saver for AI prompts: it shortens what you send to a language model whil
 | --- | --- |
 | `frontend/` | The Tokenz website: plain HTML, CSS and JavaScript, no build step. Open any page from disk to view it. |
 | `backend/` | TokenSaver, the prompt-compression engine in Python: NLP and TF-IDF methods (local), an optional Qwen method, tests, evaluation and the report. It has its own small Streamlit app for testing the methods. See [backend/README.md](backend/README.md). |
+| `backend/optimizer/` | The AI rewrite: Qwen on Groq and Gemini on Google each rewrite a prompt to use fewer tokens, with its own Streamlit dashboard. It shares the backend's Python environment. See [backend/optimizer/README.md](backend/optimizer/README.md). |
 
-The website's Compare and Results pages run the engine's two local methods (NLP and TF-IDF) through a small local web API, `backend/web_api.py`. It serves the website and answers only on this computer; nothing is sent anywhere else.
+The website's Compare and Results pages run the engine's two local methods (NLP and TF-IDF) through a small local web API, `backend/web_api.py`. It serves the website and answers only on this computer, and those two methods send nothing anywhere else. The same API also offers the AI rewrite (`/api/optimize`), which sends the prompt to Groq and Google once their keys are set up in `backend/optimizer/.env`. On Compare it's the third option, **AI rewrite**, with a notice that it leaves the computer; Results shows it next to NLP and TF-IDF.
 
 ## Run the website with the engine
 

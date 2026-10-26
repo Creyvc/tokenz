@@ -83,7 +83,18 @@ For the agreed human assessment, open `docs/evaluation/RETENTION_REVIEW.md`. Rev
 
 ## Tokenz website
 
-The Tokenz website (`../frontend`) uses this engine through `web_api.py`, a local adapter built on Python's standard library: no new dependency. `./start-web.sh` (Windows: `Start-TokenzWeb.ps1`) serves the site and the API at http://127.0.0.1:8000/. It offers NLP and TF-IDF only, never Qwen, answers on 127.0.0.1 only, and doesn't log prompts. Its routes are `GET /api/health`, `POST /api/inspect` (TF-IDF preflight) and `POST /api/compress`; tests are in `tests/test_web_api.py`. It calls `compare_methods` and `inspect_tfidf_input`, so the result schema is unchanged. Pages served from another local port (VS Code's Live Server on 5500, for example) can call the API too: it allows `http://127.0.0.1` and `http://localhost` origins, and no others.
+The Tokenz website (`../frontend`) uses this engine through `web_api.py`, a local adapter built on Python's standard library: no new dependency. `./start-web.sh` (Windows: `Start-TokenzWeb.ps1`) serves the site and the API at http://127.0.0.1:8000/. NLP and TF-IDF run locally; it answers on 127.0.0.1 only and never logs or saves prompts. Its routes are `GET /api/health`, `POST /api/inspect` (TF-IDF preflight), `POST /api/compress` and `POST /api/optimize` (the AI rewrite, below); tests are in `tests/test_web_api.py`. It calls `compare_methods` and `inspect_tfidf_input`, so the result schema is unchanged. Pages served from another local port (VS Code's Live Server on 5500, for example) can call the API too: it allows `http://127.0.0.1` and `http://localhost` origins, and no others.
+
+## AI rewrite: Groq and Gemini (`optimizer/`)
+
+`optimizer/` is the team's second engine (it was `tokenz-source/`): Qwen on Groq and Gemini Flash on Google each rewrite the same prompt, and a rewrite that loses a number, saves no tokens or comes back incomplete is rejected, keeping the original. It has its own Streamlit dashboard, tests and docs; see [optimizer/README.md](optimizer/README.md).
+
+- **One environment.** It shares this folder's `.venv`: the two lock files pin the same versions, and `requirements-lock.txt` now includes its extras (Plotly, Ruff). Its dashboard: `optimizer/start.sh` (Windows: `optimizer\Start-Tokenz.ps1`), at http://127.0.0.1:8501.
+- **Same token counts.** Both count with tiktoken's o200k_base by default, so the website can show all three methods side by side (the example prompt is 31 tokens in both).
+- **On the website API.** `POST /api/optimize` with `{"text", "encoding"}` returns both rewrites with their local token counts and checks; `GET /api/health` reports under `ai` whether it's set up. It answers 503 until both providers are configured. This is the one route that sends a prompt off this computer, to Groq and Google. The website's Compare page offers it as **AI rewrite** (with that notice) and Results charts it next to NLP and TF-IDF.
+- **Separate processes.** The optimizer's package is named `app`, like this folder's `app.py`, so `web_api.py` runs it through `optimizer/app/bridge.py` in its own process (JSON in, JSON out). Website runs aren't saved, matching this API's no-storage rule.
+- **Setup.** Copy `optimizer/.env.example` to `optimizer/.env` and add `GROQ_API_KEY` and `GEMINI_API_KEY`. Set `TOKENZ_GROQ_FREE_TIER_CONFIRMED` and `TOKENZ_GEMINI_FREE_TIER_CONFIRMED` to `true` only after checking that both accounts are free plans with billing disabled. Keys stay in that file; never in the website.
+- **Tests.** `cd optimizer && ../.venv/bin/python -m pytest -q` (no request reaches Groq or Google), and this folder's suite as before.
 
 ## Frontend team handoff
 
@@ -103,6 +114,7 @@ compressors/            Qwen adapter/controller, NLP, TF-IDF
 tests/                  Backend, adapter and UI tests
 evaluation.py           Synthetic local experiment
 web_api.py              Local web API that serves the Tokenz website (../frontend)
+optimizer/              AI rewrite with Groq Qwen and Gemini, its dashboard and tests
 start.sh, start-web.sh  macOS/Linux starters for the Streamlit app and the website
 docs/                   Report, architecture, demo, handoff and evidence
 ```

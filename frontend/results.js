@@ -3,8 +3,8 @@
 // Prompt text is always written with textContent, never as HTML.
 (function () {
   var RUNS_KEY = "tokenz_runs";
-  var METHODS = ["nlp", "tfidf"];
-  var NAMES = { nlp: "NLP", tfidf: "TF-IDF" };
+  var METHODS = ["nlp", "tfidf", "ai"];
+  var NAMES = { nlp: "NLP", tfidf: "TF-IDF", ai: "AI rewrite" };
   var LEVELS = {
     conservative: "1 · Conservative", balanced: "2 · Balanced",
     aggressive: "3 · Aggressive", maximum: "4 · Maximum"
@@ -36,7 +36,7 @@
     var go = compareLink("Go to Compare");
     go.className = "wb-primary";
     empty.append(make("h2", null, "Nothing to compare yet"),
-      make("p", null, "Paste a prompt on Compare, run NLP and TF-IDF on it, and both results show up here side by side."), go);
+      make("p", null, "Paste a prompt on Compare, run NLP, TF-IDF or the AI rewrite on it, and the results show up here side by side."), go);
     box.append(empty);
     return;
   }
@@ -46,11 +46,17 @@
   var encodings = done.map(function (method) { return runs[method].encoding; });
   var sameEncoding = encodings.every(function (name) { return name === encodings[0]; });
 
+  // "NLP", "NLP and TF-IDF", "NLP, TF-IDF and AI rewrite"
+  function names(list) {
+    var words = list.map(function (method) { return NAMES[method]; });
+    return words.length > 1 ? words.slice(0, -1).join(", ") + " and " + words[words.length - 1] : words[0];
+  }
+
   if (done.length < METHODS.length) {
-    var missing = METHODS.filter(function (method) { return done.indexOf(method) === -1; })[0];
+    var missing = METHODS.filter(function (method) { return done.indexOf(method) === -1; });
     var tip = make("p", "rs-notice");
-    tip.append("Run " + NAMES[missing] + " on ", compareLink("Compare"),
-      " with the same prompt to see both methods side by side.");
+    tip.append("Run " + names(missing) + " on ", compareLink("Compare"),
+      " with the same prompt to see " + (done.length + missing.length === 2 ? "both methods" : "every method") + " side by side.");
     box.append(tip);
   }
   if (!sameEncoding) {
@@ -62,11 +68,12 @@
 
   // The headline, then one card per method
 
-  if (done.length === METHODS.length && samePrompt && sameEncoding) {
+  if (done.length > 1 && samePrompt && sameEncoding) {
     var savedMost = Math.max.apply(null, results.map(function (r) { return r.tokens_saved; }));
     var leaders = done.filter(function (method, i) { return results[i].tokens_saved === savedMost; });
-    var verdict = savedMost === 0 ? "Neither method found a shorter version of this prompt." :
-      leaders.length > 1 ? "Both methods saved " + savedMost + " tokens on this prompt." :
+    var verdict = savedMost === 0 ? (done.length === 2 ? "Neither method" : "No method") + " found a shorter version of this prompt." :
+      leaders.length === done.length ? (done.length === 2 ? "Both methods" : "All three methods") + " saved " + savedMost + " tokens on this prompt." :
+      leaders.length > 1 ? names(leaders) + " both saved the most on this prompt: " + savedMost + " tokens." :
       NAMES[leaders[0]] + " saved the most on this prompt: " + savedMost + " tokens (" +
         results[done.indexOf(leaders[0])].reduction_percent.toFixed(1) + "% fewer).";
     box.append(make("p", "rs-verdict", verdict));
@@ -79,7 +86,8 @@
     var top = make("div", "rs-card-top");
     top.append(make("h2", null, NAMES[method]), make("span", "wb-pill is-" + r.status, OUTCOMES[r.status] || r.status));
     card.append(top, make("p", "rs-card-num", r.reduction_percent.toFixed(1) + "%"),
-      make("p", "rs-card-sub", r.original_target_tokens + " → " + r.candidate_target_tokens + " tokens · " + r.tokens_saved + " saved"));
+      make("p", "rs-card-sub", r.original_target_tokens + " → " + r.candidate_target_tokens + " tokens · " + r.tokens_saved + " saved" +
+        (method === "ai" && r.chosen ? " · " + r.chosen : "")));
     cards.append(card);
   });
   box.append(cards);
@@ -149,6 +157,7 @@
   done.forEach(function (method, i) {
     var r = results[i];
     var settings = method === "nlp" ? "Strength " + (LEVELS[runs[method].nlp_mode] || runs[method].nlp_mode) :
+      method === "ai" ? "Shortest: " + (r.chosen || "neither passed") :
       "Budget " + (r.selection_info ? r.selection_info.token_budget : "—") + " tokens";
     var tr = make("tr");
     [NAMES[method], r.original_target_tokens, r.candidate_target_tokens, r.tokens_saved,

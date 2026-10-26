@@ -120,3 +120,71 @@ def test_other_websites_cannot_use_the_api(base, origin):
     with urllib.request.urlopen(request, timeout=30) as response:
         assert "Access-Control-Allow-Origin" not in response.headers
     assert call(base + "/api/compress", method="OPTIONS", headers={"Origin": origin})[0] == 403
+
+
+# The AI rewrite (optimizer/, Groq and Gemini). Tests never reach Groq or Google: keys are blanked,
+# or the bridge to the optimizer is replaced.
+
+NO_KEYS = ("GROQ_API_KEY", "GEMINI_API_KEY", "GOOGLE_API_KEY")
+
+
+@pytest.fixture
+def no_keys(monkeypatch):
+    for name in NO_KEYS:
+        monkeypatch.setenv(name, "")
+    web_api._ai_status["value"] = None
+    yield
+    web_api._ai_status["value"] = None
+
+
+def test_health_reports_whether_the_ai_rewrite_is_set_up(base, no_keys):
+    status, data = call(base + "/api/health")
+    ai = json.loads(data)["ai"]
+    assert status == 200 and ai["available"] is False
+    assert [row["key"] for row in ai["optimizers"]] == ["qwen", "gemini_flash"]
+    assert all(row["reason"] == "API key missing" for row in ai["optimizers"])
+
+
+def test_ai_rewrite_without_keys_says_how_to_set_it_up(base, no_keys):
+    status, data = call(base + "/api/optimize", dict(text=EXAMPLE))
+    assert status == 503
+    message = json.loads(data)["error"]
+    assert message.startswith("Connect Groq and Gemini first") and "photosynthesis" not in message
+
+
+def test_ai_rewrite_rejects_empty_and_oversized_prompts_without_starting(base, monkeypatch):
+    monkeypatch.setattr(web_api, "run_bridge", lambda *a: pytest.fail("must not start the optimizer"))
+    assert call(base + "/api/optimize", dict(text="  "))[0] == 400
+    assert call(base + "/api/optimize", dict(text="x" * (web_api.MAX_TEXT + 1)))[0] == 400
+    assert call(base + "/api/optimize", dict(text=EXAMPLE, encoding="latin1"))[0] == 400
+
+
+def test_ai_rewrite_returns_both_models_with_the_local_token_counts(base, monkeypatch):
+    sent = []
+
+    def bridge(command, payload=None):
+        sent.append((command, payload))
+        return dict(status="completed", original_tokens=31, optimizations=[
+            dict(provider="groq", model="qwen/qwen3.8-27b", status="accepted",
+                 optimized_prompt="Help me write a short email to my team: the deadline moved to Friday.",
+                 optimized_tokens=18, token_saving_pct=41.9, checks=[]),
+            dict(provider="gemini", model="gemini-3.6-flash", status="rejected",
+                 optimized_prompt="original kept", optimized_tokens=31, token_saving_pct=0.0,
+                 checks=["An original number was not preserved literally."])])
+    monkeypatch.setattr(web_api, "run_bridge", bridge)
+    status, data = call(base + "/api/optimize", dict(text="Hi there, please help.", encoding="cl100k_base"))
+    reply = json.loads(data)
+    assert status == 200 and sent == [("optimize", dict(prompt="Hi there, please help.", encoding="cl100k_base"))]
+    assert reply["original_tokens"] == 31 and reply["encoding"] == "cl100k_base"
+    groq, gemini = reply["candidates"]
+    assert groq["status"] == "accepted" and groq["tokens_saved"] == 13 and groq["reduction_percent"] == 41.9
+    assert gemini["status"] == "rejected" and gemini["tokens_saved"] == 0 and gemini["checks"]
+    assert "Check that every task" in reply["note"]
+
+
+def test_ai_rewrite_failure_inside_the_optimizer_is_a_generic_500(base, monkeypatch):
+    def broken(*args):
+        raise RuntimeError("The optimizer stopped without an answer.")
+    monkeypatch.setattr(web_api, "run_bridge", broken)
+    status, data = call(base + "/api/optimize", dict(text=EXAMPLE))
+    assert status == 500 and "photosynthesis" not in data.decode()

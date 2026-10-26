@@ -28,7 +28,7 @@ and no framework. Open any page straight from disk to see it.
 The compression engine (TokenSaver, a friend's Python project) lives in `backend/`, with its
 own README, tests and Streamlit test app. Compare and Results use it through
 `backend/web_api.py`, a local web API that also serves the site: `backend/start-web.sh`, then
-http://127.0.0.1:8000/. It offers NLP and TF-IDF only (Qwen stays off on the website). The
+http://127.0.0.1:8000/. It offers NLP and TF-IDF, plus the AI rewrite through `backend/optimizer/` (below). The
 backend's own files belong to the friend: keep changes there small, tested and recorded in
 `backend/docs/`.
 
@@ -36,6 +36,10 @@ backend's own files belong to the friend: keep changes there small, tested and r
 - `compare.js`: the Compare form and result. Keeps the form in `tokenz_compare_draft` and each
   finished run in `tokenz_runs` (sessionStorage, this visit only).
 - `results.js`: reads `tokenz_runs` for the Results chart and table; never calls the engine.
+- Compare's third method, **AI rewrite**, calls `/api/optimize` (Qwen on Groq and Gemini on Google,
+  through `backend/optimizer/`). It's the only option that sends the prompt off the computer, so its
+  section says so and shows the setup status from `/api/health`. It never re-runs by itself. Its run
+  stores the shortest accepted rewrite as `result`, so Results charts it like the other two.
 - Prompt text is always set with `textContent`, never as HTML. Each result says it needs human
   review, and "Original kept" (0 tokens saved) is a valid outcome, not a failure.
 

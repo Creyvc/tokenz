@@ -1,5 +1,14 @@
 # Tokenz 0.2 — live handover
 
+## Joined with the TokenSaver backend, 26 October 2026
+
+- Moved from `tokenz-source/tokenz/` to `backend/optimizer/` (git history kept). It now shares `backend/.venv`: the two lock files pinned identical versions, and the backend lock gained Plotly and Ruff. Both suites pass there twice in a row on Python 3.13 (this suite 199, backend 127).
+- `prompts/optimizer_prompt_v1.md` was never committed, so the Autopilot/methodology and answer-comparison paths (and 16 tests) failed with FileNotFoundError. It was rebuilt from the other v1 templates and the documented rules. If you have the original, replace it; saved runs made with the old text won't be reused, because the template is part of the run signature.
+- Added `app/bridge.py` (+ `tests/test_bridge.py`) so the website's API can run the two-model rewrite in its own process. Website runs are not saved. Added `start.sh` for macOS; `Start-Tokenz.ps1` prefers the shared `..\.venv`.
+- `.env.example` now names `gemini-3.6-flash`, the version that answered in live testing; the code default is still `gemini-3.8-flash`.
+- No live Groq or Gemini request was made in this merge (no keys on this machine).
+
+
 ## Prompt optimization only, 26 October 2026
 
 - User clarified that Groq/Gemini must only rewrite prompts. Implemented `app/prompt_optimization.py`, with a new `prompt_optimization_v1` study schema and dedicated optimizer-only instruction template.

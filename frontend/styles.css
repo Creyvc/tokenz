@@ -1769,9 +1769,10 @@ textarea.wb-input {
   color: #16171A;
 }
 
+/* One card per method that has run: two or three across */
 .rs-cards {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 16px;
   margin-top: 28px;
 }
@@ -2283,5 +2284,123 @@ textarea.wb-input {
     inset: auto;
     height: 70vh;
     margin: 16px;
+  }
+}
+
+/* Compare, AI rewrite: the notice that this option sends the prompt away, in a quiet box */
+.wb-ai-notice {
+  padding: 16px 18px;
+  border: 1px solid #E5E4DF;
+  border-radius: 12px;
+  background: #FAFAF9;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #262626;
+}
+
+.wb-ai-notice b {
+  font-weight: 500;
+  color: #16171A;
+}
+
+/* Whether Groq and Gemini are set up, and how to set them up */
+.wb-ai-status {
+  margin-top: 16px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #262626;
+}
+
+.wb-ai-status:empty {
+  display: none;
+}
+
+.wb-ai-missing,
+.wb-ai-ready {
+  font-weight: 500;
+  color: #16171A;
+}
+
+.wb-ai-status ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  font-size: 13px;
+  color: #5c5c5c;
+}
+
+.wb-ai-status .wb-help {
+  margin: 10px 0 14px;
+}
+
+.wb-ai-status code {
+  font-size: 12px;
+}
+
+/* The AI rewrite's result: one card per model, side by side */
+.wb-candidates {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.wb-candidate {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px;
+  border: 1px solid #E5E4DF;
+  border-radius: 16px;
+}
+
+.wb-candidate-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.wb-candidate .wb-candidate-head h3 {
+  margin: 0;
+  font-size: 15px;
+  color: #16171A;
+}
+
+/* The original, set apart from the summary sentence above it */
+.wb-ai-original {
+  margin-top: 28px;
+}
+
+.wb-candidate-model {
+  margin-top: -6px;
+  font-size: 12px;
+  color: #8a8a8a;
+}
+
+.wb-candidate-num {
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: #16171A;
+}
+
+.wb-candidate .wb-text {
+  height: auto;
+}
+
+/* The review tick and copy button sit tight under each card's rewrite */
+.wb-candidate .wb-review {
+  margin-top: 4px;
+  padding: 12px 14px;
+}
+
+.wb-candidate .wb-help {
+  margin-top: 0;
+}
+
+@media (max-width: 600px) {
+  .wb-candidates {
+    grid-template-columns: 1fr;
   }
 }

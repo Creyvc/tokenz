@@ -4,6 +4,10 @@
 
 Start with `.\Start-Tokenz.ps1`, then open [Tokenz](http://127.0.0.1:8501/).
 
+## Inside the Tokenz repository
+
+This folder is `backend/optimizer/` (it was `tokenz-source/tokenz/`). It shares the backend's environment: from `backend/`, set up `.venv` as in [../README.md](../README.md), then run `./optimizer/start.sh` (Windows: `optimizer\Start-Tokenz.ps1`). A `.venv` of its own still works too. The website's local API runs this folder's rewrite through `app/bridge.py` in a separate process; see "AI rewrite" in the backend README.
+
 ## Current workflow
 
 1. **Connection:** two optimizers only — Qwen on Groq and Gemini 3.6 Flash on Google. Both accounts require confirmed free plans with billing disabled.

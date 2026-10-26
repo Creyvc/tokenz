@@ -2,7 +2,7 @@
 // serves this site itself, so the calls go to the same address. When the site comes from another
 // local server instead (VS Code's Live Server on port 5500, say), they go to the engine's own
 // address on port 8000. A page opened straight from disk has no engine to reach.
-// Only local methods are offered; no keys live here.
+// No keys live here: the AI rewrite's Groq and Gemini keys stay with the engine (backend/optimizer/.env).
 (function () {
   var fromDisk = location.protocol === "file:";
   var ENGINE = "http://127.0.0.1:8000";
@@ -55,6 +55,8 @@
       return attempt(0);
     },
     inspect: function (body) { return post("/api/inspect", body); },
-    compress: function (body) { return post("/api/compress", body); }
+    compress: function (body) { return post("/api/compress", body); },
+    // The AI rewrite: the engine sends the prompt to Groq and Google and returns both rewrites
+    optimize: function (body) { return post("/api/optimize", body); }
   };
 })();

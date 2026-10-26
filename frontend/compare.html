@@ -37,7 +37,7 @@
 
   <main class="content workbench">
     <h1>Compare</h1>
-    <p class="page-intro">Paste a prompt, choose a method, and see the original and the shorter version side by side. It all runs on your computer.</p>
+    <p class="page-intro">Paste a prompt, choose a method, and see the original and the shorter version side by side. NLP and TF-IDF run on your computer; AI rewrite sends your prompt to Groq and Google.</p>
 
     <div class="engine-notice" data-engine-notice hidden>
       <p data-engine-message></p>
@@ -50,6 +50,7 @@
           <div class="wb-segmented" role="radiogroup" aria-label="Method">
             <label><input type="radio" name="method" value="nlp" checked><span>NLP</span></label>
             <label><input type="radio" name="method" value="tfidf"><span>TF-IDF</span></label>
+            <label><input type="radio" name="method" value="ai"><span>AI rewrite</span></label>
           </div>
           <p class="wb-method-help" data-method-help></p>
         </div>
@@ -94,6 +95,15 @@
         </div>
         <p class="wb-help" data-budget-help></p>
         <ul class="wb-problems" data-problems></ul>
+      </section>
+
+      <section class="wb-settings" data-for="ai" hidden>
+        <h2 class="wb-section-title">Groq and Gemini</h2>
+        <div class="wb-ai-notice">
+          <p><b>This option leaves your computer.</b> Your prompt is sent to Groq (Qwen) and Google (Gemini), and each sends back a shorter version. NLP and TF-IDF never send anything.</p>
+          <p class="wb-help">A rewrite that drops a number, saves no tokens or comes back incomplete is rejected, and the original is kept instead. Protected phrases aren't used here.</p>
+        </div>
+        <div class="wb-ai-status" data-ai-status></div>
       </section>
 
       <details class="wb-advanced">

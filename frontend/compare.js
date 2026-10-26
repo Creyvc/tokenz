@@ -1,5 +1,6 @@
-// Compare page: paste a prompt, pick NLP or TF-IDF, run it through the TokenSaver engine (via
-// api.js) and show the original and the suggestion side by side. The form is kept for this visit
+// Compare page: paste a prompt, pick NLP, TF-IDF or the AI rewrite, run it through the TokenSaver
+// engine (via api.js) and show the original and the suggestion side by side. The AI rewrite is the
+// one option that sends the prompt off this computer (to Groq and Google, through the engine). The form is kept for this visit
 // under tokenz_compare_draft, and each finished run under tokenz_runs, which results.js reads.
 // Prompt text is always written with textContent, never as HTML.
 (function () {
@@ -16,11 +17,15 @@
     maximum: "Aims for 20% or more by trimming framing and personal reasons. Some words from that framing can go, so check the result closely. Concise prompts may not reach 20%."
   };
   var LEVEL_NAMES = { conservative: "1 · Conservative", balanced: "2 · Balanced", aggressive: "3 · Aggressive", maximum: "4 · Maximum" };
-  var NAMES = { nlp: "NLP", tfidf: "TF-IDF" };
+  var NAMES = { nlp: "NLP", tfidf: "TF-IDF", ai: "AI rewrite" };
+  var AI_LABELS = { groq: "Qwen · Groq", gemini: "Gemini Flash · Google" };
+  var AI_STATES = { accepted: ["Shorter", "review_required"], rejected: ["Original kept", "unchanged"],
+    failed: ["Couldn't run", "error"], running: ["Didn't finish", "error"] };
   var OUTCOMES = { review_required: "Needs review", unchanged: "Original kept", error: "Couldn't run" };
   var METHOD_HELP = {
     nlp: "Tidies the wording: cuts polite openings and repeated sentences. Good for any prompt.",
-    tfidf: "Cuts whole sentences that are off-topic. Best for longer prompts with background."
+    tfidf: "Cuts whole sentences that are off-topic. Best for longer prompts with background.",
+    ai: "Two AI models each rewrite the whole prompt shorter. Sends your prompt to Groq and Google."
   };
   // The engine's warnings, in plainer words. Anything not listed is shown as the engine wrote it.
   var NOTE_TEXT = {
@@ -47,6 +52,7 @@
     least: find("budget-least"), share: find("budget-share"), shortcut: find("shortcut"),
     methodHelp: find("method-help"), levelHelp: find("level-help"),
     nlp: document.querySelector('[data-for="nlp"]'), tfidf: document.querySelector('[data-for="tfidf"]'),
+    ai: document.querySelector('[data-for="ai"]'), aiStatus: find("ai-status"),
     sentences: find("sentences"), budget: find("budget"),
     suggest: find("suggest"), budgetHelp: find("budget-help"), problems: find("problems"),
     phrases: find("phrases"), encoding: find("encoding"), run: find("run"), runHelp: find("run-help"),
@@ -92,6 +98,7 @@
   });
 
   var engineReady = null;  // null until the first check answers
+  var aiStatus = null;     // whether the engine has Groq and Gemini set up (from its health check)
   var plan = null;         // the engine's latest look at this prompt's sentences
   var inspectTimer = null;
   var inspectCount = 0;
@@ -109,6 +116,8 @@
 
   // Everything a result depends on, so an edited form can mark it out of date
   function signature(method) {
+    // The AI rewrite ignores protected phrases, so they don't make its result out of date
+    if (method === "ai") return JSON.stringify([method, state.text, state.encoding]);
     var parts = [method, state.text, state.phrases, state.encoding];
     if (method === "nlp") parts.push(state.level);
     else parts.push(state.taskText, state.confirmed, state.budget, state.keep.slice().sort());
@@ -146,7 +155,47 @@
   }
 
   function checkEngine() {
-    api.health().then(function () { setEngine(true); }, function () { setEngine(false); });
+    api.health().then(function (data) {
+      aiStatus = data.ai || null;
+      el.aiStatus.dataset.key = "";
+      setEngine(true);
+    }, function () { setEngine(false); });
+  }
+
+  // Whether Groq and Gemini are set up, and how to set them up when they aren't
+  function renderAiStatus() {
+    var box = el.aiStatus;
+    var key = JSON.stringify([engineReady, aiStatus]);
+    if (box.dataset.key === key) return;
+    box.dataset.key = key;
+    box.textContent = "";
+    if (!engineReady) return;  // the engine notice above the form covers this
+    if (!aiStatus) {
+      box.append(make("p", "wb-help", "This engine is older than the AI rewrite. Restart it (./start-web.sh in the backend folder)."));
+      return;
+    }
+    if (aiStatus.available) {
+      box.append(make("p", "wb-ai-ready", "Ready: " + aiStatus.optimizers.map(function (row) {
+        return row.label + " (" + row.model + ")";
+      }).join(" and ") + "."));
+      return;
+    }
+    var list = make("ul");
+    aiStatus.optimizers.forEach(function (row) {
+      if (!row.available) list.append(make("li", null, row.label + ": " + row.reason));
+    });
+    var how = make("p", "wb-help");
+    how.append("To set it up, copy ", make("code", null, "backend/optimizer/.env.example"), " to ",
+      make("code", null, ".env"), " in the same folder, add ", make("code", null, "GROQ_API_KEY"), " and ",
+      make("code", null, "GEMINI_API_KEY"), ", and set both free-plan confirmations to true once billing is off on each account. Then check again.");
+    var again = make("button", "wb-secondary", "Check again");
+    again.type = "button";
+    again.addEventListener("click", function () {
+      again.disabled = true;
+      again.textContent = "Checking…";
+      checkEngine();
+    });
+    box.append(make("p", "wb-ai-missing", "Not set up on this computer yet."), list, how, again);
   }
 
   // Sentence preflight for TF-IDF (it also counts the prompt's tokens)
@@ -324,6 +373,7 @@
     if (!engineReady) return "Start the engine to run this.";
     if (!state.text.trim()) return "Paste a prompt first.";
     if (state.method === "nlp") return "";
+    if (state.method === "ai") return aiStatus && aiStatus.available ? "" : "Set up Groq and Gemini first (above).";
     if (!plan) return "Reading your sentences…";
     if (state.task === null) return "Click the sentence with your main task.";
     if (!validBudget()) return "Set how many tokens to keep.";
@@ -334,6 +384,7 @@
 
   function render() {
     var isNlp = state.method === "nlp";
+    var isTfidf = state.method === "tfidf";
     if (el.prompt.value !== state.text) el.prompt.value = state.text;
     if (el.phrases.value !== state.phrases) el.phrases.value = state.phrases;
     form.elements.method.value = state.method;
@@ -341,11 +392,13 @@
     el.methodHelp.textContent = METHOD_HELP[state.method];
     el.encoding.value = state.encoding;
     el.nlp.hidden = !isNlp;
-    el.tfidf.hidden = isNlp;
+    el.tfidf.hidden = !isTfidf;
+    el.ai.hidden = state.method !== "ai";
+    if (state.method === "ai") renderAiStatus();
     el.levelHelp.textContent = LEVEL_HELP[state.level];
     el.promptTokens.textContent = plan ? plan.original_tokens + " tokens" : "";
 
-    if (!isNlp) {
+    if (isTfidf) {
       renderSentences();
       if (document.activeElement !== el.budget) el.budget.value = state.budget == null ? "" : state.budget;
       var minimum = plan && plan.minimum_required_tokens;
@@ -408,7 +461,8 @@
     el.run.textContent = running ? "Running…" : "Run " + NAMES[state.method];
     el.run.disabled = running || reason !== "";
     el.run.classList.toggle("is-running", running);
-    el.runHelp.textContent = running ? "" : reason || runError;
+    el.runHelp.textContent = running ? (state.method === "ai" ? "Waiting for Groq and Gemini. This can take up to a minute." : "") :
+      reason || runError;
     el.clear.hidden = !state.text;
     el.shortcut.textContent = reason || running ? "" : (MAC ? "⌘" : "Ctrl") + " + Enter also runs it";
 
@@ -427,7 +481,8 @@
   function autoRun() {
     clearTimeout(autoTimer);
     autoTimer = setTimeout(function () {
-      if (!shown || shown.method !== state.method || running || blocker()) return;
+      // Never for the AI rewrite: each run sends the prompt away and uses the free plans' limits
+      if (!shown || shown.method !== state.method || state.method === "ai" || running || blocker()) return;
       if (shown.signature === signature(state.method)) return;
       quietRun = true;
       form.requestSubmit();
@@ -565,11 +620,19 @@
       body.locked_sentences = state.keep;
     }
     var sig = signature(method);
+    var text = state.text;
+    var started = Date.now();
     running = true;
     runError = "";
     render();
-    api.compress(body).then(function (reply) {
-      var run = { method: method, result: reply.result, nlp_mode: reply.nlp_mode, encoding: reply.encoding, signature: sig };
+    var request = method === "ai" ?
+      api.optimize({ text: text, encoding: state.encoding }).then(function (reply) {
+        return aiRun(reply, text, (Date.now() - started) / 1000, sig);
+      }) :
+      api.compress(body).then(function (reply) {
+        return { method: method, result: reply.result, nlp_mode: reply.nlp_mode, encoding: reply.encoding, signature: sig };
+      });
+    request.then(function (run) {
       var runs = read(RUNS_KEY) || {};
       runs[method] = run;
       write(RUNS_KEY, runs);
@@ -588,6 +651,28 @@
       render();
     });
   });
+
+  // The AI rewrite's reply as a run like the others: the shortest accepted rewrite is its result,
+  // so Results can chart it next to NLP and TF-IDF. Both models' rewrites are kept for this page.
+  function aiRun(reply, text, seconds, sig) {
+    var best = null;
+    reply.candidates.forEach(function (candidate) {
+      if (candidate.status === "accepted" && (!best || candidate.optimized_tokens < best.optimized_tokens)) best = candidate;
+    });
+    var anyRejected = reply.candidates.some(function (candidate) { return candidate.status === "rejected"; });
+    return {
+      method: "ai", encoding: reply.encoding, signature: sig, candidates: reply.candidates, note: reply.note,
+      result: {
+        original_text: text, candidate_text: best ? best.optimized_prompt : text,
+        original_target_tokens: reply.original_tokens,
+        candidate_target_tokens: best ? best.optimized_tokens : reply.original_tokens,
+        tokens_saved: best ? best.tokens_saved : 0, reduction_percent: best ? best.reduction_percent : 0,
+        status: best ? "review_required" : anyRejected ? "unchanged" : "error",
+        elapsed_seconds: seconds, warnings: [], changes: [], protected_constraints: [],
+        chosen: best ? AI_LABELS[best.provider] || best.provider : null
+      }
+    };
+  }
 
   // Showing a result
 
@@ -740,7 +825,92 @@
     return review;
   }
 
+  // The AI rewrite: the best of the two at the top, then each model's own rewrite
+  function showAiResult(run) {
+    var r = run.result;
+    shown = run;
+    el.result.textContent = "";
+    el.result.classList.remove("is-stale");
+    el.result.hidden = false;
+
+    var head = make("header", "wb-result-head");
+    head.append(make("h2", null, "AI rewrite result"),
+      make("span", "wb-pill is-" + r.status, OUTCOMES[r.status] || r.status));
+    var stale = make("p", "wb-stale-note", "You changed the prompt or settings. Run again to refresh this result.");
+    stale.hidden = true;
+    el.result.append(head, stale);
+
+    var summary = make("div", "wb-summary");
+    var hero = make("div", "wb-hero");
+    hero.append(make("span", "wb-hero-num", r.reduction_percent.toFixed(1) + "%"),
+      make("span", "wb-hero-label", "fewer tokens, the shorter of the two"));
+    var stats = make("dl", "wb-stats");
+    stat(stats, "Original", r.original_target_tokens + " tokens");
+    stat(stats, "Shortest", r.candidate_target_tokens + " tokens");
+    stat(stats, "Saved", r.tokens_saved + " tokens");
+    stat(stats, "Time", r.elapsed_seconds.toFixed(1) + " s");
+    summary.append(hero, stats);
+    el.result.append(summary);
+
+    el.result.append(make("p", "wb-status", {
+      review_required: "The shortest rewrite that passed the checks is " + r.chosen + "'s. Check that every task and constraint survived before you use it.",
+      unchanged: "Original kept: neither rewrite passed the checks.",
+      error: "Neither model could run. The reasons are below."
+    }[r.status]));
+
+    var original = side("Original", make("div", "wb-text", r.original_text));
+    original.classList.add("wb-ai-original");
+    el.result.append(original);
+    var list = make("div", "wb-candidates");
+    var anyShorter = false;
+    run.candidates.forEach(function (candidate) {
+      var look = AI_STATES[candidate.status] || [candidate.status, "error"];
+      var card = make("section", "wb-candidate");
+      var top = make("div", "wb-candidate-head");
+      top.append(make("h3", null, AI_LABELS[candidate.provider] || candidate.provider),
+        make("span", "wb-pill is-" + look[1], look[0]));
+      card.append(top, make("p", "wb-candidate-model", candidate.model));
+      if (candidate.optimized_tokens != null) {
+        card.append(make("p", "wb-candidate-num", candidate.optimized_tokens + " tokens · " +
+          candidate.reduction_percent.toFixed(1) + "% fewer"));
+      }
+      if (candidate.status === "accepted") {
+        anyShorter = true;
+        var changes = wordChanges(r.original_text, candidate.optimized_prompt);
+        card.append(changes ? marked(changes.right) : make("div", "wb-text", candidate.optimized_prompt),
+          reviewControls(candidate.optimized_prompt));
+      } else if (candidate.status === "rejected") {
+        card.append(make("p", "wb-help", "Rejected, so the original is kept: " + candidate.checks.join(" ")));
+      } else {
+        card.append(make("p", "wb-help", candidate.error || "This model didn't finish."));
+      }
+      list.append(card);
+    });
+    el.result.append(list);
+    if (anyShorter) {
+      var legend = make("p", "wb-legend");
+      legend.append(make("ins", "wb-ins", "shaded"), " was reworded or added");
+      el.result.append(legend);
+    }
+    el.result.append(make("p", "wb-help", run.note));
+
+    var next = make("div", "wb-next");
+    var tryNlp = make("button", "wb-secondary", "Try NLP on this prompt");
+    tryNlp.type = "button";
+    tryNlp.addEventListener("click", function () {
+      switchMethod("nlp");
+      var still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      form.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "start" });
+    });
+    var link = make("a", null, "See Results →");
+    link.href = "results.html";
+    next.append(tryNlp, link);
+    el.result.append(next);
+    render();
+  }
+
   function showResult(run) {
+    if (run.method === "ai") return showAiResult(run);
     var r = run.result;
     var changed = r.candidate_text !== r.original_text;
     shown = run;
