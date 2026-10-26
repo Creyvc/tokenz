@@ -4,7 +4,7 @@ from time import perf_counter
 import re
 import spacy
 from models import make_result
-from validation import extract_protected_constraints, validate_candidate, contains_span
+from validation import extract_protected_constraints, validate_candidate, contains_span, is_pleasantry
 
 # Explicit phrase edits, not semantic summarization. Anchors avoid changing an
 # explanation of what somebody else wants into a new instruction.
@@ -59,8 +59,10 @@ def stronger_sentence(sentence, raw, locked_spans, mode):
         edited = re.sub(pattern, replacement, edited, flags=re.I)
     if edited != raw:
         edited = re.sub(r"^not\s+", "Do not ", edited, flags=re.I)
-    if edited:
-        edited = edited[0].upper() + edited[1:]
+        # Only a sentence whose opening was edited gets a new capital letter; an untouched one
+        # (for example a clause spaCy split off, starting "and …") keeps its own case
+        if edited:
+            edited = edited[0].upper() + edited[1:]
     requirements = extract_protected_constraints(raw)
     if mode != "maximum":
         requirements += [t.text for t in sentence if t.pos_ in ("NOUN", "PROPN")]
@@ -82,16 +84,34 @@ def compress_with_nlp(text, locked_spans=None, encoding="o200k_base", *, mode="c
     except OSError:
         return make_result("nlp", text, text, start, encoding,
                            ["Install the spaCy model: python -m spacy download en_core_web_sm"], "error")
-    protected = list(dict.fromkeys(protected + [e.text for e in doc.ents]))
+    # Greetings and small talk ("Hi!", "I hope you are doing well today.") are dropped below,
+    # so their words ("today") aren't treated as requirements
+    pleasantries = {sent.start for sent in doc.sents if is_pleasantry(sent.text)}
+    protected = list(dict.fromkeys(protected + [e.text for e in doc.ents if e.sent.start not in pleasantries]))
     # Detect noun phrases as candidate technical concepts; show them for human review.
     # Protect content nouns individually so polite opening removal remains possible.
     if mode != "maximum":
-        protected += [t.text for t in doc if t.pos_ in ("NOUN", "PROPN")]
-    sentences, seen = [], set()
+        protected += [t.text for t in doc if t.pos_ in ("NOUN", "PROPN") and t.sent.start not in pleasantries]
+    # Each kept sentence keeps the spacing around it (line and paragraph breaks, list layout),
+    # so the suggestion has the original's shape and no tokens are "saved" by flattening it
+    pieces, seen, seen_edited = [], set(), set()
+
+    def drop(spacing):
+        # A removed sentence that ended a line or paragraph passes that break on
+        if "\n" in spacing and pieces and "\n" not in pieces[-1][len(pieces[-1].rstrip()):]:
+            pieces[-1] = pieces[-1].rstrip() + spacing
+
     for sentence in doc.sents:
-        raw = sentence.text.strip()
-        # Exact duplicates only. The shared validator still checks constraints.
-        if raw in seen:
+        chunk = sentence.text_with_ws
+        raw = chunk.strip()
+        if not raw:
+            pieces.append(chunk)
+            continue
+        lead = chunk[:len(chunk) - len(chunk.lstrip())]
+        trail = chunk[len(chunk.rstrip()):]
+        # Exact duplicates and pure pleasantries only. The shared validator still checks constraints.
+        if raw in seen or sentence.start in pleasantries:
+            drop(trail)
             continue
         seen.add(raw)
         root = sentence.root
@@ -99,15 +119,21 @@ def compress_with_nlp(text, locked_spans=None, encoding="o200k_base", *, mode="c
             raw = stronger_sentence(sentence, raw, locked_spans, mode)
         # Only remove a polite opening when the parsed sentence root is a verb.
         if root.pos_ == "VERB":
-            raw = re.sub(r"^(?:(?:Could|Would|Can) you (?:please )?|Please )", "", raw, flags=re.I)
+            # A greeting in front ("Hey, could you please …") goes with the polite opening
+            raw = re.sub(r"^(?:(?:hey|hi|hello)(?: there)?,?\s+)?(?:(?:Could|Would|Can) you (?:please )?|Please )",
+                         "", raw, flags=re.I)
             if raw != sentence.text.strip() and raw:
                 raw = raw[0].upper() + raw[1:]
                 if raw.endswith("?"): raw = raw[:-1] + "."
-        sentences.append(raw)
-    if mode != "conservative":
-        # Deduplicate only sentences made identical by the explicit edits.
-        sentences = list(dict.fromkeys(sentences))
-    candidate = " ".join(sentences)
+        if mode != "conservative":
+            # Deduplicate only sentences made identical by the explicit edits.
+            if raw in seen_edited:
+                drop(trail)
+                continue
+            seen_edited.add(raw)
+        pieces.append(lead + raw + trail)
+    body = "".join(pieces).strip()
+    candidate = text[:len(text) - len(text.lstrip())] + body + text[len(text.rstrip()):]
     validation = validate_candidate(text, candidate, protected, encoding, locked_spans)
     notes = validation.warnings + validation.failures
     if mode != "conservative":

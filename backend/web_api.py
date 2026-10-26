@@ -190,6 +190,12 @@ class Handler(SimpleHTTPRequestHandler):
         except ValueError:
             length = -1
         if not 0 < length <= MAX_BODY_BYTES:
+            # Read and drop a moderately oversized body first, so the sender gets this answer
+            # instead of a broken connection; anything huge just closes the connection
+            if MAX_BODY_BYTES < length <= 4 * MAX_BODY_BYTES:
+                self.rfile.read(length)
+            else:
+                self.close_connection = True
             return self.send_json(413, dict(error="The request is empty or too large."))
         try:
             body = json.loads(self.rfile.read(length))

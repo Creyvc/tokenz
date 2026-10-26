@@ -13,3 +13,15 @@ and the comparison display. No live Qwen requests.
 86 passed: the 83 above plus 3 new service tests. Protected phrases are now trimmed and blank
 lines ignored, so a stray space no longer blocks every NLP and TF-IDF suggestion. Streamlit
 NLP, TF-IDF and comparison screens checked in Chrome. No live Qwen requests.
+
+2026-10-26 prompt-quality fixes (Tokenz repository, backend/): 122 passed on macOS, Python 3.13.9.
+Found by running 18 realistic prompts through NLP (all four levels) and TF-IDF and reading every output:
+- TF-IDF dropped requested subtasks that share no words with the task ("Please focus on alliances…",
+  "Add a short docstring", "Avoid paid courses"); it now keeps requests and instructions (Q4 rule).
+- TF-IDF dropped the email a "rewrite this email" task works on; that text is now kept.
+- TF-IDF joined kept sentences with blank lines; it now keeps the original spacing.
+- TF-IDF kept both copies of a repeated request, forced background in for a protected word the task
+  already contained, and could split a list number ("2.") off its item.
+- NLP flattened line breaks and lists, capitalised an untouched clause ("…due And I was…"), could not
+  edit a one-line prompt containing an equation, and left greetings and small talk in.
+tests/test_prompt_quality.py (14 tests) covers each case; 12 of them fail on the previous code. No live Qwen requests.

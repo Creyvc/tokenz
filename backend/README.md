@@ -62,7 +62,7 @@ Choose the **NLP** screen, paste text, choose **NLP reduction**, then click **Ru
 
 Maximum targets at least 20% reduction but does not force deletion to meet it. Concise or protected prompts may miss the target. On the supplied sales prompt, 659 original tokens became 653 / 639 / 617 / 508 tokens respectively; Maximum saved 22.9%. These are development examples, not a semantic-retention verdict. All levels remain rule-based local editing rather than general paragraph summarization. Review every task and constraint. Optional protected phrases and the counting encoding are under **Advanced settings**.
 
-Choose the separate **TF-IDF** screen for prompts with at least three sentences and removable context. Select the main-task sentence (or choose **Use a custom excerpt…**), confirm it, and choose a token budget on that screen. New prompts start at 65% of original tokens. **Use suggested budget** accounts for mandatory content. The required minimum is displayed before running; an infeasible budget disables **Run TF-IDF** with an explanation.
+Choose the separate **TF-IDF** screen for prompts with at least three sentences and removable context. Besides the task and locks, TF-IDF always keeps sentences that ask for something (instructions, requests and stated requirements such as tone or audience), the text a rewrite/translate/proofread task works on, and protected words or numbers not already covered by a kept sentence. Exact repeats, greetings and small talk are never added to fill the budget, and kept sentences are joined with the spacing they had, so no new paragraphs appear. Select the main-task sentence (or choose **Use a custom excerpt…**), confirm it, and choose a token budget on that screen. New prompts start at 65% of original tokens. **Use suggested budget** accounts for mandatory content. The required minimum is displayed before running; an infeasible budget disables **Run TF-IDF** with an explanation.
 
 Lock exact phrases under Advanced settings or sentences under **Lock or restore sentences**. Inspect the changes before copying. The backend still returns the original if mandatory content exceeds the budget. To restore an excluded sentence, select it in **Sentences to keep**, increase the budget if needed and rerun. Changing the original resets that screen's task confirmation, sentence locks and budget. Switching screens preserves independent drafts/results. The code block has a copy control; the download requires a review acknowledgment.
 
@@ -77,7 +77,7 @@ NLP does not generally summarize background context. The TF-IDF example correctl
 .\.venv\Scripts\python.exe evaluation.py
 ```
 
-Tests inject fake provider responses and do not make paid calls. First-use tokenizer downloads are installation traffic, not model calls. Evaluation runs 24 synthetic prompts through the two local methods. See `docs/evaluation/summary.md` and `results.json`; human checklist fields remain unscored. No Qwen performance is fabricated.
+Tests inject fake provider responses and do not make paid calls. `tests/test_prompt_quality.py` holds regressions from realistic prompts (26 October 2026). The saved records in `docs/evaluation/` were produced before those fixes; rerun `evaluation.py` if the report should use the current behaviour (it overwrites `results.json` and `summary.md`, not the 15-case review packet). First-use tokenizer downloads are installation traffic, not model calls. Evaluation runs 24 synthetic prompts through the two local methods. See `docs/evaluation/summary.md` and `results.json`; human checklist fields remain unscored. No Qwen performance is fabricated.
 
 For the agreed human assessment, open `docs/evaluation/RETENTION_REVIEW.md`. Review all 15 cases (11 NLP, 4 TF-IDF), or use the matching `review_ratings.json` answer sheet, and return the completed file in this chat. Any lost requested subtask or explicit constraint makes a suggestion unacceptable. Retained keywords or fewer tokens do not establish retention. The packet preserves the existing experimental records and includes an exact source snapshot; no ratings have been filled automatically.
 
@@ -123,7 +123,7 @@ Live Qwen validation is deliberately deferred beyond this submission. Manual ret
 - `docs/architecture.svg` and `docs/architecture.png`: architecture diagram; Mermaid source is in `docs/ARCHITECTURE.md`.
 - `docs/TokenSaver-demo.webm`: original silent screen recording of the local app and architecture; newer TF-IDF controls are demonstrated in `docs/tfidf-fixed.png`.
 - `docs/DEMO_SCRIPT.md`: narration/recording script for your team.
-- `docs/TEST_RESULTS.txt`: latest run, 86 tests passed.
+- `docs/TEST_RESULTS.txt`: latest run, 122 tests passed.
 - `docs/HOW_TO_TEST.md`: walkthrough of the separate NLP and TF-IDF screens.
 - `docs/evaluation/RETENTION_REVIEW.md`: readable 15-case packet awaiting your ratings.
 - `docs/evaluation/review_ratings.json`: optional structured answer sheet; all verdicts are pending.

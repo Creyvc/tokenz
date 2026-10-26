@@ -11,6 +11,7 @@
   <script src="scroll-line.js" defer></script>
   <script src="modal.js" defer></script>
   <script src="api.js" defer></script>
+  <script src="wake-slider.js" defer></script>
   <script src="compare.js" defer></script>
 </head>
 <body>
@@ -82,7 +83,10 @@
         <ol class="wb-sentences" aria-labelledby="wb-sentences-label" data-sentences></ol>
         <h2 class="wb-section-title"><label for="wb-budget">How much to keep</label></h2>
         <div class="wb-budget-row">
-          <input class="wb-range" type="range" min="1" max="100" step="1" aria-label="Token budget" data-budget-range>
+          <div class="wb-range-wrap">
+            <div class="wb-wake" data-budget-slider></div>
+            <span class="wb-range-least" data-budget-least hidden></span>
+          </div>
           <input id="wb-budget" class="wb-input wb-budget" type="number" min="1" max="6000" step="1" inputmode="numeric" data-budget>
           <span class="wb-unit">tokens</span>
         </div>

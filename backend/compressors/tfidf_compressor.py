@@ -7,7 +7,44 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from token_utils import count_tokens
 from models import make_result
-from validation import extract_protected_constraints, validate_candidate
+from validation import extract_protected_constraints, validate_candidate, contains_span, is_pleasantry
+
+# TF-IDF only measures word overlap with the task, so a request such as "Please focus on
+# alliances" or "Avoid paid courses" can score zero and be dropped. Requested subtasks must survive
+# (docs/DESIGN_INTERVIEW.md, Q4), so sentences that ask for something are kept like constraints.
+REQUEST_VERBS = (r"add|analy[sz]e|answer|avoid|calculate|check|cite|compare|convert|create|define|describe|"
+                 r"design|discuss|draft|draw|ensure|exclude|explain|find|fix|focus|format|generate|give|"
+                 r"highlight|identify|implement|improve|include|keep|label|limit|list|make|mention|"
+                 r"organi[sz]e|outline|plan|prepare|present|provide|recommend|remember|remove|reply|"
+                 r"respond|return|rewrite|show|sort|state|structure|suggest|summari[sz]e|tell|translate|"
+                 r"use|write")
+REQUEST_START = re.compile(r"^(?:[-*•]|\d+[.)])?\s*(?:(?:and|also|then|now|finally|first|next|lastly),?\s+)*"
+                           r"(?:please\s+|kindly\s+)?(?:do not|don't|never|always|be sure to|make sure|"
+                           + REQUEST_VERBS + r")\b", re.I)
+REQUEST_ANYWHERE = re.compile(r"\b(?:please|kindly|(?:could|can|would|will) you|i(?:'d| would) like (?:you )?to|"
+                              r"i (?:want|need) (?:you )?to|it would (?:also )?be (?:useful|helpful|great|nice|good) if|"
+                              r"you (?:should|must|need to)|make sure|remember to|target audience|tone|word count)\b", re.I)
+
+
+# A task that works on text given with it ("rewrite this email", "proofread the following"). The
+# text itself is often in the sentences right after the task and shares few words with it.
+TRANSFORM_TASK = re.compile(r"\b(?:rewrite|rephrase|reword|paraphrase|translate|proofread|edit|correct|"
+                            r"polish|shorten|simplify|summari[sz]e|improve|fix|check)\b.*"
+                            r"\b(?:this|these|the following|below|my)\b", re.I)
+
+
+def is_request(sentence):
+    """A sentence that asks for something (an instruction, a request or a stated requirement).
+
+    Each line is checked on its own, and so is the part after a colon, so a list item such as
+    "Requirements:\n- Keep the original order" counts.
+    """
+    parts = [sentence] + sentence.splitlines() + [piece for piece in sentence.split(":")[1:]]
+    return any(REQUEST_START.search(part.strip()) or REQUEST_ANYWHERE.search(part) for part in parts)
+
+
+def normalized(sentence):
+    return " ".join(sentence.split()).casefold()
 
 @lru_cache(maxsize=1)
 def sentence_splitter():
@@ -24,7 +61,15 @@ def sentence_spans(text):
             start = sentence.start_char + len(raw) - len(raw.lstrip())
             end = sentence.end_char - len(raw) + len(raw.rstrip())
             spans.append(dict(text=text[start:end], start=start, end=end))
-    return spans
+    # The sentencizer can split a list number ("2.") off from its item; join it back on
+    merged = []
+    for span in spans:
+        if merged and re.fullmatch(r"(?:\d{1,3}|[a-zA-Z])[.)]|[-*•]", merged[-1]["text"]):
+            start = merged[-1]["start"]
+            merged[-1] = dict(text=text[start:span["end"]], start=start, end=span["end"])
+        else:
+            merged.append(span)
+    return merged
 
 
 def split_sentences(text):
@@ -32,17 +77,25 @@ def split_sentences(text):
 
 
 def assemble_sentences(text, spans, indices):
-    """Join selected source blocks; never rewrite a confirmed multiline task."""
-    blocks = []
+    """Join selected source blocks; never rewrite a confirmed multiline task.
+
+    Neighbouring sentences keep the text between them. Across a removed sentence, the kept one is
+    joined with the spacing that came before it in the source: a space inside a paragraph, the
+    line or paragraph break otherwise, so no new paragraphs appear.
+    """
+    joined = ""
     previous = None
     for index in sorted(indices):
         span = spans[index]
-        if previous is not None and index == previous + 1:
-            blocks[-1] += text[spans[previous]["end"]:span["end"]]
+        if previous is None:
+            joined = text[span["start"]:span["end"]]
+        elif index == previous + 1:
+            joined += text[spans[previous]["end"]:span["end"]]
         else:
-            blocks.append(text[span["start"]:span["end"]])
+            gap = text[spans[index - 1]["end"]:span["start"]]
+            joined += (gap if gap.strip() == "" and "\n" in gap else " ") + text[span["start"]:span["end"]]
         previous = index
-    return "\n\n".join(blocks)
+    return joined
 
 
 def inspect_tfidf_input(text, main_question, locked_sentences=None,
@@ -71,13 +124,40 @@ def inspect_tfidf_input(text, main_question, locked_sentences=None,
             if span["start"] < end and span["end"] > start and reason not in row["mandatory_reasons"]:
                 row["mandatory_reasons"].append(reason)
 
+    # An exact repeat of an earlier sentence adds nothing: the first copy carries its requirements
+    first_seen, repeats = {}, set()
+    for row in rows:
+        key = normalized(row["text"])
+        if key in first_seen:
+            repeats.add(row["index"])
+        else:
+            first_seen[key] = row["index"]
+
     if task_range:
         mark_range(*task_range, "Confirmed main task")
     for index in locked:
         rows[index]["mandatory_reasons"].append("User-locked sentence")
+    for row in rows:
+        if row["index"] not in repeats and not row["mandatory_reasons"] and is_request(row["text"]):
+            row["mandatory_reasons"].append("Request or instruction")
+    # "Rewrite this email." The email follows: keep the sentences after the task up to the next
+    # request, unless the task sentence already holds the text (a quote, or words after a colon)
+    task_text = main_question if task_range else ""
+    holds_text = re.search(r'["“].+["”]|:\s*\S', task_text)
+    if task_range and TRANSFORM_TASK.search(task_text) and not holds_text:
+        after = [row for row, span in zip(rows, spans) if span["start"] >= task_range[1]]
+        for row in after:
+            if row["mandatory_reasons"]:
+                break
+            row["mandatory_reasons"].append("Text the task works on")
     # Full-source constraints and locks can cross sentence boundaries.
     exact_locks = set(span for span in locked_spans or [] if span)
+    # A protected word or number only has to survive once: if a sentence already being kept
+    # (the task, a lock, a request) contains it, other sentences aren't forced in for it
+    kept_text = " ".join(row["text"] for row in rows if row["mandatory_reasons"])
     for requirement in protected:
+        if requirement not in exact_locks and contains_span(kept_text, requirement):
+            continue
         pattern = re.escape(requirement)
         if requirement[0].isalnum() and requirement[-1].isalnum():
             pattern = r"(?<!\w)" + pattern + r"(?!\w)"
@@ -86,9 +166,13 @@ def inspect_tfidf_input(text, main_question, locked_sentences=None,
             problems.append(f"Locked phrase is absent from the original: {requirement}")
         for match in matches:
             mark_range(match.start(), match.end(), "Protected requirement: " + requirement)
+    for index in repeats - locked:
+        # Keep the reasons a repeat was flagged for only when the user locked it themselves
+        if "Confirmed main task" not in rows[index]["mandatory_reasons"]:
+            rows[index]["mandatory_reasons"] = []
     mandatory = {row["index"] for row in rows if row["mandatory_reasons"]}
     required_tokens = count_tokens(assemble_sentences(text, spans, mandatory), encoding) if task_range else None
-    return dict(spans=spans, rows=rows, protected=protected, mandatory=mandatory,
+    return dict(spans=spans, rows=rows, protected=protected, mandatory=mandatory, repeats=repeats,
                 problems=problems, main_task_valid=task_range is not None,
                 original_tokens=count_tokens(text, encoding), minimum_required_tokens=required_tokens)
 
@@ -128,7 +212,8 @@ def compress_with_tfidf(text, main_question, token_budget, locked_sentences=None
             "The original was retained; no locked requirement was removed."], reason="budget_too_small")
     selected = set(plan["mandatory"])
     for i in sorted(range(len(rows)), key=lambda i: (-scores[i], i)):
-        if i not in selected and count_tokens(assemble_sentences(text, plan["spans"], selected | {i}), encoding) <= token_budget:
+        repeat = any(normalized(rows[i]["text"]) == normalized(rows[j]["text"]) for j in selected)
+        if i not in selected and not repeat and not is_pleasantry(rows[i]["text"]) and count_tokens(assemble_sentences(text, plan["spans"], selected | {i}), encoding) <= token_budget:
             selected.add(i)
     if len(selected) == len(rows):
         return finish(warnings=["All sentences fit the budget or are mandatory, so none were removed. "

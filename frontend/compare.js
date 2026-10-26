@@ -31,6 +31,8 @@
       "More than half the prompt was removed. Read the suggestion carefully before using it."
   };
   var SHORT_PROMPT = "TF-IDF needs at least 3 sentences";
+  var NOTHING_TO_CUT = "Every sentence has to stay";
+  var BELOW_LEAST = "That's below what must stay";
   var MAC = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
   // The engine's own wording for "pick a task"; this page asks for that with the sentence list
   var TASK_PROBLEM = "Choose a main-task sentence";
@@ -42,7 +44,7 @@
   function find(name) { return document.querySelector("[data-" + name + "]"); }
   var el = {
     prompt: find("prompt"), promptTokens: find("prompt-tokens"), example: find("example"), clear: find("clear"),
-    range: find("budget-range"), share: find("budget-share"), shortcut: find("shortcut"),
+    least: find("budget-least"), share: find("budget-share"), shortcut: find("shortcut"),
     methodHelp: find("method-help"), levelHelp: find("level-help"),
     nlp: document.querySelector('[data-for="nlp"]'), tfidf: document.querySelector('[data-for="tfidf"]'),
     sentences: find("sentences"), budget: find("budget"),
@@ -72,6 +74,22 @@
   if (!NAMES[state.method]) state.method = "nlp";
   if (!LEVEL_HELP[state.level]) state.level = "conservative";
   if (!Array.isArray(state.keep)) state.keep = [];
+
+  // "How much to keep": the bar slider (wake-slider.js), in the site's near-black and grey
+  var slider = window.WakeSlider(find("budget-slider"), {
+    min: 1, max: 100, value: 50, step: 1, bars: 32, barWidth: 6, height: 44, restHeight: 10, gap: 4,
+    fillColor: "#16171A", trackColor: "#E5E4DF", sensitivity: 1, reach: 6, skew: 0.6,
+    glide: 0.3, smoothing: 100, ariaLabel: "Token budget", disabled: true,
+    // More bars on a wider screen: the "least" mark is placed by bar, so it moves with them
+    onLayout: function () { render(); },
+    onChange: function (value) {
+      state.budget = value;
+      state.budgetTouched = true;
+      save();
+      render();
+      autoRun();
+    }
+  });
 
   var engineReady = null;  // null until the first check answers
   var plan = null;         // the engine's latest look at this prompt's sentences
@@ -152,6 +170,7 @@
       if (count !== inspectCount) return;  // a newer check is on its way
       plan = reply;
       if (!state.budgetTouched) state.budget = reply.suggested_budget;
+      state.budget = clampBudget(state.budget);
       var restoring = rerunAfterCheck;
       rerunAfterCheck = false;
       if (restoring) {
@@ -211,10 +230,14 @@
       box.disabled = isTask;
       item.classList.toggle("is-task", isTask);
       // Sentences the engine keeps whatever the budget, and why
-      var why = row.mandatory_reasons.filter(function (reason) {
+      var words = row.mandatory_reasons.filter(function (reason) {
         return reason.indexOf("Protected requirement: ") === 0;
       }).map(function (reason) { return "“" + reason.slice(23) + "”"; });
-      item.querySelector(".wb-sentence-why").textContent = why.length ? "Always kept: contains " + why.join(", ") : "";
+      var why = [];
+      if (row.mandatory_reasons.indexOf("Request or instruction") !== -1) why.push("it asks for something");
+      if (row.mandatory_reasons.indexOf("Text the task works on") !== -1) why.push("it's the text your task works on");
+      if (words.length) why.push("contains " + words.join(", "));
+      item.querySelector(".wb-sentence-why").textContent = why.length && !isTask ? "Always kept: " + why.join(" · ") : "";
     });
   }
 
@@ -223,10 +246,72 @@
       return problem.indexOf(TASK_PROBLEM) !== 0;
     }) : [];
     var minimum = plan && plan.minimum_required_tokens;
+    if (minimum != null && minimum >= plan.original_tokens) {
+      issues.push(NOTHING_TO_CUT + " in this prompt: " + mustStay() + ". To cut something, untick Keep or choose a different main task, or tidy the wording with NLP.");
+    }
     if (minimum != null && state.budget < minimum) {
-      issues.push("Budget too small: keep at least " + minimum + " tokens, or untick some sentences.");
+      issues.push(BELOW_LEAST + ": " + mustStay() + " add up to " + minimum + " tokens, so a budget of " + state.budget + " can't be met.");
     }
     return issues;
+  }
+
+  // What TF-IDF has to keep, counted from the engine's reasons: "2 sentences you ticked Keep on,
+  // your main task and 1 sentence with a protected word (“12”)"
+  function mustStay() {
+    var ticked = 0, task = false, asks = 0, material = false, guarded = 0, words = [];
+    plan.sentences.forEach(function (row) {
+      var reasons = row.mandatory_reasons;
+      if (reasons.indexOf("Confirmed main task") !== -1) task = true;
+      else if (reasons.indexOf("User-locked sentence") !== -1) ticked++;
+      else if (reasons.indexOf("Request or instruction") !== -1) asks++;
+      else if (reasons.indexOf("Text the task works on") !== -1) material = true;
+      else if (reasons.length) {
+        guarded++;
+        reasons.forEach(function (reason) {
+          var word = "“" + reason.slice(23) + "”";
+          if (reason.indexOf("Protected requirement: ") === 0 && words.indexOf(word) === -1 && words.length < 4) words.push(word);
+        });
+      }
+    });
+    var parts = [];
+    if (ticked) parts.push(ticked + (ticked === 1 ? " sentence" : " sentences") + " you ticked Keep on");
+    if (task) parts.push("your main task");
+    if (asks) parts.push(asks + (asks === 1 ? " instruction" : " instructions"));
+    if (material) parts.push("the text your task works on");
+    if (guarded) parts.push(guarded + (guarded === 1 ? " sentence" : " sentences") + " with protected words" +
+      (words.length ? " (" + words.join(", ") + ")" : ""));
+    if (parts.length > 1) parts[parts.length - 1] = "and " + parts[parts.length - 1];
+    return parts.join(parts.length > 2 ? ", " : " ") || "the sentences that must stay";
+  }
+
+  function untickAll() {
+    state.keep = [];
+    save();
+    render();
+    scheduleInspect(0);
+  }
+
+  // The fix buttons in the messages under the budget, handled in one place
+  el.problems.addEventListener("click", function (event) {
+    var button = event.target.closest("[data-fix]");
+    if (!button) return;
+    var fix = button.dataset.fix;
+    if (fix === "nlp") return switchMethod("nlp");
+    if (fix === "untick") return untickAll();
+    if (fix === "least" && plan && plan.minimum_required_tokens != null) {
+      state.budget = plan.minimum_required_tokens;
+      state.budgetTouched = true;
+      save();
+      render();
+      autoRun();
+    }
+  });
+
+  // Keep the budget between 1 and the whole prompt (more than the prompt means nothing)
+  function clampBudget(value) {
+    if (value == null || isNaN(value)) return value;
+    var most = plan ? Math.max(plan.original_tokens, 1) : 6000;
+    return Math.min(Math.max(Math.round(value), 1), most);
   }
 
   function validBudget() {
@@ -242,7 +327,8 @@
     if (!plan) return "Reading your sentences…";
     if (state.task === null) return "Click the sentence with your main task.";
     if (!validBudget()) return "Set how many tokens to keep.";
-    if (tfidfIssues().length || plan.minimum_required_tokens == null) return "Fix the points above first.";
+    var blocking = tfidfIssues().filter(function (issue) { return issue.indexOf(NOTHING_TO_CUT) !== 0; });
+    if (blocking.length || plan.minimum_required_tokens == null) return "Fix the points above first.";
     return "";
   }
 
@@ -263,42 +349,59 @@
       renderSentences();
       if (document.activeElement !== el.budget) el.budget.value = state.budget == null ? "" : state.budget;
       var minimum = plan && plan.minimum_required_tokens;
-      // The slider runs from the least that can work up to the whole prompt
-      el.range.disabled = !plan;
+      var nothingToCut = minimum != null && plan && minimum >= plan.original_tokens;
+      // The slider always runs from 1 to the whole prompt, so it can always be moved; a mark
+      // under it shows the least that can work
       if (plan) {
-        // Only touch the slider when something changed, and never under the user's pointer:
-        // Chrome drops a drag in progress whenever min, max or value is written again
-        var low = String(minimum || 1);
-        var high = String(Math.max(plan.original_tokens, minimum || 1));
-        if (el.range.min !== low) el.range.min = low;
-        if (el.range.max !== high) el.range.max = high;
-        var position = String(state.budget == null ? high : state.budget);
-        if (document.activeElement !== el.range && el.range.value !== position) el.range.value = position;
-        // How far the black part of the track reaches
-        var span = Number(high) - Number(low);
-        var filled = span > 0 ? 100 * (Number(el.range.value) - Number(low)) / span : 100;
-        el.range.style.setProperty("--fill", filled + "%");
-        var share = state.budget && plan.original_tokens ? Math.round(100 * state.budget / plan.original_tokens) : null;
-        el.share.textContent = share == null ? "" : state.budget + " of " + plan.original_tokens + " tokens · keeps about " + Math.min(share, 100) + "%";
+        var high = Math.max(plan.original_tokens, 1);
+        el.budget.max = String(high);
+        var showLeast = minimum != null && !nothingToCut;
+        slider.set({ min: 1, max: high, value: state.budget == null ? high : state.budget,
+          floor: showLeast ? minimum : null, disabled: false });
+        el.least.hidden = !showLeast;
+        if (showLeast) {
+          el.least.style.setProperty("--at", slider.positionOf(minimum));
+          el.least.textContent = "least " + minimum;
+        }
+        var share = state.budget ? Math.round(100 * state.budget / plan.original_tokens) : null;
+        el.share.textContent = share == null ? "" : state.budget + " of " + plan.original_tokens + " tokens · keeps about " + share + "%";
       } else {
+        slider.set({ disabled: true, floor: null });
+        el.least.hidden = true;
         el.share.textContent = "";
       }
       el.suggest.disabled = !plan || state.budget === plan.suggested_budget;
-      el.budgetHelp.textContent = !plan ? "" : minimum != null ?
-        "Your main task and kept sentences need at least " + minimum + " tokens." :
+      el.budgetHelp.textContent = !plan || nothingToCut ? "" : minimum != null ?
+        "Drag to choose. Your task and the sentences that must stay need at least " + minimum + " tokens (the mark on the track)." :
         "Click your main task above to see the least you can keep.";
-      el.problems.textContent = "";
-      tfidfIssues().forEach(function (issue) {
-        var item = make("li", null, issue);
-        // A prompt too short for TF-IDF gets a one-click way out
-        if (issue.indexOf(SHORT_PROMPT) === 0) {
-          var swap = make("button", "wb-link", "Use NLP instead");
-          swap.type = "button";
-          swap.addEventListener("click", function () { switchMethod("nlp"); });
-          item.append(" ", swap);
-        }
-        el.problems.append(item);
-      });
+      // Rebuilt only when the messages change: a redraw between pressing and releasing a fix
+      // button (the budget box losing focus causes one) would otherwise swallow the click
+      var issues = tfidfIssues();
+      var issueKey = JSON.stringify([issues, state.keep.length, nothingToCut, minimum]);
+      if (el.problems.dataset.key !== issueKey) {
+        el.problems.dataset.key = issueKey;
+        el.problems.textContent = "";
+        issues.forEach(function (issue) {
+          var item = make("li", null, issue);
+          var fixes = [];
+          if (issue.indexOf(SHORT_PROMPT) === 0) {
+            fixes.push(["Use NLP instead", "nlp"]);
+          } else if (issue.indexOf(NOTHING_TO_CUT) === 0) {
+            if (state.keep.length) fixes.push(["Untick all Keep", "untick"]);
+            fixes.push(["Use NLP instead", "nlp"]);
+          } else if (issue.indexOf(BELOW_LEAST) === 0) {
+            if (state.keep.length) fixes.push(["Untick all Keep", "untick"]);
+            if (!nothingToCut) fixes.push(["Use " + minimum + " tokens", "least"]);
+          }
+          fixes.forEach(function (fix) {
+            var button = make("button", "wb-link", fix[0]);
+            button.type = "button";
+            button.dataset.fix = fix[1];
+            item.append(" ", button);
+          });
+          el.problems.append(item);
+        });
+      }
     }
 
     var reason = blocker();
@@ -416,20 +519,15 @@
   });
 
   el.budget.addEventListener("input", function () {
-    state.budget = el.budget.value === "" ? null : Number(el.budget.value);
+    state.budget = el.budget.value === "" ? null : clampBudget(Number(el.budget.value));
     state.budgetTouched = true;
     save();
     render();
     autoRun();
   });
 
-  el.range.addEventListener("input", function () {
-    state.budget = Number(el.range.value);
-    state.budgetTouched = true;
-    save();
-    render();
-    autoRun();
-  });
+  // Show the capped number once the box is left (typing 100 into a 68-token prompt shows 68)
+  el.budget.addEventListener("blur", render);
 
   // Cmd/Ctrl + Enter runs the method from anywhere in the form
   form.addEventListener("keydown", function (event) {
@@ -564,6 +662,8 @@
     reasons.forEach(function (reason) {
       if (reason === "Confirmed main task") parts.push("Your main task");
       else if (reason === "User-locked sentence") parts.push("You ticked Keep");
+      else if (reason === "Request or instruction") parts.push("It asks for something");
+      else if (reason === "Text the task works on") parts.push("The text your task works on");
       else if (reason.indexOf("Protected requirement: ") === 0) words.push("“" + reason.slice(23) + "”");
       else parts.push(reason);
     });
@@ -691,6 +791,9 @@
     }
 
     var plain = r.warnings.map(function (warning) {
+      var tight = warning.match(/^Budget is (\d+) tokens, but the main task and mandatory sentences need (\d+) tokens/);
+      if (tight) return "Nothing was removed: the sentences that must stay need " + tight[2] +
+        " tokens, more than the budget of " + tight[1] + ". Untick Keep on some sentences or raise the budget, then run again.";
       return warning in NOTE_TEXT ? NOTE_TEXT[warning] : warning;
     }).filter(Boolean);
     if (plain.length) {

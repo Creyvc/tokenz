@@ -99,3 +99,6 @@ The user requested additional intensity options and a level reducing at least 20
 
 ## Website connection (26 October 2026)
 The Tokenz group asked for the methods to run on the Tokenz website itself, changing the Q5 boundary. A local adapter, `web_api.py`, serves the website and the two local methods on 127.0.0.1, with no new dependency. Qwen stays off on the website. The backend functions, result schema, experiment records and unfilled human ratings are unchanged.
+
+## Prompt-quality fixes (26 October 2026)
+Testing realistic prompts showed TF-IDF removing requested subtasks, which the Q4 rule forbids, and NLP flattening layout. Both methods were corrected (see `docs/TEST_RESULTS.txt`). The result schema and interfaces are unchanged. The saved experiment records and the 15-case review packet describe the earlier behaviour and were not regenerated.

@@ -9,6 +9,9 @@ class Validation:
     failures: list[str]
     warnings: list[str]
 
+# An expression inside prose: operands joined by operators, e.g. "3x + 7 = 22" or "a <= b"
+EXPRESSION = r"[\w.()\[\]]+(?:\s*(?:[-+*/^%]|[=!<>]=?|=>|->)\s*[\w.()\[\]]+)+"
+
 def extract_protected_constraints(text: str, locked_spans=None) -> list[str]:
     patterns = [
         r"\b(?:not|never|without|only|unless|except|must|exactly|at least|at most|no more than|no)\b",
@@ -22,8 +25,27 @@ def extract_protected_constraints(text: str, locked_spans=None) -> list[str]:
     for pattern in patterns:
         spans.extend(m.group() for m in re.finditer(pattern, text, flags=0 if "[A-Z]" in pattern else re.I))
     # Preserve equation/code lines as exact spans. Scope is plain text; this is a safeguard.
-    spans.extend(line.strip() for line in text.splitlines() if re.search(r"[=<>]|```", line))
+    # A code fence or a short line (code, a formula) is kept whole. In a longer line of prose,
+    # only its expressions and tags are, so a one-line prompt with "3x + 7 = 22" can still be edited.
+    for line in text.splitlines():
+        if "```" in line or (re.search(r"[=<>]", line) and len(line.split()) <= 8):
+            spans.append(line.strip())
+        elif re.search(r"[=<>]", line):
+            spans.extend(m.group() for m in re.finditer(EXPRESSION, line))
+            spans.extend(m.group() for m in re.finditer(r"<[^<>\n]{1,80}>", line))
     return list(dict.fromkeys(s for s in spans if s.strip()))
+
+# A whole sentence that is only a greeting or small talk: safe to drop, it asks for nothing
+PLEASANTRY = re.compile(
+    r"(?:(?:hi|hello|hey|good (?:morning|afternoon|evening))(?: there| everyone| all)?"
+    r"|i hope (?:you are|you're|this finds you) (?:doing )?(?:well|good|great|fine)(?: today)?"
+    r"|(?:many )?thanks?(?: you)?(?: (?:so|very) much)?(?: in advance)?(?: for (?:your|the) help)?)"
+    r"\s*[.!,]*", re.I)
+
+
+def is_pleasantry(sentence: str) -> bool:
+    return PLEASANTRY.fullmatch(sentence.strip()) is not None
+
 
 def contains_span(text: str, span: str) -> bool:
     if span[0].isalnum() and span[-1].isalnum():
