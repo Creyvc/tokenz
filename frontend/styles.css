@@ -975,3 +975,1198 @@ html.intro-play .intro.is-playing {
     margin-top: 56px;
   }
 }
+
+/* Compare and Results pages: the same opening as About (big title, grey line under it), then
+   a workspace in the site's own pieces: thin #E5E4DF lines, 16px rounded cards like the cookie
+   banner, near-black pill buttons */
+.content.workbench,
+.content.results-page {
+  min-height: 0;
+  max-width: 1000px;
+  padding: 96px 48px 120px;
+}
+
+.workbench h1,
+.results-page h1 {
+  font-size: 56px;
+  color: #16171A;
+}
+
+.page-intro {
+  max-width: 640px;
+  margin-top: 24px;
+  font-size: 18px;
+  line-height: 1.6;
+  color: #8a8a8a;
+}
+
+.workbench h3,
+.results-page h3 {
+  margin-top: 40px;
+  font-size: 15px;
+  color: #16171A;
+}
+
+/* Shown when the engine can't be reached: what to start, and a button to check again */
+.engine-notice {
+  max-width: 640px;
+  margin-top: 40px;
+  padding: 18px 20px;
+  border: 1px solid #E5E4DF;
+  border-radius: 16px;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.engine-notice code {
+  font-size: 14px;
+}
+
+.engine-notice a {
+  color: #16171A;
+  text-underline-offset: 2px;
+}
+
+.engine-notice .wb-secondary {
+  margin-top: 14px;
+}
+
+.wb {
+  margin-top: 56px;
+}
+
+.wb-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #16171A;
+}
+
+.wb-help {
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #8a8a8a;
+}
+
+.wb-help:empty {
+  display: none;
+}
+
+/* Kept for screen readers; the card itself shows what the box is for */
+.wb-hidden-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* The prompt card: method switch on top, the text, then the count and the example link */
+.wb-card {
+  border: 1px solid #E5E4DF;
+  border-radius: 16px;
+  background: #ffffff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.wb-card:focus-within {
+  border-color: #16171A;
+  box-shadow: 0 0 0 1px #16171A;
+}
+
+.wb-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  padding: 14px 14px 0;
+}
+
+.wb-method-help {
+  font-size: 13px;
+  color: #8a8a8a;
+}
+
+.wb-prompt {
+  display: block;
+  width: 100%;
+  min-height: 220px;
+  padding: 16px 18px;
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-size: 16px;
+  line-height: 1.65;
+  color: #262626;
+  resize: vertical;
+  outline: none;
+}
+
+.wb-prompt::placeholder {
+  color: #9a9a9a;
+}
+
+.wb-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 44px;
+  padding: 10px 18px;
+  border-top: 1px solid #E5E4DF;
+}
+
+.wb-count {
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: #8a8a8a;
+}
+
+/* Two-option switch, like a pill split in half; the chosen side is white and lifted */
+.wb-segmented {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 999px;
+  background: #F1F1EF;
+}
+
+.wb-segmented label {
+  position: relative;
+  cursor: pointer;
+}
+
+.wb-segmented input,
+.wb-steps input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.wb-segmented span {
+  display: block;
+  padding: 7px 18px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #5c5c5c;
+  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.wb-segmented label:hover span {
+  color: #16171A;
+}
+
+.wb-segmented input:checked + span {
+  background: #ffffff;
+  color: #16171A;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.wb-segmented input:focus-visible + span,
+.wb-steps input:focus-visible + span {
+  outline: 2px solid #16171A;
+  outline-offset: 2px;
+}
+
+/* Settings under the card, each under a thin line */
+.wb-settings {
+  margin-top: 40px;
+}
+
+.wb-section-title {
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: #16171A;
+}
+
+.wb-section-title label {
+  cursor: pointer;
+}
+
+.wb-settings .wb-section-title:not(:first-child) {
+  margin-top: 32px;
+}
+
+.wb-help-top {
+  margin: -6px 0 0;
+}
+
+/* Strength: four cards, the chosen one outlined in near-black */
+.wb-steps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.wb-steps label {
+  position: relative;
+  cursor: pointer;
+}
+
+.wb-steps span {
+  display: block;
+  height: 100%;
+  padding: 12px 14px;
+  border: 1px solid #E5E4DF;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #5c5c5c;
+  transition: border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.wb-steps b {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 12px;
+  font-weight: 400;
+  color: #9a9a9a;
+}
+
+.wb-steps label:hover span {
+  border-color: #9a9a9a;
+}
+
+.wb-steps input:checked + span {
+  border-color: #16171A;
+  box-shadow: 0 0 0 1px #16171A;
+  color: #16171A;
+}
+
+/* Plain inputs: the budget box, protected phrases, token counting */
+.wb-input {
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #E5E4DF;
+  border-radius: 12px;
+  background: #ffffff;
+  font: inherit;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #262626;
+}
+
+.wb-input:focus {
+  outline: none;
+  border-color: #16171A;
+  box-shadow: 0 0 0 1px #16171A;
+}
+
+textarea.wb-input {
+  resize: vertical;
+}
+
+/* The browser's own arrow swapped for a thin chevron */
+.wb-select {
+  width: auto;
+  max-width: 100%;
+  padding-right: 40px;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5 6 7.5 9 4.5' fill='none' stroke='%235c5c5c' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  cursor: pointer;
+}
+
+.wb-budget-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.wb-budget {
+  width: 110px;
+  font-variant-numeric: tabular-nums;
+}
+
+.wb-unit {
+  font-size: 14px;
+  color: #8a8a8a;
+}
+
+/* Text-only buttons, underlined like the site's other small links */
+.wb-link {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  color: #5c5c5c;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.wb-link:hover {
+  color: #16171A;
+}
+
+.wb-link:disabled {
+  color: #9a9a9a;
+  cursor: default;
+}
+
+/* TF-IDF's sentences: pick the task on the left, tick Keep on the right */
+.wb-sentences {
+  margin-top: 16px;
+  list-style: none;
+  border-top: 1px solid #E5E4DF;
+}
+
+.wb-sentence {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 20px;
+  padding: 12px 4px;
+  border-bottom: 1px solid #E5E4DF;
+  font-size: 14px;
+  line-height: 1.5;
+  transition: background 0.2s ease;
+}
+
+.wb-sentence:hover {
+  background: #FAFAF9;
+}
+
+.wb-sentence-task,
+.wb-sentence-keep,
+.wb-check {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  cursor: pointer;
+}
+
+.wb-sentence input,
+.wb-check input {
+  flex-shrink: 0;
+  width: 15px;
+  height: 15px;
+  margin-top: 3px;
+  accent-color: #16171A;
+}
+
+.wb-sentence-text {
+  color: #262626;
+}
+
+.wb-sentence.is-task .wb-sentence-text {
+  font-weight: 500;
+  color: #16171A;
+}
+
+.wb-sentence-keep {
+  font-size: 13px;
+  color: #5c5c5c;
+}
+
+.wb-sentence-why {
+  grid-column: 1;
+  padding-left: 25px;
+  font-size: 12px;
+  color: #8a8a8a;
+}
+
+.wb-sentence-why:empty {
+  display: none;
+}
+
+.wb-sentence-empty {
+  padding: 14px 4px;
+  border-bottom: 1px solid #E5E4DF;
+  font-size: 14px;
+  color: #8a8a8a;
+}
+
+.wb-check {
+  margin: 16px 0 0;
+  font-size: 14px;
+  color: #262626;
+}
+
+.wb-problems {
+  margin-top: 12px;
+  padding-left: 18px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #5c5c5c;
+}
+
+.wb-problems:empty {
+  display: none;
+}
+
+.wb-advanced {
+  margin-top: 40px;
+  border-top: 1px solid #E5E4DF;
+  border-bottom: 1px solid #E5E4DF;
+}
+
+.wb-advanced summary {
+  padding: 14px 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: #16171A;
+  cursor: pointer;
+}
+
+.wb-advanced-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  padding-bottom: 20px;
+}
+
+/* Run, with the reason it's greyed out beside it */
+.wb-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+  margin-top: 32px;
+}
+
+.wb-actions .wb-help {
+  margin-top: 0;
+}
+
+/* Buttons in the same pill shape as the cookie banner's */
+.wb-primary,
+.wb-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 11px 24px;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+}
+
+.wb-primary {
+  background: #16171A;
+  color: #ffffff;
+}
+
+.wb-primary:hover {
+  background: #33343a;
+}
+
+.wb-secondary {
+  background: #F1F1EF;
+  color: #262626;
+}
+
+.wb-secondary:hover {
+  background: #E6E6E3;
+}
+
+.wb-primary:active:not(:disabled),
+.wb-secondary:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.wb-primary:disabled,
+.wb-secondary:disabled {
+  background: #F1F1EF;
+  color: #9a9a9a;
+  cursor: default;
+}
+
+.wb-primary:focus-visible,
+.wb-secondary:focus-visible,
+.wb-link:focus-visible {
+  outline: 2px solid #16171A;
+  outline-offset: 2px;
+}
+
+/* A small turning ring while a run is in progress (a still ring with reduced motion) */
+.wb-primary.is-running::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  border: 1.5px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: wb-spin 0.8s linear infinite;
+}
+
+@keyframes wb-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* The result, under the form. Dimmed when the form no longer matches it */
+.wb-result {
+  margin-top: 80px;
+  padding-top: 56px;
+  border-top: 1px solid #E5E4DF;
+  scroll-margin-top: 24px;
+}
+
+.wb-result.is-stale > :not(.wb-stale-note) {
+  opacity: 0.4;
+  transition: opacity 0.2s ease;
+}
+
+.wb-result-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.wb-result-head h2 {
+  font-size: 28px;
+  color: #16171A;
+}
+
+.wb-stale-note {
+  margin-top: 12px;
+  font-size: 14px;
+  color: #16171A;
+}
+
+/* Outcome labels: dark for "needs review", grey for "kept", outlined for "couldn't run" */
+.wb-pill {
+  flex-shrink: 0;
+  padding: 4px 12px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.wb-pill.is-review_required {
+  background: #16171A;
+  color: #ffffff;
+}
+
+.wb-pill.is-unchanged {
+  background: #F1F1EF;
+  color: #5c5c5c;
+}
+
+.wb-pill.is-error {
+  border-color: #16171A;
+  color: #16171A;
+}
+
+/* The big percentage, then the numbers behind it split by thin lines */
+.wb-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 24px 56px;
+  margin-top: 32px;
+}
+
+.wb-hero {
+  display: flex;
+  flex-direction: column;
+}
+
+.wb-hero-num {
+  font-size: 72px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  color: #16171A;
+}
+
+.wb-hero-label {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #8a8a8a;
+}
+
+.wb-stats {
+  display: flex;
+  flex-wrap: wrap;
+  row-gap: 16px;
+  padding-bottom: 4px;
+}
+
+.wb-stat {
+  padding: 0 24px;
+  border-left: 1px solid #E5E4DF;
+}
+
+.wb-stat:first-child {
+  padding-left: 0;
+  border-left: none;
+}
+
+.wb-stat dt {
+  font-size: 12px;
+  color: #8a8a8a;
+}
+
+.wb-stat dd {
+  margin-top: 4px;
+  font-size: 16px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: #16171A;
+  white-space: nowrap;
+}
+
+.wb-status {
+  max-width: 720px;
+  margin-top: 28px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #5c5c5c;
+}
+
+/* Original and suggestion side by side, with the changes marked */
+.wb-sides {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 28px;
+}
+
+.wb-side {
+  margin: 0;
+}
+
+.wb-text {
+  height: calc(100% - 26px);
+  padding: 16px 18px;
+  border: 1px solid #E5E4DF;
+  border-radius: 12px;
+  font-size: 15px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: #262626;
+}
+
+.wb-side:last-child .wb-text {
+  border-color: #16171A;
+}
+
+.wb-del {
+  color: #9a9a9a;
+  text-decoration: line-through;
+  text-decoration-color: #b5b4af;
+}
+
+.wb-ins {
+  padding: 1px 3px;
+  border-radius: 4px;
+  background: #EDEDEA;
+  color: #16171A;
+  text-decoration: none;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+.wb-legend {
+  margin-top: 12px;
+  font-size: 12px;
+  color: #8a8a8a;
+}
+
+.wb-legend .wb-ins {
+  color: #5c5c5c;
+}
+
+.wb-notes {
+  margin-top: 24px;
+  padding-left: 18px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #5c5c5c;
+}
+
+/* Tables: a dark line under the heading, thin lines between rows, removed rows in grey */
+.wb-table-wrap {
+  margin-top: 12px;
+  overflow-x: auto;
+}
+
+.wb-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.wb-table th {
+  padding: 8px 16px 8px 0;
+  border-bottom: 1px solid #16171A;
+  font-weight: 500;
+  text-align: left;
+  color: #16171A;
+  white-space: nowrap;
+}
+
+.wb-table td {
+  padding: 11px 16px 11px 0;
+  border-bottom: 1px solid #E5E4DF;
+  vertical-align: top;
+  color: #262626;
+}
+
+.wb-table .wb-num {
+  font-variant-numeric: tabular-nums;
+}
+
+.wb-table tr.is-removed td {
+  color: #9a9a9a;
+}
+
+.wb-details {
+  margin-top: 32px;
+  border-top: 1px solid #E5E4DF;
+  border-bottom: 1px solid #E5E4DF;
+}
+
+.wb-details summary {
+  padding: 14px 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: #16171A;
+  cursor: pointer;
+}
+
+.wb-details[open] {
+  padding-bottom: 16px;
+}
+
+/* The line-by-line diff is code, so it's the one monospace block in the results */
+.wb-diff {
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: #FAFAF9;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: #262626;
+}
+
+/* Review tick on the left, Copy on the right */
+.wb-review {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
+  margin-top: 32px;
+  padding: 16px 18px;
+  border: 1px solid #E5E4DF;
+  border-radius: 16px;
+}
+
+.wb-review .wb-check {
+  margin: 0;
+}
+
+.wb-review-end {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.wb-review .wb-help {
+  margin-top: 0;
+}
+
+.wb-next {
+  margin-top: 32px;
+  font-size: 14px;
+}
+
+.wb-next a,
+.rs-empty a,
+.rs-notice a {
+  color: #16171A;
+  text-underline-offset: 3px;
+}
+
+/* Results: a one-line verdict, a card per method, then the chart and the table */
+.rs-empty,
+.rs-notice {
+  max-width: 640px;
+  margin-top: 40px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #262626;
+}
+
+.rs-notice.is-warning,
+.rs-empty {
+  padding: 16px 18px;
+  border: 1px solid #E5E4DF;
+  border-radius: 16px;
+}
+
+.rs-verdict {
+  max-width: 720px;
+  margin-top: 48px;
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+  color: #16171A;
+}
+
+.rs-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-top: 28px;
+}
+
+.rs-card {
+  padding: 20px 22px;
+  border: 1px solid #E5E4DF;
+  border-radius: 16px;
+}
+
+.rs-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.rs-card h2 {
+  font-size: 15px;
+  color: #16171A;
+}
+
+.rs-card-num {
+  margin-top: 20px;
+  font-size: 48px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  color: #16171A;
+}
+
+.rs-card-sub {
+  margin-top: 8px;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: #8a8a8a;
+}
+
+.rs-chart {
+  margin: 56px 0 0;
+}
+
+.rs-chart-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #16171A;
+}
+
+.rs-chart-title span {
+  font-weight: 400;
+  color: #8a8a8a;
+}
+
+/* One bar per row: name, bar from zero, number. The original is grey, the methods near-black */
+.rs-bars {
+  display: grid;
+  gap: 2px;
+  margin-top: 16px;
+}
+
+.rs-bar {
+  display: grid;
+  grid-template-columns: 140px 1fr 48px;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 0;
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+}
+
+.rs-bar:hover .rs-bar-label,
+.rs-bar:focus-visible .rs-bar-label {
+  color: #16171A;
+}
+
+.rs-bar:focus-visible {
+  box-shadow: 0 0 0 2px #16171A;
+}
+
+.rs-bar-label {
+  color: #5c5c5c;
+}
+
+.rs-bar-track {
+  height: 18px;
+}
+
+.rs-bar-fill {
+  display: block;
+  height: 100%;
+  min-width: 2px;
+  border-radius: 0 4px 4px 0;
+  background: #16171A;
+}
+
+.rs-bar.is-baseline .rs-bar-fill {
+  background: #8a8a8a;
+}
+
+.rs-bar-value {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: #262626;
+}
+
+.rs-detail {
+  min-height: 1.5em;
+  margin-top: 12px;
+  font-size: 13px;
+  color: #5c5c5c;
+}
+
+.rs-table {
+  margin-top: 40px;
+}
+
+.rs-table td:nth-child(n+2):nth-child(-n+6) {
+  font-variant-numeric: tabular-nums;
+}
+
+.results-page .wb-details .wb-label {
+  margin-top: 14px;
+}
+
+.results-page .wb-details .wb-text {
+  height: auto;
+}
+
+.results-note {
+  max-width: 640px;
+  margin-top: 56px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #8a8a8a;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wb-primary.is-running::before {
+    animation: none;
+  }
+
+  .wb-primary:active:not(:disabled),
+  .wb-secondary:active:not(:disabled) {
+    transform: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .wb-sides,
+  .wb-advanced-body {
+    grid-template-columns: 1fr;
+  }
+
+  .wb-text {
+    height: auto;
+  }
+}
+
+/* With the top bar pinned on narrow screens, stop the result's heading just below it */
+@media (max-width: 800px) {
+  .wb-result {
+    scroll-margin-top: 150px;
+  }
+}
+
+@media (max-width: 600px) {
+  .content.workbench,
+  .content.results-page {
+    padding: 48px 16px 80px;
+  }
+
+  .workbench h1,
+  .results-page h1 {
+    font-size: 40px;
+  }
+
+  .wb {
+    margin-top: 40px;
+  }
+
+  .wb-steps,
+  .rs-cards {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .rs-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .wb-hero-num {
+    font-size: 56px;
+  }
+
+  .wb-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px 24px;
+  }
+
+  .wb-stat,
+  .wb-stat:first-child {
+    padding: 0;
+    border-left: none;
+  }
+
+  .wb-select {
+    width: 100%;
+  }
+
+  .rs-bar {
+    grid-template-columns: 96px 1fr 40px;
+  }
+}
+
+/* Clear and Try an example, side by side in the prompt card's footer */
+.wb-foot-links {
+  display: flex;
+  gap: 18px;
+}
+
+/* Budget slider: a thin track with a near-black handle, next to the exact number */
+.wb-range {
+  flex: 1;
+  min-width: 0;
+  height: 18px;
+  margin: 0;
+  background: transparent;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+/* Black up to the handle (how much is kept), grey after it */
+.wb-range::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(to right, #16171A var(--fill, 0%), #E5E4DF var(--fill, 0%));
+}
+
+.wb-range::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(to right, #16171A var(--fill, 0%), #E5E4DF var(--fill, 0%));
+}
+
+.wb-range::-webkit-slider-thumb {
+  width: 18px;
+  height: 18px;
+  margin-top: -7px;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  background: #16171A;
+  box-shadow: 0 0 0 1px #16171A;
+  -webkit-appearance: none;
+}
+
+.wb-range::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  background: #16171A;
+  box-shadow: 0 0 0 1px #16171A;
+}
+
+.wb-range:focus-visible {
+  outline: 2px solid #16171A;
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+.wb-range:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.wb-row-help {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.wb-row-help .wb-help {
+  margin-top: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.wb-problems .wb-link {
+  font-size: inherit;
+  color: #16171A;
+}
+
+.wb-shortcut {
+  margin-left: auto;
+  font-size: 12px;
+  color: #9a9a9a;
+}
+
+.wb-shortcut:empty {
+  display: none;
+}
+
+/* After a result: try the other method, or go to Results */
+.wb-next {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 24px;
+}
+
+@media (max-width: 600px) {
+  .wb-shortcut {
+    display: none;
+  }
+}
+
+/* "Keep it" on a removed sentence: dark so it stands out from the grey row */
+.wb-table tr.is-removed .wb-restore {
+  font-size: inherit;
+  color: #16171A;
+  white-space: nowrap;
+}
+
+/* Results with nothing run yet: a short explanation and the way to Compare */
+.rs-empty h2 {
+  font-size: 18px;
+  color: #16171A;
+}
+
+.rs-empty p {
+  margin: 8px 0 20px;
+  color: #5c5c5c;
+}
+
+.rs-empty a.wb-primary {
+  color: #ffffff;
+  text-decoration: none;
+}

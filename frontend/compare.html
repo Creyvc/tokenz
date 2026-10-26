@@ -10,6 +10,8 @@
   <script src="consent.js" defer></script>
   <script src="scroll-line.js" defer></script>
   <script src="modal.js" defer></script>
+  <script src="api.js" defer></script>
+  <script src="compare.js" defer></script>
 </head>
 <body>
   <header class="nav">
@@ -34,6 +36,90 @@
     </div>
   </header>
 
-  <main class="content"></main>
+  <main class="content workbench">
+    <h1>Compare</h1>
+    <p class="page-intro">Paste a prompt, choose a method, and see the original and the shorter version side by side. It all runs on your computer.</p>
+
+    <div class="engine-notice" data-engine-notice hidden>
+      <p data-engine-message></p>
+      <button type="button" class="wb-secondary" data-engine-retry>Try again</button>
+    </div>
+
+    <form class="wb" data-workbench novalidate>
+      <div class="wb-card">
+        <div class="wb-card-head">
+          <div class="wb-segmented" role="radiogroup" aria-label="Method">
+            <label><input type="radio" name="method" value="nlp" checked><span>NLP</span></label>
+            <label><input type="radio" name="method" value="tfidf"><span>TF-IDF</span></label>
+          </div>
+          <p class="wb-method-help" data-method-help></p>
+        </div>
+        <label class="wb-hidden-label" for="wb-prompt">Your prompt</label>
+        <textarea id="wb-prompt" class="wb-prompt" rows="8" maxlength="40000" placeholder="Paste the prompt you would send to an AI…" data-prompt></textarea>
+        <div class="wb-card-foot">
+          <span class="wb-count" data-prompt-tokens></span>
+          <span class="wb-foot-links">
+            <button type="button" class="wb-link" data-clear hidden>Clear</button>
+            <button type="button" class="wb-link" data-example>Try an example</button>
+          </span>
+        </div>
+      </div>
+
+      <section class="wb-settings" data-for="nlp">
+        <h2 class="wb-section-title" id="wb-level-label">Strength</h2>
+        <div class="wb-steps" role="radiogroup" aria-labelledby="wb-level-label">
+          <label><input type="radio" name="level" value="conservative"><span><b>1</b>Conservative</span></label>
+          <label><input type="radio" name="level" value="balanced"><span><b>2</b>Balanced</span></label>
+          <label><input type="radio" name="level" value="aggressive"><span><b>3</b>Aggressive</span></label>
+          <label><input type="radio" name="level" value="maximum"><span><b>4</b>Maximum</span></label>
+        </div>
+        <p class="wb-help" data-level-help></p>
+      </section>
+
+      <section class="wb-settings" data-for="tfidf" hidden>
+        <h2 class="wb-section-title" id="wb-sentences-label">Main task</h2>
+        <p class="wb-help wb-help-top">Click the sentence that says what you want. It's always kept, word for word. Tick Keep on any other sentence you don't want removed.</p>
+        <ol class="wb-sentences" aria-labelledby="wb-sentences-label" data-sentences></ol>
+        <h2 class="wb-section-title"><label for="wb-budget">How much to keep</label></h2>
+        <div class="wb-budget-row">
+          <input class="wb-range" type="range" min="1" max="100" step="1" aria-label="Token budget" data-budget-range>
+          <input id="wb-budget" class="wb-input wb-budget" type="number" min="1" max="6000" step="1" inputmode="numeric" data-budget>
+          <span class="wb-unit">tokens</span>
+        </div>
+        <div class="wb-row-help">
+          <p class="wb-help" data-budget-share></p>
+          <button type="button" class="wb-link" data-suggest>Use suggested</button>
+        </div>
+        <p class="wb-help" data-budget-help></p>
+        <ul class="wb-problems" data-problems></ul>
+      </section>
+
+      <details class="wb-advanced">
+        <summary>Advanced settings</summary>
+        <div class="wb-advanced-body">
+          <div>
+            <label class="wb-label" for="wb-phrases">Protected phrases, one per line</label>
+            <textarea id="wb-phrases" class="wb-input" rows="3" data-phrases></textarea>
+          </div>
+          <div>
+            <label class="wb-label" for="wb-encoding">Token counting</label>
+            <select id="wb-encoding" class="wb-input wb-select" data-encoding>
+              <option value="o200k_base">o200k_base (GPT-4o and newer)</option>
+              <option value="cl100k_base">cl100k_base (GPT-4 and GPT-3.5)</option>
+            </select>
+            <p class="wb-help">Both versions are counted the same way. This doesn't change how the prompt is shortened.</p>
+          </div>
+        </div>
+      </details>
+
+      <div class="wb-actions">
+        <button type="submit" class="wb-primary" data-run disabled>Run NLP</button>
+        <p class="wb-help" data-run-help></p>
+        <p class="wb-shortcut" data-shortcut></p>
+      </div>
+    </form>
+
+    <section class="wb-result" data-result aria-live="polite" hidden></section>
+  </main>
 </body>
 </html>

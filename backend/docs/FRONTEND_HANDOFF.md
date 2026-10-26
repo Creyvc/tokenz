@@ -46,3 +46,13 @@ No API key or raw prompt is logged by application code. Results live in the UI s
 The frontend now separates NLP, TF-IDF, comparison and optional Qwen into independently rendered workbenches. `ui_workbenches.py` keeps durable drafts/results apart from transient widget keys so navigating between screens does not leak prompts, locks, consent or results. Local screen calls always restrict methods to that single local method and disable external transfer. URL hints `?view=nlp` and `?view=tfidf` can open a screen directly. The backend functions and result schema are unchanged.
 
 Owner split: backend team owns `config.py`, `models.py`, `token_utils.py`, `validation.py`, `service.py`, `compressors/` and their tests. Frontend team owns `app.py`, `ui_workbenches.py` or their replacement. Agree on schema changes before modifying `CompressionResult`.
+
+## Website adapter (added 26 October 2026 by the Tokenz frontend team)
+
+The group asked for the Tokenz website itself to run the methods, so `web_api.py` now adds the adapter this document called a future step. It is outside the original submission scope and leaves the backend untouched: it calls `compare_methods` and `inspect_tfidf_input` and returns `CompressionResult.to_dict()` unchanged.
+
+- `GET /api/health`: the methods, NLP modes and encodings it accepts.
+- `POST /api/inspect`: `{text, main_question, locked_sentences, locked_spans, encoding}` returns the sentence rows, `problems`, `original_tokens`, `minimum_required_tokens` and `suggested_budget` (65% of the original, never below the minimum).
+- `POST /api/compress`: `{method: "nlp" | "tfidf", text, nlp_mode, main_question, token_budget, locked_sentences, locked_spans, encoding}` returns `{result, nlp_mode, encoding}`.
+
+Qwen is refused, `allow_external` is always false, and the server binds to 127.0.0.1 and checks the Host header. Inputs are validated (text up to 40,000 characters, budget 1–6000, known modes and encodings) and requests are handled one at a time around spaCy. The website follows the rules above: the user picks the main task from the exact sentences (that click is the confirmation; nothing is inferred), locks and confirmation reset when the prompt changes, results are shown as text, stale results are marked, and copying the suggestion needs the review tick.

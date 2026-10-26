@@ -10,6 +10,7 @@
   <script src="consent.js" defer></script>
   <script src="scroll-line.js" defer></script>
   <script src="modal.js" defer></script>
+  <script src="results.js" defer></script>
 </head>
 <body>
   <header class="nav">
@@ -34,6 +35,11 @@
     </div>
   </header>
 
-  <main class="content"></main>
+  <main class="content results-page">
+    <h1>Results</h1>
+    <p class="page-intro">How many tokens each method saved on your latest runs this visit.</p>
+    <div data-results></div>
+    <p class="results-note">Counts measure the prompt text only, not everything a chat app sends. Fewer tokens don't prove the meaning survived: check each suggestion against the original before you use it.</p>
+  </main>
 </body>
 </html>

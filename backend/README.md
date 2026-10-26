@@ -81,6 +81,10 @@ Tests inject fake provider responses and do not make paid calls. First-use token
 
 For the agreed human assessment, open `docs/evaluation/RETENTION_REVIEW.md`. Review all 15 cases (11 NLP, 4 TF-IDF), or use the matching `review_ratings.json` answer sheet, and return the completed file in this chat. Any lost requested subtask or explicit constraint makes a suggestion unacceptable. Retained keywords or fewer tokens do not establish retention. The packet preserves the existing experimental records and includes an exact source snapshot; no ratings have been filled automatically.
 
+## Tokenz website
+
+The Tokenz website (`../frontend`) uses this engine through `web_api.py`, a local adapter built on Python's standard library: no new dependency. `./start-web.sh` (Windows: `Start-TokenzWeb.ps1`) serves the site and the API at http://127.0.0.1:8000/. It offers NLP and TF-IDF only, never Qwen, answers on 127.0.0.1 only, and doesn't log prompts. Its routes are `GET /api/health`, `POST /api/inspect` (TF-IDF preflight) and `POST /api/compress`; tests are in `tests/test_web_api.py`. It calls `compare_methods` and `inspect_tfidf_input`, so the result schema is unchanged. Pages served from another local port (VS Code's Live Server on 5500, for example) can call the API too: it allows `http://127.0.0.1` and `http://localhost` origins, and no others.
+
 ## Frontend team handoff
 
 Import `compare_methods` from `service.py`; call `.to_dict()` on results. See `docs/FRONTEND_HANDOFF.md` and run `python -m examples.frontend_handoff` for a local-only JSON example. The backend does not import Streamlit. The team can replace `app.py` without rewriting algorithms. The confirmed scope adds no HTTP server.
@@ -98,6 +102,8 @@ validation.py           Protected spans and candidate checks
 compressors/            Qwen adapter/controller, NLP, TF-IDF
 tests/                  Backend, adapter and UI tests
 evaluation.py           Synthetic local experiment
+web_api.py              Local web API that serves the Tokenz website (../frontend)
+start.sh, start-web.sh  macOS/Linux starters for the Streamlit app and the website
 docs/                   Report, architecture, demo, handoff and evidence
 ```
 

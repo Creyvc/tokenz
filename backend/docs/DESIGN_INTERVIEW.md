@@ -96,3 +96,6 @@ The user authorized adding an Aggressive NLP option. Conservative remains the de
 
 ## Four NLP intensity levels and 20% target
 The user requested additional intensity options and a level reducing at least 20%. The UI now offers Conservative, Balanced, Aggressive and Maximum (20%+ target). The supplied sales example measures 659 -> 508 tokens in Maximum (22.9%). Maximum compacts supported framing/rationale and relaxes all-source-noun checks, with explicit human review. Concise/locked prompts may miss the target; the app reports that rather than forcing deletion. The saved comparison records the selected mode. Prior formal study records remain Conservative only.
+
+## Website connection (26 October 2026)
+The Tokenz group asked for the methods to run on the Tokenz website itself, changing the Q5 boundary. A local adapter, `web_api.py`, serves the website and the two local methods on 127.0.0.1, with no new dependency. Qwen stays off on the website. The backend functions, result schema, experiment records and unfilled human ratings are unchanged.
