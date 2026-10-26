@@ -1,0 +1,7 @@
+streamlit>=1.40,<2
+tiktoken>=0.8,<1
+spacy>=3.8,<4
+scikit-learn>=1.6,<2
+openai>=1.60,<3
+python-dotenv>=1,<2
+pytest>=8,<10

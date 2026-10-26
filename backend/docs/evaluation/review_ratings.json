@@ -1,0 +1,274 @@
+{
+  "source_sha256": "03447f3fedc36ab14d72981546ddc975a2a5865878e2a09572c8db68743a71fe",
+  "criterion_values": [
+    "preserved",
+    "lost",
+    "not_applicable",
+    "unsure",
+    "pending"
+  ],
+  "verdict_values": [
+    "acceptable",
+    "unacceptable",
+    "unsure",
+    "pending"
+  ],
+  "rule": "Any lost requested subtask or explicit constraint makes the suggestion unacceptable.",
+  "ratings": [
+    {
+      "case_id": "R01",
+      "prompt_id": "polite-1",
+      "method": "nlp",
+      "reviewer": null,
+      "reviewed_at": null,
+      "criteria": {
+        "tasks_and_subtasks": "pending",
+        "concepts": "pending",
+        "constraints": "pending",
+        "audience_and_format": "pending",
+        "no_new_requirements": "pending"
+      },
+      "verdict": "pending",
+      "lost_requirements": [],
+      "notes": ""
+    },
+    {
+      "case_id": "R02",
+      "prompt_id": "polite-2",
+      "method": "nlp",
+      "reviewer": null,
+      "reviewed_at": null,
+      "criteria": {
+        "tasks_and_subtasks": "pending",
+        "concepts": "pending",
+        "constraints": "pending",
+        "audience_and_format": "pending",
+        "no_new_requirements": "pending"
+      },
+      "verdict": "pending",
+      "lost_requirements": [],
+      "notes": ""
+    },
+    {
+      "case_id": "R03",
+      "prompt_id": "polite-3",
+      "method": "nlp",
+      "reviewer": null,
+      "reviewed_at": null,
+      "criteria": {
+        "tasks_and_subtasks": "pending",
+        "concepts": "pending",
+        "constraints": "pending",
+        "audience_and_format": "pending",
+        "no_new_requirements": "pending"
+      },
+      "verdict": "pending",
+      "lost_requirements": [],
+      "notes": ""
+    },
+    {
+      "case_id": "R04",
+      "prompt_id": "polite-4",
+      "method": "nlp",
+      "reviewer": null,
+      "reviewed_at": null,
+      "criteria": {
+        "tasks_and_subtasks": "pending",
+        "concepts": "pending",
+        "constraints": "pending",
+        "audience_and_format": "pending",
+        "no_new_requirements": "pending"
+      },
+      "verdict": "pending",
+      "lost_requirements": [],
+      "notes": ""
+    },
+    {
+      "case_id": "R05",
+      "prompt_id": "repetitive-1",
+      "method": "nlp",
+      "reviewer": null,
+      "reviewed_at": null,
+      "criteria": {
+        "tasks_and_subtasks": "pending",
+        "concepts": "pending",
+        "constraints": "pending",
+        "audience_and_format": "pending",
+        "no_new_requirements": "pending"
+      },
+      "verdict": "pending",
+      "lost_requirements": [],
+      "notes": ""
+    },
+    {
+      "case_id": "R06",
+      "prompt_id": "repetitive-2",
+      "method": "nlp",
+      "reviewer": null,
+      "reviewed_at": null,
+      "criteria": {
+        "tasks_and_subtasks": "pending",
+        "concepts": "pending",
+        "constraints": "pending",
+        "audience_and_format": "pending",
+        "no_new_requirements": "pending"
+      },
+      "verdict": "pending",
+      "lost_requirements": [],
+      "notes": ""
+    },
+    {
+      "case_id": "R07",
+      "prompt_id": "repetitive-3",
+      "method": "nlp",
+      "reviewer": null,
+      "reviewed_at": null,
+      "criteria": {
+        "tasks_and_subtasks": "pending",
+        "concepts": "pending",
+        "constraints": "pending",
+        "audience_and_format": "pending",
+        "no_new_requirements": "pending"
+      },
+      "verdict": "pending",
+      "lost_requirements": [],
+      "notes": ""
+    },
+    {
+      "case_id": "R08",
+      "prompt_id": "repetitive-4",
+      "method": "nlp",
+      "reviewer": null,
+      "reviewed_at": null,
+      "criteria": {
+        "tasks_and_subtasks": "pending",
+        "concepts": "pending",
+        "constraints": "pending",
+        "audience_and_format": "pending",
+        "no_new_requirements": "pending"
+      },
+      "verdict": "pending",
+      "lost_requirements": [],
+      "notes": ""
+    },
+    {
+      "case_id": "R09",
+      "prompt_id": "background-1",
+      "method": "tfidf",
+      "reviewer": null,
+      "reviewed_at": null,
+      "criteria": {
+        "tasks_and_subtasks": "pending",
+        "concepts": "pending",
+        "constraints": "pending",
+        "audience_and_format": "pending",
+        "no_new_requirements": "pending"
+      },
+      "verdict": "pending",
+      "lost_requirements": [],
+      "notes": ""
+    },
+    {
+      "case_id": "R10",
+      "prompt_id": "background-2",
+      "method": "tfidf",
+      "reviewer": null,
+      "reviewed_at": null,
+      "criteria": {
+        "tasks_and_subtasks": "pending",
+        "concepts": "pending",
+        "constraints": "pending",
+        "audience_and_format": "pending",
+        "no_new_requirements": "pending"
+      },
+      "verdict": "pending",
+      "lost_requirements": [],
+      "notes": ""
+    },
+    {
+      "case_id": "R11",
+      "prompt_id": "background-3",
+      "method": "tfidf",
+      "reviewer": null,
+      "reviewed_at": null,
+      "criteria": {
+        "tasks_and_subtasks": "pending",
+        "concepts": "pending",
+        "constraints": "pending",
+        "audience_and_format": "pending",
+        "no_new_requirements": "pending"
+      },
+      "verdict": "pending",
+      "lost_requirements": [],
+      "notes": ""
+    },
+    {
+      "case_id": "R12",
+      "prompt_id": "background-4",
+      "method": "tfidf",
+      "reviewer": null,
+      "reviewed_at": null,
+      "criteria": {
+        "tasks_and_subtasks": "pending",
+        "concepts": "pending",
+        "constraints": "pending",
+        "audience_and_format": "pending",
+        "no_new_requirements": "pending"
+      },
+      "verdict": "pending",
+      "lost_requirements": [],
+      "notes": ""
+    },
+    {
+      "case_id": "R13",
+      "prompt_id": "constraints-1",
+      "method": "nlp",
+      "reviewer": null,
+      "reviewed_at": null,
+      "criteria": {
+        "tasks_and_subtasks": "pending",
+        "concepts": "pending",
+        "constraints": "pending",
+        "audience_and_format": "pending",
+        "no_new_requirements": "pending"
+      },
+      "verdict": "pending",
+      "lost_requirements": [],
+      "notes": ""
+    },
+    {
+      "case_id": "R14",
+      "prompt_id": "constraints-2",
+      "method": "nlp",
+      "reviewer": null,
+      "reviewed_at": null,
+      "criteria": {
+        "tasks_and_subtasks": "pending",
+        "concepts": "pending",
+        "constraints": "pending",
+        "audience_and_format": "pending",
+        "no_new_requirements": "pending"
+      },
+      "verdict": "pending",
+      "lost_requirements": [],
+      "notes": ""
+    },
+    {
+      "case_id": "R15",
+      "prompt_id": "constraints-3",
+      "method": "nlp",
+      "reviewer": null,
+      "reviewed_at": null,
+      "criteria": {
+        "tasks_and_subtasks": "pending",
+        "concepts": "pending",
+        "constraints": "pending",
+        "audience_and_format": "pending",
+        "no_new_requirements": "pending"
+      },
+      "verdict": "pending",
+      "lost_requirements": [],
+      "notes": ""
+    }
+  ]
+}

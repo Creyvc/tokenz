@@ -1,0 +1,15 @@
+83 passed in 20.88s
+
+Run: python -m pytest -q --tb=short
+Date: 2026-10-24
+Four NLP intensity levels; Maximum reaches 20% on the verbose sales fixture.
+Coverage includes retained requested tasks, negations, quantities, exact locks,
+quoted/code literals, unmet-target behavior, mode persistence, result freshness,
+and the comparison display. No live Qwen requests.
+
+2026-10-25 method-description UI update: 14 existing UI regressions passed in 57.94s. Browser checks verified bottom descriptions for NLP, TF-IDF and Qwen; compressor algorithms unchanged.
+
+2026-10-26 macOS check (Tokenz repository, backend/): Python 3.13.9 with requirements-lock.txt.
+86 passed: the 83 above plus 3 new service tests. Protected phrases are now trimmed and blank
+lines ignored, so a stray space no longer blocks every NLP and TF-IDF suggestion. Streamlit
+NLP, TF-IDF and comparison screens checked in Chrome. No live Qwen requests.

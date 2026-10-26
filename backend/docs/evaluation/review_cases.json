@@ -1,0 +1,763 @@
+{
+  "source": "results.json",
+  "source_sha256": "03447f3fedc36ab14d72981546ddc975a2a5865878e2a09572c8db68743a71fe",
+  "case_count": 15,
+  "method_counts": {
+    "nlp": 11,
+    "tfidf": 4
+  },
+  "cases": [
+    {
+      "case_id": "R01",
+      "id": "polite-1",
+      "category": "polite",
+      "method": "nlp",
+      "original_text": "Could you please explain photosynthesis?",
+      "candidate_text": "Explain photosynthesis.",
+      "status": "review_required",
+      "original_target_tokens": 7,
+      "candidate_target_tokens": 4,
+      "tokens_saved": 3,
+      "reduction_percent": 42.857142857142854,
+      "elapsed_seconds": 0.010845199925825,
+      "warnings": [
+        "Human review required: mechanical checks cannot prove equivalent meaning."
+      ],
+      "changes": [
+        "--- original",
+        "+++ suggestion",
+        "@@ -1 +1 @@",
+        "-Could you please explain photosynthesis?",
+        "+Explain photosynthesis."
+      ],
+      "protected_constraints": [
+        "photosynthesis"
+      ],
+      "api_usage": null,
+      "agent_trace": null,
+      "sentences": [],
+      "selection_info": null,
+      "human_review": {
+        "task_preserved": null,
+        "concepts_preserved": null,
+        "negations_quantities_preserved": null,
+        "audience_format_preserved": null,
+        "acceptable": null,
+        "reviewer": null,
+        "notes": null
+      }
+    },
+    {
+      "case_id": "R02",
+      "id": "polite-2",
+      "category": "polite",
+      "method": "nlp",
+      "original_text": "Please describe binary search.",
+      "candidate_text": "Describe binary search.",
+      "status": "review_required",
+      "original_target_tokens": 5,
+      "candidate_target_tokens": 4,
+      "tokens_saved": 1,
+      "reduction_percent": 20.0,
+      "elapsed_seconds": 0.010986899957060814,
+      "warnings": [
+        "Human review required: mechanical checks cannot prove equivalent meaning."
+      ],
+      "changes": [
+        "--- original",
+        "+++ suggestion",
+        "@@ -1 +1 @@",
+        "-Please describe binary search.",
+        "+Describe binary search."
+      ],
+      "protected_constraints": [
+        "search"
+      ],
+      "api_usage": null,
+      "agent_trace": null,
+      "sentences": [],
+      "selection_info": null,
+      "human_review": {
+        "task_preserved": null,
+        "concepts_preserved": null,
+        "negations_quantities_preserved": null,
+        "audience_format_preserved": null,
+        "acceptable": null,
+        "reviewer": null,
+        "notes": null
+      }
+    },
+    {
+      "case_id": "R03",
+      "id": "polite-3",
+      "category": "polite",
+      "method": "nlp",
+      "original_text": "Can you please explain natural selection?",
+      "candidate_text": "Explain natural selection.",
+      "status": "review_required",
+      "original_target_tokens": 7,
+      "candidate_target_tokens": 4,
+      "tokens_saved": 3,
+      "reduction_percent": 42.857142857142854,
+      "elapsed_seconds": 0.010035900049842894,
+      "warnings": [
+        "Human review required: mechanical checks cannot prove equivalent meaning."
+      ],
+      "changes": [
+        "--- original",
+        "+++ suggestion",
+        "@@ -1 +1 @@",
+        "-Can you please explain natural selection?",
+        "+Explain natural selection."
+      ],
+      "protected_constraints": [
+        "selection"
+      ],
+      "api_usage": null,
+      "agent_trace": null,
+      "sentences": [],
+      "selection_info": null,
+      "human_review": {
+        "task_preserved": null,
+        "concepts_preserved": null,
+        "negations_quantities_preserved": null,
+        "audience_format_preserved": null,
+        "acceptable": null,
+        "reviewer": null,
+        "notes": null
+      }
+    },
+    {
+      "case_id": "R04",
+      "id": "polite-4",
+      "category": "polite",
+      "method": "nlp",
+      "original_text": "Would you please explain database normalization?",
+      "candidate_text": "Explain database normalization.",
+      "status": "review_required",
+      "original_target_tokens": 7,
+      "candidate_target_tokens": 4,
+      "tokens_saved": 3,
+      "reduction_percent": 42.857142857142854,
+      "elapsed_seconds": 0.008844199939630926,
+      "warnings": [
+        "Human review required: mechanical checks cannot prove equivalent meaning."
+      ],
+      "changes": [
+        "--- original",
+        "+++ suggestion",
+        "@@ -1 +1 @@",
+        "-Would you please explain database normalization?",
+        "+Explain database normalization."
+      ],
+      "protected_constraints": [
+        "database",
+        "normalization"
+      ],
+      "api_usage": null,
+      "agent_trace": null,
+      "sentences": [],
+      "selection_info": null,
+      "human_review": {
+        "task_preserved": null,
+        "concepts_preserved": null,
+        "negations_quantities_preserved": null,
+        "audience_format_preserved": null,
+        "acceptable": null,
+        "reviewer": null,
+        "notes": null
+      }
+    },
+    {
+      "case_id": "R05",
+      "id": "repetitive-1",
+      "category": "repetitive",
+      "method": "nlp",
+      "original_text": "Explain gravity. Explain gravity.",
+      "candidate_text": "Explain gravity.",
+      "status": "review_required",
+      "original_target_tokens": 6,
+      "candidate_target_tokens": 3,
+      "tokens_saved": 3,
+      "reduction_percent": 50.0,
+      "elapsed_seconds": 0.009219400002621114,
+      "warnings": [
+        "Human review required: mechanical checks cannot prove equivalent meaning."
+      ],
+      "changes": [
+        "--- original",
+        "+++ suggestion",
+        "@@ -1 +1 @@",
+        "-Explain gravity. Explain gravity.",
+        "+Explain gravity."
+      ],
+      "protected_constraints": [
+        "gravity",
+        "gravity"
+      ],
+      "api_usage": null,
+      "agent_trace": null,
+      "sentences": [],
+      "selection_info": null,
+      "human_review": {
+        "task_preserved": null,
+        "concepts_preserved": null,
+        "negations_quantities_preserved": null,
+        "audience_format_preserved": null,
+        "acceptable": null,
+        "reviewer": null,
+        "notes": null
+      }
+    },
+    {
+      "case_id": "R06",
+      "id": "repetitive-2",
+      "category": "repetitive",
+      "method": "nlp",
+      "original_text": "Describe photosynthesis. Describe photosynthesis.",
+      "candidate_text": "Describe photosynthesis.",
+      "status": "review_required",
+      "original_target_tokens": 8,
+      "candidate_target_tokens": 4,
+      "tokens_saved": 4,
+      "reduction_percent": 50.0,
+      "elapsed_seconds": 0.00920059997588396,
+      "warnings": [
+        "Human review required: mechanical checks cannot prove equivalent meaning."
+      ],
+      "changes": [
+        "--- original",
+        "+++ suggestion",
+        "@@ -1 +1 @@",
+        "-Describe photosynthesis. Describe photosynthesis.",
+        "+Describe photosynthesis."
+      ],
+      "protected_constraints": [
+        "photosynthesis",
+        "photosynthesis"
+      ],
+      "api_usage": null,
+      "agent_trace": null,
+      "sentences": [],
+      "selection_info": null,
+      "human_review": {
+        "task_preserved": null,
+        "concepts_preserved": null,
+        "negations_quantities_preserved": null,
+        "audience_format_preserved": null,
+        "acceptable": null,
+        "reviewer": null,
+        "notes": null
+      }
+    },
+    {
+      "case_id": "R07",
+      "id": "repetitive-3",
+      "category": "repetitive",
+      "method": "nlp",
+      "original_text": "Explain binary search. Explain binary search.",
+      "candidate_text": "Explain binary search.",
+      "status": "review_required",
+      "original_target_tokens": 8,
+      "candidate_target_tokens": 4,
+      "tokens_saved": 4,
+      "reduction_percent": 50.0,
+      "elapsed_seconds": 0.00899800006300211,
+      "warnings": [
+        "Human review required: mechanical checks cannot prove equivalent meaning."
+      ],
+      "changes": [
+        "--- original",
+        "+++ suggestion",
+        "@@ -1 +1 @@",
+        "-Explain binary search. Explain binary search.",
+        "+Explain binary search."
+      ],
+      "protected_constraints": [
+        "search",
+        "search"
+      ],
+      "api_usage": null,
+      "agent_trace": null,
+      "sentences": [],
+      "selection_info": null,
+      "human_review": {
+        "task_preserved": null,
+        "concepts_preserved": null,
+        "negations_quantities_preserved": null,
+        "audience_format_preserved": null,
+        "acceptable": null,
+        "reviewer": null,
+        "notes": null
+      }
+    },
+    {
+      "case_id": "R08",
+      "id": "repetitive-4",
+      "category": "repetitive",
+      "method": "nlp",
+      "original_text": "Define entropy. Define entropy.",
+      "candidate_text": "Define entropy.",
+      "status": "review_required",
+      "original_target_tokens": 6,
+      "candidate_target_tokens": 3,
+      "tokens_saved": 3,
+      "reduction_percent": 50.0,
+      "elapsed_seconds": 0.0090734000550583,
+      "warnings": [
+        "Human review required: mechanical checks cannot prove equivalent meaning."
+      ],
+      "changes": [
+        "--- original",
+        "+++ suggestion",
+        "@@ -1 +1 @@",
+        "-Define entropy. Define entropy.",
+        "+Define entropy."
+      ],
+      "protected_constraints": [
+        "Define",
+        "entropy",
+        "Define",
+        "entropy"
+      ],
+      "api_usage": null,
+      "agent_trace": null,
+      "sentences": [],
+      "selection_info": null,
+      "human_review": {
+        "task_preserved": null,
+        "concepts_preserved": null,
+        "negations_quantities_preserved": null,
+        "audience_format_preserved": null,
+        "acceptable": null,
+        "reviewer": null,
+        "notes": null
+      }
+    },
+    {
+      "case_id": "R09",
+      "id": "background-1",
+      "category": "background",
+      "method": "tfidf",
+      "original_text": "Explain photosynthesis. Plants absorb sunlight through chlorophyll. Yesterday the bus was late and the weather was rainy.",
+      "candidate_text": "Explain photosynthesis. Plants absorb sunlight through chlorophyll.",
+      "status": "review_required",
+      "original_target_tokens": 22,
+      "candidate_target_tokens": 11,
+      "tokens_saved": 11,
+      "reduction_percent": 50.0,
+      "elapsed_seconds": 0.04694569995626807,
+      "warnings": [
+        "Low lexical similarity does not establish that a sentence is safe to remove.",
+        "Human review required: mechanical checks cannot prove equivalent meaning."
+      ],
+      "changes": [
+        "--- original",
+        "+++ suggestion",
+        "@@ -1 +1 @@",
+        "-Explain photosynthesis. Plants absorb sunlight through chlorophyll. Yesterday the bus was late and the weather was rainy.",
+        "+Explain photosynthesis. Plants absorb sunlight through chlorophyll."
+      ],
+      "protected_constraints": [],
+      "api_usage": null,
+      "agent_trace": null,
+      "sentences": [
+        {
+          "index": 0,
+          "text": "Explain photosynthesis.",
+          "score": 1.0000000000000002,
+          "selected": true,
+          "locked": false,
+          "mandatory_reasons": [
+            "Confirmed main task"
+          ]
+        },
+        {
+          "index": 1,
+          "text": "Plants absorb sunlight through chlorophyll.",
+          "score": 0.0,
+          "selected": true,
+          "locked": false,
+          "mandatory_reasons": []
+        },
+        {
+          "index": 2,
+          "text": "Yesterday the bus was late and the weather was rainy.",
+          "score": 0.0,
+          "selected": false,
+          "locked": false,
+          "mandatory_reasons": []
+        }
+      ],
+      "selection_info": {
+        "token_budget": 13,
+        "sentence_count": 3,
+        "minimum_required_tokens": 4,
+        "main_task_valid": true,
+        "reason_code": "selected"
+      },
+      "human_review": {
+        "task_preserved": null,
+        "concepts_preserved": null,
+        "negations_quantities_preserved": null,
+        "audience_format_preserved": null,
+        "acceptable": null,
+        "reviewer": null,
+        "notes": null
+      }
+    },
+    {
+      "case_id": "R10",
+      "id": "background-2",
+      "category": "background",
+      "method": "tfidf",
+      "original_text": "Explain binary search. The data is sorted before searching. The cafeteria was crowded and the tables were full.",
+      "candidate_text": "Explain binary search. The data is sorted before searching.",
+      "status": "review_required",
+      "original_target_tokens": 21,
+      "candidate_target_tokens": 11,
+      "tokens_saved": 10,
+      "reduction_percent": 47.61904761904762,
+      "elapsed_seconds": 0.005778400111012161,
+      "warnings": [
+        "Low lexical similarity does not establish that a sentence is safe to remove.",
+        "Human review required: mechanical checks cannot prove equivalent meaning."
+      ],
+      "changes": [
+        "--- original",
+        "+++ suggestion",
+        "@@ -1 +1 @@",
+        "-Explain binary search. The data is sorted before searching. The cafeteria was crowded and the tables were full.",
+        "+Explain binary search. The data is sorted before searching."
+      ],
+      "protected_constraints": [],
+      "api_usage": null,
+      "agent_trace": null,
+      "sentences": [
+        {
+          "index": 0,
+          "text": "Explain binary search.",
+          "score": 1.0,
+          "selected": true,
+          "locked": false,
+          "mandatory_reasons": [
+            "Confirmed main task"
+          ]
+        },
+        {
+          "index": 1,
+          "text": "The data is sorted before searching.",
+          "score": 0.0,
+          "selected": true,
+          "locked": false,
+          "mandatory_reasons": []
+        },
+        {
+          "index": 2,
+          "text": "The cafeteria was crowded and the tables were full.",
+          "score": 0.0,
+          "selected": false,
+          "locked": false,
+          "mandatory_reasons": []
+        }
+      ],
+      "selection_info": {
+        "token_budget": 12,
+        "sentence_count": 3,
+        "minimum_required_tokens": 4,
+        "main_task_valid": true,
+        "reason_code": "selected"
+      },
+      "human_review": {
+        "task_preserved": null,
+        "concepts_preserved": null,
+        "negations_quantities_preserved": null,
+        "audience_format_preserved": null,
+        "acceptable": null,
+        "reviewer": null,
+        "notes": null
+      }
+    },
+    {
+      "case_id": "R11",
+      "id": "background-3",
+      "category": "background",
+      "method": "tfidf",
+      "original_text": "Describe natural selection. Populations have heritable variation. The curtains in the classroom were green and the chairs were wooden.",
+      "candidate_text": "Describe natural selection. Populations have heritable variation.",
+      "status": "review_required",
+      "original_target_tokens": 24,
+      "candidate_target_tokens": 11,
+      "tokens_saved": 13,
+      "reduction_percent": 54.166666666666664,
+      "elapsed_seconds": 0.005218799924477935,
+      "warnings": [
+        "Low lexical similarity does not establish that a sentence is safe to remove.",
+        "Substantial deletion: more than half the text tokens were removed. Inspect the diff.",
+        "Human review required: mechanical checks cannot prove equivalent meaning."
+      ],
+      "changes": [
+        "--- original",
+        "+++ suggestion",
+        "@@ -1 +1 @@",
+        "-Describe natural selection. Populations have heritable variation. The curtains in the classroom were green and the chairs were wooden.",
+        "+Describe natural selection. Populations have heritable variation."
+      ],
+      "protected_constraints": [],
+      "api_usage": null,
+      "agent_trace": null,
+      "sentences": [
+        {
+          "index": 0,
+          "text": "Describe natural selection.",
+          "score": 1.0000000000000002,
+          "selected": true,
+          "locked": false,
+          "mandatory_reasons": [
+            "Confirmed main task"
+          ]
+        },
+        {
+          "index": 1,
+          "text": "Populations have heritable variation.",
+          "score": 0.0,
+          "selected": true,
+          "locked": false,
+          "mandatory_reasons": []
+        },
+        {
+          "index": 2,
+          "text": "The curtains in the classroom were green and the chairs were wooden.",
+          "score": 0.0,
+          "selected": false,
+          "locked": false,
+          "mandatory_reasons": []
+        }
+      ],
+      "selection_info": {
+        "token_budget": 14,
+        "sentence_count": 3,
+        "minimum_required_tokens": 4,
+        "main_task_valid": true,
+        "reason_code": "selected"
+      },
+      "human_review": {
+        "task_preserved": null,
+        "concepts_preserved": null,
+        "negations_quantities_preserved": null,
+        "audience_format_preserved": null,
+        "acceptable": null,
+        "reviewer": null,
+        "notes": null
+      }
+    },
+    {
+      "case_id": "R12",
+      "id": "background-4",
+      "category": "background",
+      "method": "tfidf",
+      "original_text": "Explain database normalization. Relations can contain redundant data. The campus garden has flowers and a fountain near the walkway.",
+      "candidate_text": "Explain database normalization. Relations can contain redundant data.",
+      "status": "review_required",
+      "original_target_tokens": 22,
+      "candidate_target_tokens": 10,
+      "tokens_saved": 12,
+      "reduction_percent": 54.54545454545455,
+      "elapsed_seconds": 0.005018100026063621,
+      "warnings": [
+        "Low lexical similarity does not establish that a sentence is safe to remove.",
+        "Substantial deletion: more than half the text tokens were removed. Inspect the diff.",
+        "Human review required: mechanical checks cannot prove equivalent meaning."
+      ],
+      "changes": [
+        "--- original",
+        "+++ suggestion",
+        "@@ -1 +1 @@",
+        "-Explain database normalization. Relations can contain redundant data. The campus garden has flowers and a fountain near the walkway.",
+        "+Explain database normalization. Relations can contain redundant data."
+      ],
+      "protected_constraints": [],
+      "api_usage": null,
+      "agent_trace": null,
+      "sentences": [
+        {
+          "index": 0,
+          "text": "Explain database normalization.",
+          "score": 1.0,
+          "selected": true,
+          "locked": false,
+          "mandatory_reasons": [
+            "Confirmed main task"
+          ]
+        },
+        {
+          "index": 1,
+          "text": "Relations can contain redundant data.",
+          "score": 0.0,
+          "selected": true,
+          "locked": false,
+          "mandatory_reasons": []
+        },
+        {
+          "index": 2,
+          "text": "The campus garden has flowers and a fountain near the walkway.",
+          "score": 0.0,
+          "selected": false,
+          "locked": false,
+          "mandatory_reasons": []
+        }
+      ],
+      "selection_info": {
+        "token_budget": 13,
+        "sentence_count": 3,
+        "minimum_required_tokens": 4,
+        "main_task_valid": true,
+        "reason_code": "selected"
+      },
+      "human_review": {
+        "task_preserved": null,
+        "concepts_preserved": null,
+        "negations_quantities_preserved": null,
+        "audience_format_preserved": null,
+        "acceptable": null,
+        "reviewer": null,
+        "notes": null
+      }
+    },
+    {
+      "case_id": "R13",
+      "id": "constraints-1",
+      "category": "constraints",
+      "method": "nlp",
+      "original_text": "Please explain SQL without code using 3 bullet points.",
+      "candidate_text": "Explain SQL without code using 3 bullet points.",
+      "status": "review_required",
+      "original_target_tokens": 11,
+      "candidate_target_tokens": 10,
+      "tokens_saved": 1,
+      "reduction_percent": 9.090909090909092,
+      "elapsed_seconds": 0.012977099977433681,
+      "warnings": [
+        "Human review required: mechanical checks cannot prove equivalent meaning."
+      ],
+      "changes": [
+        "--- original",
+        "+++ suggestion",
+        "@@ -1 +1 @@",
+        "-Please explain SQL without code using 3 bullet points.",
+        "+Explain SQL without code using 3 bullet points."
+      ],
+      "protected_constraints": [
+        "without",
+        "3",
+        "SQL",
+        "bullet points",
+        "SQL",
+        "code",
+        "bullet",
+        "points"
+      ],
+      "api_usage": null,
+      "agent_trace": null,
+      "sentences": [],
+      "selection_info": null,
+      "human_review": {
+        "task_preserved": null,
+        "concepts_preserved": null,
+        "negations_quantities_preserved": null,
+        "audience_format_preserved": null,
+        "acceptable": null,
+        "reviewer": null,
+        "notes": null
+      }
+    },
+    {
+      "case_id": "R14",
+      "id": "constraints-2",
+      "category": "constraints",
+      "method": "nlp",
+      "original_text": "Could you please define entropy for a beginner in English?",
+      "candidate_text": "Define entropy for a beginner in English.",
+      "status": "review_required",
+      "original_target_tokens": 11,
+      "candidate_target_tokens": 8,
+      "tokens_saved": 3,
+      "reduction_percent": 27.272727272727273,
+      "elapsed_seconds": 0.011026800028048456,
+      "warnings": [
+        "Human review required: mechanical checks cannot prove equivalent meaning."
+      ],
+      "changes": [
+        "--- original",
+        "+++ suggestion",
+        "@@ -1 +1 @@",
+        "-Could you please define entropy for a beginner in English?",
+        "+Define entropy for a beginner in English."
+      ],
+      "protected_constraints": [
+        "beginner",
+        "English",
+        "entropy",
+        "beginner",
+        "English"
+      ],
+      "api_usage": null,
+      "agent_trace": null,
+      "sentences": [],
+      "selection_info": null,
+      "human_review": {
+        "task_preserved": null,
+        "concepts_preserved": null,
+        "negations_quantities_preserved": null,
+        "audience_format_preserved": null,
+        "acceptable": null,
+        "reviewer": null,
+        "notes": null
+      }
+    },
+    {
+      "case_id": "R15",
+      "id": "constraints-3",
+      "category": "constraints",
+      "method": "nlp",
+      "original_text": "Please explain recursion and include the exact phrase \"base case\".",
+      "candidate_text": "Explain recursion and include the exact phrase \"base case\".",
+      "status": "review_required",
+      "original_target_tokens": 12,
+      "candidate_target_tokens": 11,
+      "tokens_saved": 1,
+      "reduction_percent": 8.333333333333334,
+      "elapsed_seconds": 0.012572700041346252,
+      "warnings": [
+        "Human review required: mechanical checks cannot prove equivalent meaning."
+      ],
+      "changes": [
+        "--- original",
+        "+++ suggestion",
+        "@@ -1 +1 @@",
+        "-Please explain recursion and include the exact phrase \"base case\".",
+        "+Explain recursion and include the exact phrase \"base case\"."
+      ],
+      "protected_constraints": [
+        "\"base case\"",
+        "recursion",
+        "phrase",
+        "base",
+        "case"
+      ],
+      "api_usage": null,
+      "agent_trace": null,
+      "sentences": [],
+      "selection_info": null,
+      "human_review": {
+        "task_preserved": null,
+        "concepts_preserved": null,
+        "negations_quantities_preserved": null,
+        "audience_format_preserved": null,
+        "acceptable": null,
+        "reviewer": null,
+        "notes": null
+      }
+    }
+  ]
+}

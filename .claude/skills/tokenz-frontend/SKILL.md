@@ -25,6 +25,11 @@ The rest of this file describes the site as it's built today.
 A static site: plain HTML, one stylesheet and a few small scripts in `frontend/`, no build step
 and no framework. Open any page straight from disk to see it.
 
+The compression engine (TokenSaver, a friend's Python project) lives in `backend/`, with its
+own README, tests and Streamlit test app. The website doesn't call it yet: Compare and Results
+are still empty pages, and connecting them would need a small local web API, which the engine's
+recorded scope (`backend/docs/DESIGN_INTERVIEW.md`, Q5) left out. Ask before adding one.
+
 ## Files
 
 - Pages, each a full HTML file with its own copy of the sidebar: `index.html` (Home),

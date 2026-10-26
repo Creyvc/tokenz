@@ -1,0 +1,52 @@
+"""Conservative heuristics, not a semantic-equivalence proof."""
+import re
+from dataclasses import dataclass
+from token_utils import count_tokens
+
+@dataclass
+class Validation:
+    passed: bool
+    failures: list[str]
+    warnings: list[str]
+
+def extract_protected_constraints(text: str, locked_spans=None) -> list[str]:
+    patterns = [
+        r"\b(?:not|never|without|only|unless|except|must|exactly|at least|at most|no more than|no)\b",
+        r"\b\w+n['’]t\b", r"(?<!\w)[+-]?\d+(?:[.,]\d+)*(?:%|\b)",
+        r'"[^"\n]+"', r"“[^”\n]+”", r"(?<!\w)'[^'\n]+'(?!\w)", r"`[^`]+`",
+        r"\b(?:JSON|CSV|XML|HTML|Python|Java|SQL|TF-IDF|NLP|API)\b",
+        r"\b(?:bullet points?|table|paragraphs?|examples?|beginner|undergraduate|English|Spanish|French)\b",
+        r"\b[A-Z]{2,}(?:[-_][A-Za-z]+)*\b",
+    ]
+    spans = list(locked_spans or [])
+    for pattern in patterns:
+        spans.extend(m.group() for m in re.finditer(pattern, text, flags=0 if "[A-Z]" in pattern else re.I))
+    # Preserve equation/code lines as exact spans. Scope is plain text; this is a safeguard.
+    spans.extend(line.strip() for line in text.splitlines() if re.search(r"[=<>]|```", line))
+    return list(dict.fromkeys(s for s in spans if s.strip()))
+
+def contains_span(text: str, span: str) -> bool:
+    if span[0].isalnum() and span[-1].isalnum():
+        return re.search(r"(?<!\w)" + re.escape(span) + r"(?!\w)", text, re.I) is not None
+    return span in text
+
+def validate_candidate(original: str, candidate: str, protected=None,
+                       encoding="o200k_base", exact_spans=None) -> Validation:
+    failures, warnings = [], []
+    if not isinstance(candidate, str) or not candidate.strip():
+        return Validation(False, ["Missing or empty proposal."], [])
+    if ("```" in candidate and "```" not in original) or re.match(
+        r"\s*(?:here is|here's|sure[,!:]|compressed prompt:|rewritten prompt:|<think>)", candidate, re.I):
+        failures.append("Extraneous prose, reasoning or markdown wrapping.")
+    before, after = count_tokens(original, encoding), count_tokens(candidate, encoding)
+    if after >= before:
+        failures.append("Proposal does not reduce target prompt-text tokens.")
+    for span in protected or extract_protected_constraints(original):
+        if not contains_span(candidate, span):
+            failures.append(f"Missing protected requirement: {span}")
+    for span in exact_spans or []:
+        if span and span not in candidate:
+            failures.append(f"Exact locked phrase changed: {span}")
+    if before and after/before < 0.5:
+        warnings.append("Substantial deletion: more than half the text tokens were removed. Inspect the diff.")
+    return Validation(not failures, failures, warnings)

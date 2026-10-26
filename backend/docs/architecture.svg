@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="920" viewBox="0 0 1440 920">
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10Z" fill="#526577"/></marker></defs>
+<rect width="1440" height="920" fill="#f5f7fa"/>
+<g font-family="Segoe UI,Arial,sans-serif" fill="#172d40">
+<text x="60" y="65" font-size="34" font-weight="700">TokenSaver / System architecture</text>
+<text x="60" y="100" font-size="18" fill="#526577">Local backend • replaceable frontend • bounded external compression</text>
+<rect x="45" y="130" width="1010" height="715" rx="18" fill="#fff" stroke="#c3d3df" stroke-width="2"/>
+<text x="70" y="165" font-size="16" font-weight="700" fill="#526577">STUDENT'S PC</text>
+<rect x="345" y="190" width="410" height="72" rx="10" fill="#e5f0f6"/>
+<text x="550" y="220" text-anchor="middle" font-size="21" font-weight="600">Streamlit / future team frontend</text>
+<text x="550" y="246" text-anchor="middle" font-size="16">Prompt · confirmed main task · locks · consent</text>
+<rect x="345" y="300" width="410" height="70" rx="10" fill="#183e55"/>
+<text x="550" y="329" text-anchor="middle" fill="white" font-size="21" font-weight="600">service.compare_methods</text>
+<text x="550" y="353" text-anchor="middle" fill="#d9eaf2" font-size="16">Independent method execution · result contract</text>
+<rect x="80" y="435" width="270" height="105" rx="10" fill="#e8f3ef"/>
+<text x="215" y="466" text-anchor="middle" font-size="21" font-weight="600">NLP structural rules</text>
+<text x="215" y="495" text-anchor="middle" font-size="16">spaCy · polite prefix removal</text>
+<text x="215" y="520" text-anchor="middle" font-size="16">Exact duplicate sentences</text>
+<rect x="410" y="435" width="280" height="105" rx="10" fill="#e8f3ef"/>
+<text x="550" y="466" text-anchor="middle" font-size="21" font-weight="600">TF-IDF selection</text>
+<text x="550" y="495" text-anchor="middle" font-size="16">Confirmed main task · token budget</text>
+<text x="550" y="520" text-anchor="middle" font-size="16">Mandatory sentences · restoration</text>
+<rect x="750" y="435" width="270" height="105" rx="10" fill="#fff0d8"/>
+<text x="885" y="466" text-anchor="middle" font-size="21" font-weight="600">Qwen controller</text>
+<text x="885" y="495" text-anchor="middle" font-size="16">Propose → check → revise / reject</text>
+<text x="885" y="520" text-anchor="middle" font-size="16">Maximum two model requests</text>
+<rect x="1110" y="420" width="280" height="140" rx="12" fill="#fff0d8" stroke="#c89235" stroke-width="2"/>
+<text x="1250" y="453" text-anchor="middle" font-size="20" font-weight="600">Alibaba Cloud / Qwen</text>
+<text x="1250" y="485" text-anchor="middle" font-size="16">OpenAI-compatible SDK</text>
+<text x="1250" y="511" text-anchor="middle" font-size="16">HTTPS · explicit consent</text>
+<text x="1250" y="537" text-anchor="middle" font-size="16">No automatic SDK retries</text>
+<text x="1250" y="592" text-anchor="middle" font-size="15" fill="#845d1d">EXTERNAL PROVIDER BOUNDARY</text>
+<rect x="220" y="620" width="660" height="80" rx="10" fill="#e5f0f6"/>
+<text x="550" y="651" text-anchor="middle" font-size="21" font-weight="600">Shared local checks and measurements</text>
+<text x="550" y="679" text-anchor="middle" font-size="17">tiktoken · protected constraints · diff · provider usage/cost</text>
+<rect x="290" y="748" width="520" height="65" rx="10" fill="#183e55"/>
+<text x="550" y="775" text-anchor="middle" fill="white" font-size="20" font-weight="600">CompressionResult → frontend → human review</text>
+<text x="550" y="799" text-anchor="middle" fill="#d9eaf2" font-size="16">Reviewable suggestion or original + explanation</text>
+<text x="1090" y="695" font-size="17" font-weight="600">Configuration stays local</text>
+<text x="1090" y="723" font-size="16">.env: key, endpoint, model,</text>
+<text x="1090" y="747" font-size="16">limits and optional prices</text>
+<text x="60" y="887" font-size="18" fill="#526577">Checks do not prove semantic equivalence. Provider usage is separate from prompt-text token savings.</text>
+</g>
+<g fill="none" stroke="#526577" stroke-width="2.5" marker-end="url(#arrow)">
+<path d="M550 262V300"/><path d="M550 370V401H215V435"/><path d="M550 370V435"/><path d="M550 401H885V435"/>
+<path d="M215 540V580H400V620"/><path d="M550 540V620"/><path d="M885 540V580H700V620"/>
+<path d="M1020 475H1110"/><path d="M1110 512H1020"/><path d="M550 700V748"/>
+<path d="M880 665H980V565H920V540" stroke-dasharray="7 5"/>
+</g>
+<text x="920" y="607" font-family="Segoe UI,Arial,sans-serif" font-size="14" fill="#845d1d">One revision</text>
+</svg>
