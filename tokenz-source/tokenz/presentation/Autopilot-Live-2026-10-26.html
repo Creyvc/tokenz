@@ -1,0 +1,410 @@
+<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'><title>Tokenz detailed comparison</title><style>
+        :root { color-scheme: light; font-family: system-ui, sans-serif; color: #152638; background: #f4f7fb; }
+        * { box-sizing: border-box; } body { margin: 0; line-height: 1.55; }
+        main { max-width: 1180px; margin: auto; padding: 40px 24px; }
+        h1 { font-size: 2.5rem; margin-bottom: 10px; } h2 { font-size: 1.65rem; } h3 { margin-top: 28px; }
+        article { background: white; padding: 28px; margin-top: 32px; border: 1px solid #ccd7e4; border-radius: 12px; }
+        .pair { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 20px; }
+        .pair section { min-width: 0; } pre { font: inherit; white-space: pre-wrap; overflow-wrap: anywhere;
+        background: #f4f7fb; padding: 18px; border: 1px solid #dce4ef; border-radius: 8px; }
+        table { border-collapse: collapse; width: 100%; margin: 12px 0; font-variant-numeric: tabular-nums; }
+        th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #dce4ef; vertical-align: top; }
+        th { background: #eaf0f8; } .table-scroll { overflow-x: auto; } .error { color: #952d22; }
+        .guide { border-left: 4px solid #148467; padding-left: 18px; }
+        @media(max-width:700px) { .pair { grid-template-columns: 1fr; } article { padding: 18px; } }
+        @media print { body { background: white; } main { padding: 0; } article { border: 0; border-top: 1px solid #999;
+        border-radius: 0; padding: 10px 0; } h2,h3,h4 { break-after: avoid; } tr,pre { break-inside: avoid; } }
+    </style></head><body><main><h1>Tokenz comparison report</h1><p>Study: ab315041-598b-4be7-9c83-4db44222e694 | Created: 2026-10-26T08:09:54.781157+00:00</p><div class='guide'><p>Red highlights show removed or replaced words. Green highlights show added or replaced words.</p><p>Text changed = 100 × (removed words + added words) ÷ (original words + shortened words). Words are compared with case and punctuation preserved. This measures wording, not meaning. Whitespace changes do not count as word changes.</p><p>Reduction = 100 × (original count − shortened count) ÷ original count. Negative reduction means growth. Local prompt tokens and provider request tokens can differ.</p><p>Quality retention = shortened score ÷ original score × 100. It can exceed 100%. A zero original score gives no defined ratio. High retention can occur when both answers are wrong. Exact checks test only their specified requirements. Not measured means unavailable, not zero.</p><p>Pipeline usage includes optimizer and shortened target calls, excluding the separate quality review. Shorter target inputs do not guarantee fewer pipeline tokens or financial savings.</p></div><article><h2>1. my_prompt</h2><p>Recorded experiment | Status: completed</p><p><strong>Target model:</strong> nvidia/nemotron-3.5-lightning:free<br><strong>Optimizer:</strong> openrouter/free</p><div class='table-scroll'><table><thead><tr><th scope='col'>Summary measure</th><th scope='col'>Measured value</th></tr></thead><tbody><tr><td>Prompt token reduction (local counter)</td><td>0.40%</td></tr><tr><td>Target input reduction (provider request)</td><td>0.26%</td></tr><tr><td>Quality retained relative to original</td><td>Not measured</td></tr><tr><td>Optimizer overhead tokens</td><td>5,639.00</td></tr><tr><td>Shortened pipeline tokens including optimizer</td><td>7,323.00</td></tr></tbody></table></div><h3>Usage and answer checks</h3><div class='table-scroll'><table><thead><tr><th scope='col'>Measure</th><th scope='col'>Original</th><th scope='col'>Shortened</th></tr></thead><tbody><tr><td>Prompt tokens (local counter)</td><td>1,012.00</td><td>1,008.00</td></tr><tr><td>Target input tokens (provider request)</td><td>1,512.00</td><td>1,508.00</td></tr><tr><td>Target answer tokens</td><td>1,624.00</td><td>176.00</td></tr><tr><td>Target total tokens</td><td>3,136.00</td><td>1,684.00</td></tr><tr><td>Target latency (ms)</td><td>15,223.70</td><td>3,255.48</td></tr><tr><td>Quality score / 10</td><td>Not measured</td><td>Not measured</td></tr><tr><td>Exact answer check</td><td>Not measured</td><td>Not measured</td></tr></tbody></table></div><h3>Prompt before and after</h3><div class='pair'><section><h4>Original</h4><pre><mark style="background:#ffd9d2;color:#152638;border-radius:3px;padding:1px 2px">Using this synthetic CSV (order_id,region,units,unit_price), write</mark> pandas code to calculate revenue by <mark style="background:#ffd9d2;color:#152638;border-radius:3px;padding:1px 2px">region,</mark> excluding order IDs 010 and 050. Return <mark style="background:#ffd9d2;color:#152638;border-radius:3px;padding:1px 2px">code,</mark> not computed totals. <mark style="background:#ffd9d2;color:#152638;border-radius:3px;padding:1px 2px">Keep currency values in</mark> decimal <mark style="background:#ffd9d2;color:#152638;border-radius:3px;padding:1px 2px">arithmetic, and</mark> sort descending by revenue.
+001,South,11,21
+002,East,12,22
+003,North,13,23
+004,South,14,24
+005,East,15,25
+006,North,16,26
+007,South,17,20
+008,East,18,21
+009,North,19,22
+010,South,20,23
+011,East,10,24
+012,North,11,25
+013,South,12,26
+014,East,13,20
+015,North,14,21
+016,South,15,22
+017,East,16,23
+018,North,17,24
+019,South,18,25
+020,East,19,26
+021,North,20,20
+022,South,10,21
+023,East,11,22
+024,North,12,23
+025,South,13,24
+026,East,14,25
+027,North,15,26
+028,South,16,20
+029,East,17,21
+030,North,18,22
+031,South,19,23
+032,East,20,24
+033,North,10,25
+034,South,11,26
+035,East,12,20
+036,North,13,21
+037,South,14,22
+038,East,15,23
+039,North,16,24
+040,South,17,25
+041,East,18,26
+042,North,19,20
+043,South,20,21
+044,East,10,22
+045,North,11,23
+046,South,12,24
+047,East,13,25
+048,North,14,26
+049,South,15,20
+050,East,16,21
+051,North,17,22
+052,South,18,23
+053,East,19,24
+054,North,20,25
+055,South,10,26
+056,East,11,20
+057,North,12,21
+058,South,13,22
+059,East,14,23
+060,North,15,24
+061,South,16,25
+062,East,17,26
+063,North,18,20
+064,South,19,21
+065,East,20,22
+066,North,10,23
+067,South,11,24
+068,East,12,25
+069,North,13,26
+070,South,14,20
+071,East,15,21
+072,North,16,22
+073,South,17,23
+074,East,18,24
+075,North,19,25
+076,South,20,26
+077,East,10,20
+078,North,11,21
+079,South,12,22
+080,East,13,23
+081,North,14,24
+082,South,15,25
+083,East,16,26
+084,North,17,20
+085,South,18,21
+086,East,19,22
+087,North,20,23
+088,South,10,24
+089,East,11,25
+090,North,12,26
+091,South,13,20
+092,East,14,21
+093,North,15,22
+094,South,16,23
+095,East,17,24
+096,North,18,25
+097,South,19,26
+098,East,20,20
+099,North,10,21
+100,South,11,22
+101,East,12,23
+102,North,13,24
+103,South,14,25
+104,East,15,26
+105,North,16,20
+106,South,17,21
+107,East,18,22
+108,North,19,23
+109,South,20,24
+110,East,10,25
+111,North,11,26
+112,South,12,20
+113,East,13,21
+114,North,14,22
+115,South,15,23
+116,East,16,24
+117,North,17,25
+118,South,18,26
+119,East,19,20
+120,North,20,21</pre></section><section><h4>Shortened</h4><pre><mark style="background:#c8f3df;color:#152638;border-radius:3px;padding:1px 2px">Write</mark> pandas code to calculate revenue by <mark style="background:#c8f3df;color:#152638;border-radius:3px;padding:1px 2px">region from CSV (order_id,region,units,unit_price),</mark> excluding order IDs 010 and 050. Return <mark style="background:#c8f3df;color:#152638;border-radius:3px;padding:1px 2px">code only,</mark> not computed totals. <mark style="background:#c8f3df;color:#152638;border-radius:3px;padding:1px 2px">Use</mark> decimal <mark style="background:#c8f3df;color:#152638;border-radius:3px;padding:1px 2px">arithmetic for currency;</mark> sort descending by revenue.
+
+001,South,11,21
+002,East,12,22
+003,North,13,23
+004,South,14,24
+005,East,15,25
+006,North,16,26
+007,South,17,20
+008,East,18,21
+009,North,19,22
+010,South,20,23
+011,East,10,24
+012,North,11,25
+013,South,12,26
+014,East,13,20
+015,North,14,21
+016,South,15,22
+017,East,16,23
+018,North,17,24
+019,South,18,25
+020,East,19,26
+021,North,20,20
+022,South,10,21
+023,East,11,22
+024,North,12,23
+025,South,13,24
+026,East,14,25
+027,North,15,26
+028,South,16,20
+029,East,17,21
+030,North,18,22
+031,South,19,23
+032,East,20,24
+033,North,10,25
+034,South,11,26
+035,East,12,20
+036,North,13,21
+037,South,14,22
+038,East,15,23
+039,North,16,24
+040,South,17,25
+041,East,18,26
+042,North,19,20
+043,South,20,21
+044,East,10,22
+045,North,11,23
+046,South,12,24
+047,East,13,25
+048,North,14,26
+049,South,15,20
+050,East,16,21
+051,North,17,22
+052,South,18,23
+053,East,19,24
+054,North,20,25
+055,South,10,26
+056,East,11,20
+057,North,12,21
+058,South,13,22
+059,East,14,23
+060,North,15,24
+061,South,16,25
+062,East,17,26
+063,North,18,20
+064,South,19,21
+065,East,20,22
+066,North,10,23
+067,South,11,24
+068,East,12,25
+069,North,13,26
+070,South,14,20
+071,East,15,21
+072,North,16,22
+073,South,17,23
+074,East,18,24
+075,North,19,25
+076,South,20,26
+077,East,10,20
+078,North,11,21
+079,South,12,22
+080,East,13,23
+081,North,14,24
+082,South,15,25
+083,East,16,26
+084,North,17,20
+085,South,18,21
+086,East,19,22
+087,North,20,23
+088,South,10,24
+089,East,11,25
+090,North,12,26
+091,South,13,20
+092,East,14,21
+093,North,15,22
+094,South,16,23
+095,East,17,24
+096,North,18,25
+097,South,19,26
+098,East,20,20
+099,North,10,21
+100,South,11,22
+101,East,12,23
+102,North,13,24
+103,South,14,25
+104,East,15,26
+105,North,16,20
+106,South,17,21
+107,East,18,22
+108,North,19,23
+109,South,20,24
+110,East,10,25
+111,North,11,26
+112,South,12,20
+113,East,13,21
+114,North,14,22
+115,South,15,23
+116,East,16,24
+117,North,17,25
+118,South,18,26
+119,East,19,20
+120,North,20,21</pre></section></div><h3>Answer before and after</h3><div class='pair'><section><h4>Original</h4><pre>import pandas as pd
+<mark style="background:#ffd9d2;color:#152638;border-radius:3px;padding:1px 2px">csv_data</mark> = <mark style="background:#ffd9d2;color:#152638;border-radius:3px;padding:1px 2px">&quot;&quot;&quot;order_id,region,units,unit_price
+001,South,11,21
+002,East,12,22
+003,North,13,23
+004,South,14,24
+005,East,15,25
+006,North,16,26
+007,South,17,20
+008,East,18,21
+009,North,19,22
+010,South,20,23
+011,East,10,24
+012,North,11,25
+013,South,12,26
+014,East,13,20
+015,North,14,21
+016,South,15,22
+017,East,16,23
+018,North,17,24
+019,South,18,25
+020,East,19,26
+021,North,20,20
+022,South,10,21
+023,East,11,22
+024,North,12,23
+025,South,13,24
+026,East,14,25
+027,North,15,26
+028,South,16,20
+029,East,17,21
+030,North,18,22
+031,South,19,23
+032,East,20,24
+033,North,10,25
+034,South,11,26
+035,East,12,20
+036,North,13,21
+037,South,14,22
+038,East,15,23
+039,North,16,24
+040,South,17,25
+041,East,18,26
+042,North,19,20
+043,South,20,21
+044,East,10,22
+045,North,11,23
+046,South,12,24
+047,East,13,25
+048,North,14,26
+049,South,15,20
+050,East,16,21
+051,North,17,22
+052,South,18,23
+053,East,19,24
+054,North,20,25
+055,South,10,26
+056,East,11,20
+057,North,12,21
+058,South,13,22
+059,East,14,23
+060,North,15,24
+061,South,16,25
+062,East,17,26
+063,North,18,20
+064,South,19,21
+065,East,20,22
+066,North,10,23
+067,South,11,24
+068,East,12,25
+069,North,13,26
+070,South,14,20
+071,East,15,21
+072,North,16,22
+073,South,17,23
+074,East,18,24
+075,North,19,25
+076,South,20,26
+077,East,10,20
+078,North,11,21
+079,South,12,22
+080,East,13,23
+081,North,14,24
+082,South,15,25
+083,East,16,26
+084,North,17,20
+085,South,18,21
+086,East,19,22
+087,North,20,23
+088,South,10,24
+089,East,11,25
+090,North,12,26
+091,South,13,20
+092,East,14,21
+093,North,15,22
+094,South,16,23
+095,East,17,24
+096,North,18,25
+097,South,19,26
+098,East,20,20
+099,North,10,21
+100,South,11,22
+101,East,12,23
+102,North,13,24
+103,South,14,25
+104,East,15,26
+105,North,16,20
+106,South,17,21
+107,East,18,22
+108,North,19,23
+109,South,20,24
+110,East,10,25
+111,North,11,26
+112,South,12,20
+113,East,13,21
+114,North,14,22
+115,South,15,23
+116,East,16,24
+117,North,17,25
+118,South,18,26
+119,East,19,20
+120,North,20,21&quot;&quot;&quot;
+data</mark> = <mark style="background:#ffd9d2;color:#152638;border-radius:3px;padding:1px 2px">pd.read_csv(pd.io.common.StringIO(csv_data))
+# Convert columns to appropriate types to ensure decimal arithmetic
+data[&#x27;units&#x27;] = data[&#x27;units&#x27;].astype(int)
+data[&#x27;unit_price&#x27;] = data[&#x27;unit_price&#x27;].astype(float)</mark>
+# Exclude <mark style="background:#ffd9d2;color:#152638;border-radius:3px;padding:1px 2px">order IDs</mark> 010 and 050
+<mark style="background:#ffd9d2;color:#152638;border-radius:3px;padding:1px 2px">filtered_data</mark> = <mark style="background:#ffd9d2;color:#152638;border-radius:3px;padding:1px 2px">data[~data[&#x27;order_id&#x27;].isin([&#x27;010&#x27;,</mark> &#x27;050&#x27;])]
+# Calculate revenue
+<mark style="background:#ffd9d2;color:#152638;border-radius:3px;padding:1px 2px">filtered_data[&#x27;revenue&#x27;]</mark> = <mark style="background:#ffd9d2;color:#152638;border-radius:3px;padding:1px 2px">filtered_data[&#x27;units&#x27;]</mark> * <mark style="background:#ffd9d2;color:#152638;border-radius:3px;padding:1px 2px">filtered_data[&#x27;unit_price&#x27;]</mark>
+# <mark style="background:#ffd9d2;color:#152638;border-radius:3px;padding:1px 2px">Calculate total</mark> revenue by region, <mark style="background:#ffd9d2;color:#152638;border-radius:3px;padding:1px 2px">sorted descending</mark>
+result = <mark style="background:#ffd9d2;color:#152638;border-radius:3px;padding:1px 2px">filtered_data.groupby(&#x27;region&#x27;)[&#x27;revenue&#x27;].sum().sort_values(ascending=False)
+result
+
+Note: The final output is the Series `result` containing revenue by region sorted descending.</mark></pre></section><section><h4>Shortened</h4><pre><mark style="background:#c8f3df;color:#152638;border-radius:3px;padding:1px 2px">```python</mark>
+import pandas as pd
+<mark style="background:#c8f3df;color:#152638;border-radius:3px;padding:1px 2px">from decimal import Decimal
+
+# Read the data, ensuring unit_price is treated as Decimal for currency precision
+df</mark> = <mark style="background:#c8f3df;color:#152638;border-radius:3px;padding:1px 2px">pd.read_csv(&#x27;data.csv&#x27;, dtype={&#x27;order_id&#x27;: str, &#x27;region&#x27;: str, &#x27;units&#x27;: int, &#x27;unit_price&#x27;: str})
+df[&#x27;unit_price&#x27;]</mark> = <mark style="background:#c8f3df;color:#152638;border-radius:3px;padding:1px 2px">df[&#x27;unit_price&#x27;].apply(Decimal)</mark>
+
+# Exclude <mark style="background:#c8f3df;color:#152638;border-radius:3px;padding:1px 2px">orders</mark> 010 and 050
+<mark style="background:#c8f3df;color:#152638;border-radius:3px;padding:1px 2px">df</mark> = <mark style="background:#c8f3df;color:#152638;border-radius:3px;padding:1px 2px">df[~df[&#x27;order_id&#x27;].isin([&#x27;010&#x27;,</mark> &#x27;050&#x27;])]
+
+# Calculate revenue <mark style="background:#c8f3df;color:#152638;border-radius:3px;padding:1px 2px">per row using Decimal arithmetic
+df[&#x27;revenue&#x27;]</mark> = <mark style="background:#c8f3df;color:#152638;border-radius:3px;padding:1px 2px">df[&#x27;units&#x27;]</mark> * <mark style="background:#c8f3df;color:#152638;border-radius:3px;padding:1px 2px">df[&#x27;unit_price&#x27;]</mark>
+
+# <mark style="background:#c8f3df;color:#152638;border-radius:3px;padding:1px 2px">Aggregate</mark> revenue by region, <mark style="background:#c8f3df;color:#152638;border-radius:3px;padding:1px 2px">sort descending, and return the result</mark>
+result = <mark style="background:#c8f3df;color:#152638;border-radius:3px;padding:1px 2px">df.groupby(&#x27;region&#x27;)[&#x27;revenue&#x27;].sum().sort_values(ascending=False)
+
+print(result)
+```</mark></pre></section></div><h3>Text change details</h3><div class='table-scroll'><table><thead><tr><th scope='col'>Measure</th><th scope='col'>Prompt</th><th scope='col'>Answer</th></tr></thead><tbody><tr><td>Text changed</td><td>8.14%</td><td>81.95%</td></tr><tr><td>Word reduction</td><td>1.94%</td><td>60.73%</td></tr><tr><td>Character reduction</td><td>1.03%</td><td>75.56%</td></tr><tr><td>Retained words</td><td>141.00</td><td>24.00</td></tr><tr><td>Removed words</td><td>14.00</td><td>167.00</td></tr><tr><td>Added words</td><td>11.00</td><td>51.00</td></tr></tbody></table></div><h3>Quality details</h3><div class='table-scroll'><table><thead><tr><th scope='col'>Quality dimension / 10</th><th scope='col'>Original</th><th scope='col'>Shortened</th><th scope='col'>Change in points</th></tr></thead><tbody><tr><td>Correctness</td><td>Not measured</td><td>Not measured</td><td>Not measured</td></tr><tr><td>Completeness</td><td>Not measured</td><td>Not measured</td><td>Not measured</td></tr><tr><td>Relevance</td><td>Not measured</td><td>Not measured</td><td>Not measured</td></tr><tr><td>Instruction Following</td><td>Not measured</td><td>Not measured</td><td>Not measured</td></tr><tr><td>Format Preservation</td><td>Not measured</td><td>Not measured</td><td>Not measured</td></tr><tr><td>Factual Consistency</td><td>Not measured</td><td>Not measured</td><td>Not measured</td></tr></tbody></table></div><p><strong>Reviewer:</strong> Not measured | <strong>Method:</strong> Not measured</p><p><strong>Review notes:</strong> Not measured</p><p>Rubric scores are estimates. Review the actual answers and exact checks.</p></article></main></body></html>

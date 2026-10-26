@@ -1,0 +1,312 @@
+{
+  "id": "f2837b4a-2ae4-43a9-9605-3e54ad9ddea9",
+  "created_at": "2026-10-26T05:39:32.947620+00:00",
+  "signature": "3fea5cc2a11f03a10f046ad8092fabe5426dc77ee8fb9385c781e8d10fdc054f",
+  "demo": false,
+  "prompts": [
+    {
+      "id": "writing",
+      "category": "writing",
+      "prompt": "Hi, I would like you to please write a polite email declining a meeting on 12 November 2026. Offer 14 November at 10:00 UTC instead. Keep it under 100 words and do not invent a reason. Thank you very much."
+    }
+  ],
+  "optimizers": [
+    "openrouter/free"
+  ],
+  "targets": [
+    "nvidia/nemotron-3.5-lightning:free"
+  ],
+  "judge": false,
+  "experiments": [
+    {
+      "id": "24c9c881-8a30-481a-9ed3-5a3e0ed03284",
+      "created_at": "2026-10-26T05:39:33.425812+00:00",
+      "prompt_id": "writing",
+      "category": "writing",
+      "original_prompt": "Hi, I would like you to please write a polite email declining a meeting on 12 November 2026. Offer 14 November at 10:00 UTC instead. Keep it under 100 words and do not invent a reason. Thank you very much.",
+      "original_prompt_tokens": 53,
+      "optimized_prompt": "Write a polite email declining a meeting on 12 November 2026. Offer 14 November at 10:00 UTC instead. Keep it under 100 words. Do not invent a reason.",
+      "optimized_prompt_tokens": 40,
+      "length_group": "short",
+      "optimizer_provider": "openrouter_free",
+      "optimizer_model": "openrouter/free",
+      "strategy": "structured",
+      "target_ratio": 0.75,
+      "adaptive": false,
+      "demo": false,
+      "status": "completed",
+      "stage": "done",
+      "failures": [],
+      "target_provider": "openrouter",
+      "target_model": "nvidia/nemotron-3.5-lightning:free",
+      "free_only": true,
+      "optimizer_calls": [
+        {
+          "text": "Write a polite email declining a meeting on 12 November 2026. Offer 14 November at 10:00 UTC instead. Keep it under 100 words. Do not invent a reason.",
+          "input_tokens": 276,
+          "output_tokens": 336,
+          "latency_ms": 2381.70450006146,
+          "request_id": "gen-1792993179-8EaZSMCyx3YnlqqRjcwi",
+          "model": "nvidia/nemotron-3.5-super-vl:free",
+          "finish_reason": "stop",
+          "usage_source": "provider",
+          "cost_usd": 0,
+          "provider_cost_usd": 0,
+          "reused": false,
+          "request_settings": {
+            "model": "openrouter/free",
+            "stream": false,
+            "max_tokens": 4096,
+            "temperature": 0.1,
+            "provider": {
+              "max_price": {
+                "prompt": 0,
+                "completion": 0,
+                "request": 0
+              },
+              "allow_fallbacks": true
+            }
+          },
+          "provider": "openrouter_free",
+          "cost_source": "provider"
+        }
+      ],
+      "paid_calls": [
+        {
+          "text": "Subject: Meeting Reschedule\n\nDear [Name],\n\nI am writing to confirm that I cannot attend the meeting scheduled for 12 November 2026.\n\nWould 14 November at 10:00 UTC work for you instead?\n\nBest regards,\n\n[Your Name]",
+          "input_tokens": 77,
+          "output_tokens": 60,
+          "latency_ms": 5670.188499963842,
+          "request_id": "gen-1792993173-iXJPzfWfCEGNEvFSujNQ",
+          "model": "nvidia/nemotron-3.5-lightning:free",
+          "finish_reason": "stop",
+          "usage_source": "provider",
+          "cost_usd": 0,
+          "provider_cost_usd": 0,
+          "reused": false,
+          "request_settings": {
+            "model": "nvidia/nemotron-3.5-lightning:free",
+            "stream": false,
+            "max_tokens": 2048,
+            "provider": {
+              "max_price": {
+                "prompt": 0,
+                "completion": 0,
+                "request": 0
+              },
+              "allow_fallbacks": true
+            },
+            "reasoning": {
+              "enabled": false
+            }
+          },
+          "provider": "openrouter_target",
+          "cost_source": "provider"
+        },
+        {
+          "text": "Write a polite email declining a meeting on 12 November 2026. Offer 14 November at 10:00 UTC instead. Keep it under 100 words. Do not invent a reason.",
+          "input_tokens": 276,
+          "output_tokens": 336,
+          "latency_ms": 2381.70450006146,
+          "request_id": "gen-1792993179-8EaZSMCyx3YnlqqRjcwi",
+          "model": "nvidia/nemotron-3.5-super-vl:free",
+          "finish_reason": "stop",
+          "usage_source": "provider",
+          "cost_usd": 0,
+          "provider_cost_usd": 0,
+          "reused": false,
+          "request_settings": {
+            "model": "openrouter/free",
+            "stream": false,
+            "max_tokens": 4096,
+            "temperature": 0.1,
+            "provider": {
+              "max_price": {
+                "prompt": 0,
+                "completion": 0,
+                "request": 0
+              },
+              "allow_fallbacks": true
+            }
+          },
+          "provider": "openrouter_free",
+          "cost_source": "provider"
+        },
+        {
+          "text": "Subject: Meeting request: 12 November\n\nDear [Name],\n\nI regret that I am unavailable on 12 November. Could we instead meet on 14 November at 10:00 UTC?\n\nBest regards,\n\n[Your Name]",
+          "input_tokens": 64,
+          "output_tokens": 53,
+          "latency_ms": 1176.100100041367,
+          "request_id": "gen-1792993181-54ds6be0bfdgbUoeTcI5",
+          "model": "nvidia/nemotron-3.5-lightning:free",
+          "finish_reason": "stop",
+          "usage_source": "provider",
+          "cost_usd": 0,
+          "provider_cost_usd": 0,
+          "reused": false,
+          "request_settings": {
+            "model": "nvidia/nemotron-3.5-lightning:free",
+            "stream": false,
+            "max_tokens": 2048,
+            "provider": {
+              "max_price": {
+                "prompt": 0,
+                "completion": 0,
+                "request": 0
+              },
+              "allow_fallbacks": true
+            },
+            "reasoning": {
+              "enabled": false
+            }
+          },
+          "provider": "openrouter_target",
+          "cost_source": "provider"
+        }
+      ],
+      "metadata": {
+        "study_id": "f2837b4a-2ae4-43a9-9605-3e54ad9ddea9",
+        "combination": "c4fba8ef153b0d8510e7c46038f41ebb6b0e49955d1f44af91f2c082d2bc01e9",
+        "optimizer_key": "openrouter_free",
+        "methodology": "methodology_1_free_target_alternative"
+      },
+      "versions": {
+        "source": "0.2.0",
+        "optimizer_template_sha256": "2be5cb9f058935eacf0178abc864b5d9aff43f74db0bfc9d350dcf142f8cf07f"
+      },
+      "configuration": {
+        "optimizer": {
+          "provider": "openrouter",
+          "model": "openrouter/free",
+          "base_url": "https://openrouter.ai/api/v1",
+          "input_price_per_million": 0,
+          "output_price_per_million": 0,
+          "enable_thinking": null,
+          "reasoning_effort": null,
+          "free_tier_confirmed": true
+        },
+        "target": {
+          "provider": "openrouter",
+          "model": "nvidia/nemotron-3.5-lightning:free",
+          "base_url": "https://openrouter.ai/api/v1",
+          "input_price_per_million": 0,
+          "output_price_per_million": 0,
+          "enable_thinking": null,
+          "reasoning_effort": null,
+          "free_tier_confirmed": false
+        },
+        "max_output": 2048,
+        "optimizer_max_output": 4096,
+        "target_temperature": null,
+        "optimizer_temperature": 0.1,
+        "skip_below": 100,
+        "min_quality": 0.95,
+        "tokenizer": {
+          "encoding": "o200k_base",
+          "fallback_used": true,
+          "scope": "text only; billed request usage comes from provider"
+        }
+      },
+      "metrics": {
+        "text_compression_pct": 24.52830188679245,
+        "chatgpt_input_reduction_pct": 16.883116883116884,
+        "optimizer_total_tokens": 612,
+        "baseline_total_tokens": 137,
+        "tokenz_total_tokens": 729,
+        "net_token_difference": -592,
+        "baseline_cost_usd": 0,
+        "tokenz_cost_usd": 0,
+        "cost_difference_usd": 0,
+        "optimizer_latency_ms": 2381.70450006146,
+        "baseline_chatgpt_latency_ms": 5670.188499963842,
+        "optimized_chatgpt_latency_ms": 1176.100100041367,
+        "total_tokenz_latency_ms": 3557.804600102827,
+        "quality_retention_pct": null,
+        "baseline_quality": null,
+        "optimized_quality": null,
+        "research_spend_usd": 0,
+        "latency_difference_ms": -2112.3838998610154,
+        "baseline_quality_per_1000_tokens": null,
+        "optimized_quality_per_1000_tokens": null
+      },
+      "optimizer_prompt_version": "optimizer_prompt_v1",
+      "billing_uncertain": false,
+      "baseline": {
+        "text": "Subject: Meeting Reschedule\n\nDear [Name],\n\nI am writing to confirm that I cannot attend the meeting scheduled for 12 November 2026.\n\nWould 14 November at 10:00 UTC work for you instead?\n\nBest regards,\n\n[Your Name]",
+        "input_tokens": 77,
+        "output_tokens": 60,
+        "latency_ms": 5670.188499963842,
+        "request_id": "gen-1792993173-iXJPzfWfCEGNEvFSujNQ",
+        "model": "nvidia/nemotron-3.5-lightning:free",
+        "finish_reason": "stop",
+        "usage_source": "provider",
+        "cost_usd": 0,
+        "provider_cost_usd": 0,
+        "reused": false,
+        "request_settings": {
+          "model": "nvidia/nemotron-3.5-lightning:free",
+          "stream": false,
+          "max_tokens": 2048,
+          "provider": {
+            "max_price": {
+              "prompt": 0,
+              "completion": 0,
+              "request": 0
+            },
+            "allow_fallbacks": true
+          },
+          "reasoning": {
+            "enabled": false
+          }
+        },
+        "provider": "openrouter_target",
+        "cost_source": "provider"
+      },
+      "optimization_decision": "accepted_for_evaluation_semantics_unverified",
+      "optimized_response": {
+        "text": "Subject: Meeting request: 12 November\n\nDear [Name],\n\nI regret that I am unavailable on 12 November. Could we instead meet on 14 November at 10:00 UTC?\n\nBest regards,\n\n[Your Name]",
+        "input_tokens": 64,
+        "output_tokens": 53,
+        "latency_ms": 1176.100100041367,
+        "request_id": "gen-1792993181-54ds6be0bfdgbUoeTcI5",
+        "model": "nvidia/nemotron-3.5-lightning:free",
+        "finish_reason": "stop",
+        "usage_source": "provider",
+        "cost_usd": 0,
+        "provider_cost_usd": 0,
+        "reused": false,
+        "request_settings": {
+          "model": "nvidia/nemotron-3.5-lightning:free",
+          "stream": false,
+          "max_tokens": 2048,
+          "provider": {
+            "max_price": {
+              "prompt": 0,
+              "completion": 0,
+              "request": 0
+            },
+            "allow_fallbacks": true
+          },
+          "reasoning": {
+            "enabled": false
+          }
+        },
+        "provider": "openrouter_target",
+        "cost_source": "provider"
+      },
+      "optimizer_strategy": "balanced",
+      "target_disclosure": "Fixed free OpenRouter target. This does not measure OpenAI or ChatGPT."
+    }
+  ],
+  "min_quality": 0.95,
+  "methodology": "methodology_1_free_target_alternative",
+  "optimizer_selections": [
+    "openrouter_free"
+  ],
+  "compression_strategy": "balanced",
+  "target_ratio": 0.75,
+  "adaptive": false,
+  "target_disclosure": "Fixed free OpenRouter target. This does not measure OpenAI or ChatGPT.",
+  "evaluation_mode": "human_1_to_5",
+  "status": "completed"
+}

@@ -1,0 +1,131 @@
+{
+  "encoding": "o200k_base",
+  "length_groups": {
+    "short": 17,
+    "medium": 10,
+    "long": 1,
+    "very_long": 2
+  },
+  "prompts": [
+    {
+      "id": "coding_001",
+      "tokens": 23
+    },
+    {
+      "id": "coding_002",
+      "tokens": 140
+    },
+    {
+      "id": "coding_003",
+      "tokens": 83
+    },
+    {
+      "id": "data_analysis_001",
+      "tokens": 31
+    },
+    {
+      "id": "data_analysis_002",
+      "tokens": 137
+    },
+    {
+      "id": "data_analysis_003",
+      "tokens": 1012
+    },
+    {
+      "id": "explanation_001",
+      "tokens": 27
+    },
+    {
+      "id": "explanation_002",
+      "tokens": 132
+    },
+    {
+      "id": "explanation_003",
+      "tokens": 43
+    },
+    {
+      "id": "writing_001",
+      "tokens": 38
+    },
+    {
+      "id": "writing_002",
+      "tokens": 147
+    },
+    {
+      "id": "writing_003",
+      "tokens": 43
+    },
+    {
+      "id": "summarization_001",
+      "tokens": 39
+    },
+    {
+      "id": "summarization_002",
+      "tokens": 162
+    },
+    {
+      "id": "summarization_003",
+      "tokens": 2140
+    },
+    {
+      "id": "extraction_001",
+      "tokens": 35
+    },
+    {
+      "id": "extraction_002",
+      "tokens": 150
+    },
+    {
+      "id": "extraction_003",
+      "tokens": 2881
+    },
+    {
+      "id": "classification_001",
+      "tokens": 23
+    },
+    {
+      "id": "classification_002",
+      "tokens": 157
+    },
+    {
+      "id": "classification_003",
+      "tokens": 38
+    },
+    {
+      "id": "multi_constraint_001",
+      "tokens": 38
+    },
+    {
+      "id": "multi_constraint_002",
+      "tokens": 146
+    },
+    {
+      "id": "multi_constraint_003",
+      "tokens": 36
+    },
+    {
+      "id": "reasoning_001",
+      "tokens": 34
+    },
+    {
+      "id": "reasoning_002",
+      "tokens": 136
+    },
+    {
+      "id": "reasoning_003",
+      "tokens": 29
+    },
+    {
+      "id": "structured_output_001",
+      "tokens": 27
+    },
+    {
+      "id": "structured_output_002",
+      "tokens": 147
+    },
+    {
+      "id": "structured_output_003",
+      "tokens": 42
+    }
+  ]
+}
