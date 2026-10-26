@@ -16,8 +16,7 @@ license: Apache 2.0
 >
 > Never change anything already built on the Tokenz site to fit these rules. Every existing
 > timing, easing, position, font and animation is the owner's choice, even where it breaks the
-> rules here: the thin line's slow grow and shrink, the line growing from nothing, the dot's
-> travel, the monospace intro notice, and Info/Cookies opening as windows. Reviews (`audit`,
+> rules here: the dot's travel, the monospace intro notice, and Info/Cookies opening as windows. Reviews (`audit`,
 > `critique`) report findings only. Make a change only when the owner says yes. See the
 > tokenz-frontend skill.
 

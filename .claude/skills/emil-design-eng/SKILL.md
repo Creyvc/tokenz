@@ -6,8 +6,8 @@ description: This skill encodes Emil Kowalski's philosophy on UI polish, compone
 > **Tokenz project note** (added to the copy from github.com/emilkowalski/skills, commit 85e8e23,
 > MIT licence in this folder): use this for new work and when asked for advice. Never change
 > anything already built on the Tokenz site to fit these rules — its timings, easings, positions
-> and animations are the owner's choices, even where they break the rules below (the thin line's
-> slow grow and shrink, the line growing from nothing, the dot's travel). Suggest a change if it
+> and animations are the owner's choices, even where they break the rules below (the dot's
+> 0.6s travel with a slight bounce). Suggest a change if it
 > helps, and only make it when the owner says yes. See the tokenz-frontend skill.
 
 # Design Engineering

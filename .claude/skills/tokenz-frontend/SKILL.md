@@ -57,19 +57,20 @@ Every page's `<head>` loads, in this order:
 <script src="reload.js"></script>
 <link rel="stylesheet" href="styles.css">
 <script src="consent.js" defer></script>
-<script src="scroll-line.js" defer></script>
 <script src="modal.js" defer></script>
 ```
 
-`index.html` also loads `intro.js`, straight after `reload.js`.
+`index.html` also loads `intro.js`, straight after `reload.js`, and `grainient.js` then
+`home.js` (both deferred) after `modal.js`.
 
 - `reload.js`: refreshing any page (Cmd+R) starts over like a fresh visit: back to Home, intro
   and cookie banner again.
 - `intro.js`: Home only, once per visit. The academic-project notice, then the TOKENZ animation.
 - `consent.js`: the cookie banner. Uses cookies, or local storage when opened from disk.
-- `scroll-line.js`: adds `scrolled` to `<html>` while the page isn't at the top. That's what
-  shows the thin line.
 - `modal.js`: the Info and Cookies windows. Their text lives in its `CONTENT` object.
+- `grainient.js`: React Bits' Grainient (a drifting grainy gradient the cursor drags like paint)
+  without React, as `Grainient(element, options)`; the options are the component's props.
+- `home.js`: Home only. Puts Grainient in `.home-panel`, after the intro has finished.
 
 ## The sidebar is copied into every page
 
@@ -96,15 +97,16 @@ grey, and never get the dot.
 
 ## Pieces of the design, and what the owner calls them
 
-- **"the thin line"** (sometimes "the scroll bar"): `.nav-line`, the 1px line down the sidebar.
-  This is not the browser's scrollbar. It grows from its middle when you scroll, shrinks back at
-  the top, and shrinks away when switching pages (`::view-transition-old(nav-line)`). On narrow
-  screens it runs along the bottom of the top bar instead. It's a real `<span>` in each page's
-  header, not `::after`, so the page-switch animation can pick it up.
+- **"the thin line"** (sometimes "the scroll bar"): the 1px line that used to grow down the
+  sidebar when scrolling. The owner had it removed on 26 October 2026, with `scroll-line.js`.
+  It's in git history (`.nav-line`) if it's ever wanted back.
 - **"the dot"**: `.nav-dot`, slid between links by the page-switch animation (`@view-transition`).
 - **"the banner" / bottom-left logo**: `.tz-lockup`, the tall black badge at the bottom of the
   sidebar, touching the screen's left edge: white mark on top, "Tokenz | Token saver" turned to
   read upwards. Hidden on narrow screens.
+- **the Home box**: `.home-panel`, a rounded panel pinned to the right of Home (from 60% across,
+  20px in from the top, right and bottom), holding the Grainient background. Full width under
+  the top bar at 800px and below.
 - **the cookie banner**: `.consent`, bottom right, built by `consent.js`.
 - **the windows**: Info and Cookies, `.modal`, built by `modal.js`.
 
@@ -136,7 +138,7 @@ Then, for example:
 ```sh
 playwright-cli open "http://127.0.0.1:8765/how-it-works.html"
 playwright-cli resize 1000 700                    # over 800 wide for the sidebar
-playwright-cli mousewheel 0 400                   # scroll, so the thin line shows
+playwright-cli mousewheel 0 400                   # scroll down the page
 playwright-cli screenshot --filename=<scratchpad>/shot.png
 playwright-cli open --device="iPhone 15" "http://127.0.0.1:8765/about.html"   # a real phone width
 playwright-cli close
@@ -145,9 +147,8 @@ playwright-cli close
 Read the screenshot with the Read tool. When finished, close the browser and stop the server.
 
 Useful checks:
-- The thin line grows over 1.8s, so wait about 2s after scrolling before the screenshot.
 - Page-switch animations: click a link and list `document.getAnimations()` in the same
-  `run-code` call. The line's shrink shows as `::view-transition-old(nav-line)`.
+  `run-code` call. The dot's travel shows as `::view-transition-group(nav-dot)`.
 - `set-reduced-motion reduce` checks the reduced-motion versions; `video-start` / `video-stop`
   records an animation to watch.
 - On Home the intro covers the page on a first visit, so use another page to check the sidebar.
@@ -184,9 +185,6 @@ windows or page-switch motion.
 Don't use any of these to change what's already built. Every existing timing, easing, position, font
 and animation was chosen by the owner, and some break their rules on purpose:
 
-- The thin line grows and shrinks slowly when scrolling, and again when switching pages, well
-  over Emil's 300ms limit.
-- The line grows from `scaleY(0)`, out of nothing. That's the intended look.
 - The dot takes 0.6s to travel, with a slight bounce.
 - The intro notice uses a monospace font, and Info/Cookies open as windows. Impeccable's rules
   discourage both.

@@ -42,28 +42,6 @@ h1, h2, h3 {
   padding: 8px 12px 28px 20px;
 }
 
-/* Dividing line down the sidebar, just in from its right edge. Hidden at the top of the page;
-   once you scroll (scroll-line.js) it grows out from its middle, up and down at once, and
-   shrinks back into the middle when you return to the top. A real element (not ::after) so it
-   can also shrink away when you switch pages (see nav-line below) */
-.nav-line {
-  position: absolute;
-  top: 0;
-  right: 50px;
-  width: 1px;
-  height: 100%;
-  background: #16171A;
-  transform: scaleY(0);
-  transition: transform 1.8s cubic-bezier(0.65, 0, 0.35, 1);
-}
-
-html.scrolled .nav-line {
-  transform: scaleY(1);
-  /* Only named while it's showing: the next page starts at the top with no line, so the
-     old one is left on its own and shrinks away (see ::view-transition-old(nav-line)) */
-  view-transition-name: nav-line;
-}
-
 .nav-links {
   display: flex;
   flex-direction: column;
@@ -167,21 +145,6 @@ html.scrolled .nav-line {
   animation: none;
 }
 
-/* Switching pages with the line showing: it shrinks back into its middle, same as scrolling
-   to the top, while the dot moves. Shorter than the scroll's 1.8s, since the next page can't
-   be clicked until the switch animation is over */
-::view-transition-old(nav-line) {
-  animation: nav-line-shrink-y 1s cubic-bezier(0.65, 0, 0.35, 1) forwards;
-}
-
-@keyframes nav-line-shrink-y {
-  to { transform: scaleY(0); }
-}
-
-@keyframes nav-line-shrink-x {
-  to { transform: scaleX(0); }
-}
-
 @keyframes nav-dot-swing-x {
   0%, 100% { translate: 0 0; }
   50% { translate: 6px 0; }
@@ -212,25 +175,6 @@ html.scrolled .nav-line {
     align-items: center;
     gap: 24px;
     padding: 20px 32px;
-  }
-
-  /* Here the line runs along the bottom of the bar, growing out to the left and right */
-  .nav-line {
-    top: auto;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 1px;
-    transform: scaleX(0);
-  }
-
-  html.scrolled .nav-line {
-    transform: scaleX(1);
-  }
-
-  /* And so it shrinks sideways into its middle when switching pages */
-  ::view-transition-old(nav-line) {
-    animation-name: nav-line-shrink-x;
   }
 
   .nav-links {
@@ -2267,4 +2211,77 @@ textarea.wb-input {
 /* "tokens" lines up with the number in the box beside it */
 .wb-budget-row .wb-unit {
   margin-top: 11px;
+}
+
+/* Home: one screen, no scrolling */
+.content.home {
+  min-height: 0;
+  padding: 0;
+}
+
+/* A softly rounded grey panel on the right of the screen, starting 60% of the way across and
+   just in from the top, right and bottom edges */
+.home-panel {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  bottom: 12px;
+  left: 60%;
+  border-radius: 12px;
+  background: #F1F1EF;
+  /* Clips the Grainient canvas inside to the rounded corners */
+  overflow: hidden;
+  /* Lets the title size itself to the panel's width (cqi units) */
+  container-type: inline-size;
+}
+
+/* "TOKENZ" across the middle of the panel: slanted, evenly weighted capitals, sized to the panel
+   so the word always fills a little over half its width. Dark until the gradient is behind it,
+   then white */
+.home-title {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  font-size: 13cqi;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  color: #16171A;
+  transform: skewX(-12deg);
+  pointer-events: none;
+}
+
+.home-panel.is-lit .home-title {
+  color: #ffffff;
+}
+
+/* The Grainient background (grainient.js) fills whatever holds it */
+.grainient-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.grainient-canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* With the links in a top bar there's no room for halves: the panel takes the full width under it */
+@media (max-width: 800px) {
+  .home-panel {
+    position: relative;
+    inset: auto;
+    height: 70vh;
+    margin: 16px;
+  }
 }

@@ -9,7 +9,7 @@ description: Production-ready CSS transitions for web apps. Use when implementin
 > - Use these only for new UI that doesn't animate yet, such as numbers on Results, steps on
 >   Compare, or form feedback.
 > - Never replace or retune the site's existing motion with them. That covers the Info/Cookies
->   windows (`.modal`), the page-switch view transitions (the dot and the thin line), the
+>   windows (`.modal`), the page-switch view transitions (the dot), the
 >   intro and the cookie banner. All of it is the owner's choice. See the tokenz-frontend skill.
 > - Add only the `:root` variables for the transition actually used, not the whole universal
 >   block, and put new styles at the end of `frontend/styles.css` with a plain comment above
