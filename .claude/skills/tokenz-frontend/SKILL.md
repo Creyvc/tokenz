@@ -156,6 +156,14 @@ doesn't use GSAP. Keep small UI motion in CSS, reach for GSAP only for new anima
 do well, and ask before adding it to a page. With no build step it would load from a pinned CDN
 script tag in each page's `<head>`, like the other scripts.
 
+`extract-design` (the `designlang` tool) reads the colours, fonts, spacing and motion off a
+website, for inspiration or to document this site's own design. Extracting is read-only: never
+apply its output to the site without asking.
+
+`transitions-dev` has twelve ready-made CSS transitions (number pop-in, text swap, dropdown,
+success check, error shake and more). Use them for new UI only, never in place of the existing
+windows or page-switch motion.
+
 Don't use any of these to change what's already built. Every existing timing, easing, position, font
 and animation was chosen by the owner, and some break their rules on purpose:
 
