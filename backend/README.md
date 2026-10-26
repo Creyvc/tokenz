@@ -87,7 +87,7 @@ The Tokenz website (`../frontend`) uses this engine through `web_api.py`, a loca
 
 ## AI rewrite: Groq and Gemini (`optimizer/`)
 
-`optimizer/` is the team's second engine (it was `tokenz-source/`): Qwen on Groq and Gemini Flash on Google each rewrite the same prompt, and a rewrite that loses a number, saves no tokens or comes back incomplete is rejected, keeping the original. It has its own Streamlit dashboard, tests and docs; see [optimizer/README.md](optimizer/README.md).
+`optimizer/` is the team's second engine (it was `tokenz-source/`): Qwen on Groq and Gemini Flash on Google each rewrite the same prompt (the website also offers GPT-OSS 120B on Groq, and lets you pick which to ask), and a rewrite that loses a number, saves no tokens or comes back incomplete is rejected, keeping the original. It has its own Streamlit dashboard, tests and docs; see [optimizer/README.md](optimizer/README.md).
 
 - **One environment.** It shares this folder's `.venv`: the two lock files pin the same versions, and `requirements-lock.txt` now includes its extras (Plotly, Ruff). Its dashboard: `optimizer/start.sh` (Windows: `optimizer\Start-Tokenz.ps1`), at http://127.0.0.1:8501.
 - **Same token counts.** Both count with tiktoken's o200k_base by default, so the website can show all three methods side by side (the example prompt is 31 tokens in both).

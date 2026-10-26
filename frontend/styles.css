@@ -2336,10 +2336,10 @@ textarea.wb-input {
   font-size: 12px;
 }
 
-/* The AI rewrite's result: one card per model, side by side */
+/* The AI rewrite's result: one card per model, side by side (one, two or three across) */
 .wb-candidates {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 16px;
   margin-top: 16px;
 }
@@ -2403,4 +2403,47 @@ textarea.wb-input {
   .wb-candidates {
     grid-template-columns: 1fr;
   }
+}
+
+/* A model still working on its rewrite: a quiet grey pill */
+.wb-pill.is-running {
+  background: #F1F1EF;
+  color: #5c5c5c;
+}
+
+/* Which AI models to ask: one tick box per model, its ID in grey beside the name */
+.wb-ai-models {
+  display: grid;
+  gap: 10px;
+  margin: 0 0 14px;
+  padding: 0;
+  border: none;
+}
+
+.wb-ai-models .wb-label {
+  margin-bottom: 2px;
+  padding: 0;
+}
+
+.wb-ai-models .wb-ai-model {
+  margin: 0;
+}
+
+.wb-ai-model-name {
+  font-weight: 500;
+  color: #16171A;
+}
+
+.wb-ai-model-id {
+  font-size: 12px;
+  color: #8a8a8a;
+}
+
+/* A model that isn't set up: greyed, with the reason beside it */
+.wb-ai-model.is-off {
+  cursor: default;
+}
+
+.wb-ai-model.is-off .wb-ai-model-name {
+  color: #9a9a9a;
 }

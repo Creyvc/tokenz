@@ -18,14 +18,16 @@
   };
   var LEVEL_NAMES = { conservative: "1 · Conservative", balanced: "2 · Balanced", aggressive: "3 · Aggressive", maximum: "4 · Maximum" };
   var NAMES = { nlp: "NLP", tfidf: "TF-IDF", ai: "AI rewrite" };
-  var AI_LABELS = { groq: "Qwen · Groq", gemini: "Gemini Flash · Google" };
+  // Names for the AI models; the engine's health check sends the same ones with each model
+  var AI_LABELS = { qwen: "Qwen · Groq", gemini_flash: "Gemini Flash · Google", gpt_oss_120b: "GPT-OSS 120B · Groq" };
+  var AI_PROVIDERS = { qwen: "groq", gemini_flash: "gemini", gpt_oss_120b: "groq" };
   var AI_STATES = { accepted: ["Shorter", "review_required"], rejected: ["Original kept", "unchanged"],
-    failed: ["Couldn't run", "error"], running: ["Didn't finish", "error"] };
-  var OUTCOMES = { review_required: "Needs review", unchanged: "Original kept", error: "Couldn't run" };
+    failed: ["Couldn't run", "error"], running: ["Still working…", "running"] };
+  var OUTCOMES = { review_required: "Needs review", unchanged: "Original kept", error: "Couldn't run", running: "Working…" };
   var METHOD_HELP = {
     nlp: "Tidies the wording: cuts polite openings and repeated sentences. Good for any prompt.",
     tfidf: "Cuts whole sentences that are off-topic. Best for longer prompts with background.",
-    ai: "Two AI models each rewrite the whole prompt shorter. Sends your prompt to Groq and Google."
+    ai: "AI models each rewrite the whole prompt shorter. Sends your prompt to the ones you pick."
   };
   // The engine's warnings, in plainer words. Anything not listed is shown as the engine wrote it.
   var NOTE_TEXT = {
@@ -69,7 +71,8 @@
 
   var state = {
     text: "", method: "nlp", level: "conservative", phrases: "", encoding: "o200k_base",
-    task: null, taskText: "", keep: [], confirmed: false, budget: null, budgetTouched: false
+    task: null, taskText: "", keep: [], confirmed: false, budget: null, budgetTouched: false,
+    aiModels: ["qwen", "gemini_flash"]
   };
   var saved = read(DRAFT_KEY);
   if (saved && typeof saved === "object") {
@@ -80,6 +83,8 @@
   if (!NAMES[state.method]) state.method = "nlp";
   if (!LEVEL_HELP[state.level]) state.level = "conservative";
   if (!Array.isArray(state.keep)) state.keep = [];
+  if (!Array.isArray(state.aiModels)) state.aiModels = ["qwen", "gemini_flash"];
+  state.aiModels = state.aiModels.filter(function (key) { return AI_LABELS[key]; });
 
   // "How much to keep": the bar slider (wake-slider.js), in the site's near-black and grey
   var slider = window.WakeSlider(find("budget-slider"), {
@@ -117,7 +122,7 @@
   // Everything a result depends on, so an edited form can mark it out of date
   function signature(method) {
     // The AI rewrite ignores protected phrases, so they don't make its result out of date
-    if (method === "ai") return JSON.stringify([method, state.text, state.encoding]);
+    if (method === "ai") return JSON.stringify([method, state.text, state.encoding, state.aiModels.slice().sort()]);
     var parts = [method, state.text, state.phrases, state.encoding];
     if (method === "nlp") parts.push(state.level);
     else parts.push(state.taskText, state.confirmed, state.budget, state.keep.slice().sort());
@@ -174,16 +179,24 @@
       box.append(make("p", "wb-help", "This engine is older than the AI rewrite. Restart it (./start-web.sh in the backend folder)."));
       return;
     }
-    if (aiStatus.available) {
-      box.append(make("p", "wb-ai-ready", "Ready: " + aiStatus.optimizers.map(function (row) {
-        return row.label + " (" + row.model + ")";
-      }).join(" and ") + "."));
-      return;
-    }
-    var list = make("ul");
+    // One box per model; a model that isn't set up says why and can't be ticked
+    var picker = make("fieldset", "wb-ai-models");
+    picker.append(make("legend", "wb-label", "Models"));
     aiStatus.optimizers.forEach(function (row) {
-      if (!row.available) list.append(make("li", null, row.label + ": " + row.reason));
+      var label = make("label", "wb-check wb-ai-model" + (row.available ? "" : " is-off"));
+      var box = make("input");
+      box.type = "checkbox";
+      box.name = "ai-model";
+      box.value = row.key;
+      box.disabled = !row.available;
+      var text = make("span");
+      text.append(make("span", "wb-ai-model-name", row.label), make("span", "wb-ai-model-id", " " + row.model));
+      if (!row.available) text.append(make("span", "wb-ai-model-id", " · " + row.reason));
+      label.append(box, text);
+      picker.append(label);
     });
+    box.append(picker);
+    if (aiStatus.available) return syncAiModels();
     var how = make("p", "wb-help");
     how.append("To set it up, copy ", make("code", null, "backend/optimizer/.env.example"), " to ",
       make("code", null, ".env"), " in the same folder, add ", make("code", null, "GROQ_API_KEY"), " and ",
@@ -195,7 +208,22 @@
       again.textContent = "Checking…";
       checkEngine();
     });
-    box.append(make("p", "wb-ai-missing", "Not set up on this computer yet."), list, how, again);
+    box.append(make("p", "wb-ai-missing", "Not set up on this computer yet."), how, again);
+    syncAiModels();
+  }
+
+  // Tick the chosen models (the boxes are rebuilt only when the engine's answer changes)
+  function syncAiModels() {
+    el.aiStatus.querySelectorAll('input[name="ai-model"]').forEach(function (box) {
+      box.checked = !box.disabled && state.aiModels.indexOf(box.value) !== -1;
+    });
+  }
+
+  // The chosen models the engine can run, in the engine's order
+  function chosenAiModels() {
+    return (aiStatus ? aiStatus.optimizers : []).filter(function (row) {
+      return row.available && state.aiModels.indexOf(row.key) !== -1;
+    });
   }
 
   // Sentence preflight for TF-IDF (it also counts the prompt's tokens)
@@ -373,7 +401,10 @@
     if (!engineReady) return "Start the engine to run this.";
     if (!state.text.trim()) return "Paste a prompt first.";
     if (state.method === "nlp") return "";
-    if (state.method === "ai") return aiStatus && aiStatus.available ? "" : "Set up Groq and Gemini first (above).";
+    if (state.method === "ai") {
+      if (!aiStatus || !aiStatus.available) return "Set up Groq and Gemini first (above).";
+      return chosenAiModels().length ? "" : "Tick at least one model.";
+    }
     if (!plan) return "Reading your sentences…";
     if (state.task === null) return "Click the sentence with your main task.";
     if (!validBudget()) return "Set how many tokens to keep.";
@@ -394,7 +425,10 @@
     el.nlp.hidden = !isNlp;
     el.tfidf.hidden = !isTfidf;
     el.ai.hidden = state.method !== "ai";
-    if (state.method === "ai") renderAiStatus();
+    if (state.method === "ai") {
+      renderAiStatus();
+      syncAiModels();
+    }
     el.levelHelp.textContent = LEVEL_HELP[state.level];
     el.promptTokens.textContent = plan ? plan.original_tokens + " tokens" : "";
 
@@ -461,7 +495,7 @@
     el.run.textContent = running ? "Running…" : "Run " + NAMES[state.method];
     el.run.disabled = running || reason !== "";
     el.run.classList.toggle("is-running", running);
-    el.runHelp.textContent = running ? (state.method === "ai" ? "Waiting for Groq and Gemini. This can take up to a minute." : "") :
+    el.runHelp.textContent = running ? (state.method === "ai" ? "Groq's models usually answer in seconds; Gemini can take up to 30." : "") :
       reason || runError;
     el.clear.hidden = !state.text;
     el.shortcut.textContent = reason || running ? "" : (MAC ? "⌘" : "Ctrl") + " + Enter also runs it";
@@ -554,6 +588,9 @@
       state.keep = state.keep.filter(function (index) { return index !== state.task; });
       state.confirmed = true;
       scheduleInspect(0);
+    } else if (target.name === "ai-model") {
+      state.aiModels = state.aiModels.filter(function (key) { return key !== target.value; });
+      if (target.checked) state.aiModels.push(target.value);
     } else if (target.type === "checkbox" && target.closest(".wb-sentence")) {
       var index = Number(target.value);
       state.keep = state.keep.filter(function (kept) { return kept !== index; });
@@ -625,14 +662,10 @@
     running = true;
     runError = "";
     render();
-    var request = method === "ai" ?
-      api.optimize({ text: text, encoding: state.encoding }).then(function (reply) {
-        return aiRun(reply, text, (Date.now() - started) / 1000, sig);
-      }) :
-      api.compress(body).then(function (reply) {
-        return { method: method, result: reply.result, nlp_mode: reply.nlp_mode, encoding: reply.encoding, signature: sig };
-      });
-    request.then(function (run) {
+    if (method === "ai") return runAi(text, state.encoding, sig, started);
+    api.compress(body).then(function (reply) {
+      return { method: method, result: reply.result, nlp_mode: reply.nlp_mode, encoding: reply.encoding, signature: sig };
+    }).then(function (run) {
       var runs = read(RUNS_KEY) || {};
       runs[method] = run;
       write(RUNS_KEY, runs);
@@ -652,6 +685,56 @@
     });
   });
 
+  // The AI rewrite asks each model on its own, so a quick model's rewrite shows at once and a slow
+  // one fills in when it lands. The run is kept for Results once both have answered.
+  function runAi(text, encoding, sig, started) {
+    var rows = chosenAiModels();
+    var answers = {};
+    var meta = { original_tokens: null, note: "" };
+    var left = rows.length, offline = 0, scrolled = false;
+    function draw() {
+      var reply = { encoding: encoding, note: meta.note, original_tokens: meta.original_tokens,
+        candidates: rows.map(function (row) {
+          return answers[row.key] || { key: row.key, provider: AI_PROVIDERS[row.key], model: row.model, status: "running", checks: [] };
+        }) };
+      var run = aiRun(reply, text, (Date.now() - started) / 1000, sig);
+      if (!left) {
+        running = false;
+        var runs = read(RUNS_KEY) || {};
+        runs.ai = run;
+        write(RUNS_KEY, runs);
+      }
+      showResult(run);
+      if (!scrolled) {
+        var still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        el.result.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "start" });
+        scrolled = true;
+      }
+    }
+    rows.forEach(function (row) {
+      api.optimize({ text: text, encoding: encoding, models: [row.key] }).then(function (reply) {
+        answers[row.key] = reply.candidates[0];
+        meta.original_tokens = reply.original_tokens;
+        meta.note = reply.note;
+      }, function (error) {
+        if (error.offline) offline++;
+        answers[row.key] = { key: row.key, provider: AI_PROVIDERS[row.key], model: row.model, status: "failed", checks: [], error: error.message };
+      }).then(function () {
+        left--;
+        if (offline === rows.length) {
+          running = false;
+          return setEngine(false);
+        }
+        // Wait for a token count before the first drawing, unless nothing more is coming
+        if (meta.original_tokens != null || !left) draw();
+      });
+    });
+  }
+
+  function aiLabel(candidate) {
+    return AI_LABELS[candidate.key] || candidate.model || candidate.provider;
+  }
+
   // The AI rewrite's reply as a run like the others: the shortest accepted rewrite is its result,
   // so Results can chart it next to NLP and TF-IDF. Both models' rewrites are kept for this page.
   function aiRun(reply, text, seconds, sig) {
@@ -660,6 +743,7 @@
       if (candidate.status === "accepted" && (!best || candidate.optimized_tokens < best.optimized_tokens)) best = candidate;
     });
     var anyRejected = reply.candidates.some(function (candidate) { return candidate.status === "rejected"; });
+    var anyRunning = reply.candidates.some(function (candidate) { return candidate.status === "running"; });
     return {
       method: "ai", encoding: reply.encoding, signature: sig, candidates: reply.candidates, note: reply.note,
       result: {
@@ -667,9 +751,11 @@
         original_target_tokens: reply.original_tokens,
         candidate_target_tokens: best ? best.optimized_tokens : reply.original_tokens,
         tokens_saved: best ? best.tokens_saved : 0, reduction_percent: best ? best.reduction_percent : 0,
-        status: best ? "review_required" : anyRejected ? "unchanged" : "error",
+        still_running: reply.candidates.filter(function (candidate) { return candidate.status === "running"; })
+          .map(aiLabel),
+        status: best ? "review_required" : anyRunning ? "running" : anyRejected ? "unchanged" : "error",
         elapsed_seconds: seconds, warnings: [], changes: [], protected_constraints: [],
-        chosen: best ? AI_LABELS[best.provider] || best.provider : null
+        chosen: best ? aiLabel(best) : null
       }
     };
   }
@@ -842,11 +928,14 @@
 
     var summary = make("div", "wb-summary");
     var hero = make("div", "wb-hero");
+    var waiting = r.still_running || [];
+    var single = run.candidates.length === 1;
     hero.append(make("span", "wb-hero-num", r.reduction_percent.toFixed(1) + "%"),
-      make("span", "wb-hero-label", "fewer tokens, the shorter of the two"));
+      make("span", "wb-hero-label", waiting.length ? "fewer tokens so far" : single ? "fewer tokens" : "fewer tokens, the shortest rewrite"));
     var stats = make("dl", "wb-stats");
-    stat(stats, "Original", r.original_target_tokens + " tokens");
-    stat(stats, "Shortest", r.candidate_target_tokens + " tokens");
+    var tokens = function (n) { return n == null ? "—" : n + " tokens"; };
+    stat(stats, "Original", tokens(r.original_target_tokens));
+    stat(stats, "Shortest", tokens(r.candidate_target_tokens));
     stat(stats, "Saved", r.tokens_saved + " tokens");
     stat(stats, "Time", r.elapsed_seconds.toFixed(1) + " s");
     summary.append(hero, stats);
@@ -854,9 +943,13 @@
 
     el.result.append(make("p", "wb-status", {
       review_required: "The shortest rewrite that passed the checks is " + r.chosen + "'s. Check that every task and constraint survived before you use it.",
-      unchanged: "Original kept: neither rewrite passed the checks.",
-      error: "Neither model could run. The reasons are below."
+      unchanged: single ? "Original kept: the rewrite didn't pass the checks." : "Original kept: no rewrite passed the checks.",
+      error: single ? "The model couldn't run. The reason is below." : "No model could run. The reasons are below.",
+      running: "Waiting for the models…"
     }[r.status]));
+    if (waiting.length && r.status !== "running") {
+      el.result.append(make("p", "wb-help", "Still waiting for " + waiting.join(" and ") + ". Its rewrite shows here as soon as it answers."));
+    }
 
     var original = side("Original", make("div", "wb-text", r.original_text));
     original.classList.add("wb-ai-original");
@@ -867,7 +960,7 @@
       var look = AI_STATES[candidate.status] || [candidate.status, "error"];
       var card = make("section", "wb-candidate");
       var top = make("div", "wb-candidate-head");
-      top.append(make("h3", null, AI_LABELS[candidate.provider] || candidate.provider),
+      top.append(make("h3", null, aiLabel(candidate)),
         make("span", "wb-pill is-" + look[1], look[0]));
       card.append(top, make("p", "wb-candidate-model", candidate.model));
       if (candidate.optimized_tokens != null) {
@@ -879,10 +972,16 @@
         var changes = wordChanges(r.original_text, candidate.optimized_prompt);
         card.append(changes ? marked(changes.right) : make("div", "wb-text", candidate.optimized_prompt),
           reviewControls(candidate.optimized_prompt));
+      } else if (candidate.status === "running") {
+        card.append(make("p", "wb-help", "Waiting for its answer…"));
       } else if (candidate.status === "rejected") {
         card.append(make("p", "wb-help", "Rejected, so the original is kept: " + candidate.checks.join(" ")));
       } else {
-        card.append(make("p", "wb-help", candidate.error || "This model didn't finish."));
+        // The optimizer's timeout wording, in plainer words for the website's 30-second limit
+        var timedOut = /timed out/i.test(candidate.error || "");
+        card.append(make("p", "wb-help", timedOut ?
+          "Took longer than 30 seconds, so it was stopped. Its free plan is sometimes busy: run it again in a moment." :
+          candidate.error || "This model didn't finish."));
       }
       list.append(card);
     });

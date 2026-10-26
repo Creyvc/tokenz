@@ -141,7 +141,7 @@ def test_health_reports_whether_the_ai_rewrite_is_set_up(base, no_keys):
     status, data = call(base + "/api/health")
     ai = json.loads(data)["ai"]
     assert status == 200 and ai["available"] is False
-    assert [row["key"] for row in ai["optimizers"]] == ["qwen", "gemini_flash"]
+    assert [row["key"] for row in ai["optimizers"]] == ["qwen", "gemini_flash", "gpt_oss_120b"]
     assert all(row["reason"] == "API key missing" for row in ai["optimizers"])
 
 
@@ -149,7 +149,7 @@ def test_ai_rewrite_without_keys_says_how_to_set_it_up(base, no_keys):
     status, data = call(base + "/api/optimize", dict(text=EXAMPLE))
     assert status == 503
     message = json.loads(data)["error"]
-    assert message.startswith("Connect Groq and Gemini first") and "photosynthesis" not in message
+    assert message.startswith("Set this model up first") and "photosynthesis" not in message
 
 
 def test_ai_rewrite_rejects_empty_and_oversized_prompts_without_starting(base, monkeypatch):
@@ -165,19 +165,20 @@ def test_ai_rewrite_returns_both_models_with_the_local_token_counts(base, monkey
     def bridge(command, payload=None):
         sent.append((command, payload))
         return dict(status="completed", original_tokens=31, optimizations=[
-            dict(provider="groq", model="qwen/qwen3.8-27b", status="accepted",
+            dict(key="qwen", provider="groq", model="qwen/qwen3.8-27b", status="accepted",
                  optimized_prompt="Help me write a short email to my team: the deadline moved to Friday.",
                  optimized_tokens=18, token_saving_pct=41.9, checks=[]),
-            dict(provider="gemini", model="gemini-3.6-flash", status="rejected",
+            dict(key="gemini_flash", provider="gemini", model="gemini-3.6-flash", status="rejected",
                  optimized_prompt="original kept", optimized_tokens=31, token_saving_pct=0.0,
                  checks=["An original number was not preserved literally."])])
     monkeypatch.setattr(web_api, "run_bridge", bridge)
     status, data = call(base + "/api/optimize", dict(text="Hi there, please help.", encoding="cl100k_base"))
     reply = json.loads(data)
-    assert status == 200 and sent == [("optimize", dict(prompt="Hi there, please help.", encoding="cl100k_base"))]
+    assert status == 200 and sent == [("optimize", dict(prompt="Hi there, please help.", encoding="cl100k_base",
+                                                         models=["qwen", "gemini_flash"]))]
     assert reply["original_tokens"] == 31 and reply["encoding"] == "cl100k_base"
     groq, gemini = reply["candidates"]
-    assert groq["status"] == "accepted" and groq["tokens_saved"] == 13 and groq["reduction_percent"] == 41.9
+    assert groq["key"] == "qwen" and groq["status"] == "accepted" and groq["tokens_saved"] == 13 and groq["reduction_percent"] == 41.9
     assert gemini["status"] == "rejected" and gemini["tokens_saved"] == 0 and gemini["checks"]
     assert "Check that every task" in reply["note"]
 
@@ -188,3 +189,23 @@ def test_ai_rewrite_failure_inside_the_optimizer_is_a_generic_500(base, monkeypa
     monkeypatch.setattr(web_api, "run_bridge", broken)
     status, data = call(base + "/api/optimize", dict(text=EXAMPLE))
     assert status == 500 and "photosynthesis" not in data.decode()
+
+
+def test_ai_rewrite_can_run_one_model_and_rejects_unknown_ones(base, monkeypatch):
+    sent = []
+    monkeypatch.setattr(web_api, "run_bridge", lambda command, payload=None: sent.append(payload) or dict(
+        status="completed", original_tokens=5, optimizations=[]))
+    assert call(base + "/api/optimize", dict(text=EXAMPLE, models=["gemini_flash"]))[0] == 200
+    assert sent[-1]["models"] == ["gemini_flash"]
+    for models in ([], ["gpt"], ["qwen", "qwen"], "qwen"):
+        assert call(base + "/api/optimize", dict(text=EXAMPLE, models=models))[0] == 400
+
+
+def test_one_model_running_doesnt_block_the_other(base, monkeypatch):
+    monkeypatch.setattr(web_api, "run_bridge", lambda *a: dict(status="completed", original_tokens=5, optimizations=[]))
+    web_api.AI_LOCKS["qwen"].acquire()
+    try:
+        assert call(base + "/api/optimize", dict(text=EXAMPLE, models=["qwen"]))[0] == 503
+        assert call(base + "/api/optimize", dict(text=EXAMPLE, models=["gemini_flash"]))[0] == 200
+    finally:
+        web_api.AI_LOCKS["qwen"].release()

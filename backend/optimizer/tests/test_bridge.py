@@ -24,7 +24,7 @@ def run(monkeypatch, capsys, command, request=None):
 def test_status_lists_the_two_website_models(monkeypatch, capsys, no_keys):
     reply = run(monkeypatch, capsys, 'status')
     assert reply['available'] is False
-    assert [row['key'] for row in reply['optimizers']] == ['qwen', 'gemini_flash']
+    assert [row['key'] for row in reply['optimizers']] == ['qwen', 'gemini_flash', 'gpt_oss_120b']
 
 
 def test_optimize_without_keys_is_not_configured_and_sends_nothing(monkeypatch, capsys, no_keys):
@@ -43,10 +43,21 @@ def test_website_runs_are_not_saved(monkeypatch, capsys):
     seen = {}
     monkeypatch.setattr(bridge, 'status', lambda: {'available': True, 'optimizers': []})
 
-    def fake(settings, repo, prompt):
-        seen.update(store=settings.store, repo=repo.enabled, encoding=settings.encoding, prompt=prompt)
+    def fake(settings, repo, prompt, integration, keys):
+        seen.update(store=settings.store, repo=repo.enabled, encoding=settings.encoding, prompt=prompt,
+                    keys=keys, timeout=integration.timeout)
         return {'status': 'completed', 'original_tokens': 5, 'optimizations': []}
     monkeypatch.setattr(bridge, 'optimize_prompts', fake)
     reply = run(monkeypatch, capsys, 'optimize', {'prompt': 'Hi there, add 4 and 7.', 'encoding': 'cl100k_base'})
     assert reply['status'] == 'completed'
-    assert seen == {'store': False, 'repo': False, 'encoding': 'cl100k_base', 'prompt': 'Hi there, add 4 and 7.'}
+    assert seen == {'store': False, 'repo': False, 'encoding': 'cl100k_base', 'prompt': 'Hi there, add 4 and 7.',
+                    'keys': ('qwen', 'gemini_flash'), 'timeout': bridge.WEBSITE_SECONDS}
+    run(monkeypatch, capsys, 'optimize', {'prompt': 'Hi', 'models': ['gemini_flash']})
+    assert seen['keys'] == ('gemini_flash',)
+    run(monkeypatch, capsys, 'optimize', {'prompt': 'Hi', 'models': ['gpt_oss_120b']})
+    assert seen['keys'] == ('gpt_oss_120b',)
+
+
+def test_optimize_rejects_unknown_or_repeated_models(monkeypatch, capsys):
+    for models in ([], ['gpt'], ['qwen', 'qwen'], 'qwen', ['openrouter_free']):
+        assert run(monkeypatch, capsys, 'optimize', {'prompt': 'Hi', 'models': models})['code'] == 'BAD_REQUEST'

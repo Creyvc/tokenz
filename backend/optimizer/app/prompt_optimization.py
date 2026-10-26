@@ -18,12 +18,17 @@ WORKFLOW = 'prompt_optimization_v1'
 
 
 def optimize_prompts(settings, repo, prompt, *, integration=None, provider_factory=None,
-                     on_update=None, on_event=None, progress=None):
+                     on_update=None, on_event=None, progress=None, keys=KEYS):
+    # keys: Qwen and Gemini by default; the website asks for each chosen model separately, so each
+    # shows as it lands. Any optimizer in the registry works.
     if not isinstance(prompt, str) or not prompt.strip():
         raise ValueError('Enter a prompt first.')
     integration = integration or load_integration_settings()
     registry = optimizer_registry(integration)
-    configs = [get_optimizer_config(integration, key) for key in KEYS]
+    keys = tuple(keys)
+    if not keys or len(set(keys)) != len(keys) or any(key not in registry for key in keys):
+        raise ValueError('Choose one or more known optimizers.')
+    configs = [get_optimizer_config(integration, key) for key in keys]
     counter = TokenCounter('', settings.encoding)
     original_count = counter.count(prompt)
     maximum = min(settings.optimizer_max_output, max(256, original_count + 128))
@@ -36,7 +41,7 @@ def optimize_prompts(settings, repo, prompt, *, integration=None, provider_facto
         if on_update:
             on_update(previous)
         if progress:
-            progress(2, 2, 'Opened the saved prompt comparison. No new requests sent.')
+            progress(len(keys), len(keys), 'Opened the saved prompt comparison. No new requests sent.')
         return previous
     study = previous or {'id': str(uuid.uuid4()), 'created_at': datetime.now(UTC).isoformat(),
         'workflow': WORKFLOW, 'signature': signature, 'demo': False, 'original_prompt': prompt,
@@ -58,7 +63,7 @@ def optimize_prompts(settings, repo, prompt, *, integration=None, provider_facto
 
     publish()
     make = provider_factory or (lambda config: make_integration_provider(config, integration.timeout))
-    for index, (key, config) in enumerate(zip(KEYS, configs, strict=True)):
+    for index, (key, config) in enumerate(zip(keys, configs, strict=True)):
         old = next((row for row in study['optimizations'] if row['key'] == key), None)
         if old and old['status'] in {'accepted', 'rejected'}:
             continue
@@ -72,7 +77,7 @@ def optimize_prompts(settings, repo, prompt, *, integration=None, provider_facto
         event(key, config.model, 'running')
         publish()
         if progress:
-            progress(index, 2, 'Optimizing with ' + config.name.title() + '…')
+            progress(index, len(keys), 'Optimizing with ' + config.name.title() + '…')
         try:
             if not registry[key]['available']:
                 raise ProviderError('CONFIGURATION', registry[key]['reason'])
@@ -111,9 +116,9 @@ def optimize_prompts(settings, repo, prompt, *, integration=None, provider_facto
                 publish()
                 break
         publish()
-    study['status'] = 'completed' if len(study['optimizations']) == 2 and all(
+    study['status'] = 'completed' if len(study['optimizations']) == len(keys) and all(
         row['status'] in {'accepted', 'rejected'} for row in study['optimizations']) else 'partial'
     publish()
     if progress:
-        progress(2, 2, 'Prompt comparison saved.' if study['status'] == 'completed' else 'Saved available prompts; one or more providers did not finish.')
+        progress(len(keys), len(keys), 'Prompt comparison saved.' if study['status'] == 'completed' else 'Saved available prompts; one or more providers did not finish.')
     return study

@@ -30,9 +30,12 @@ MAX_TEXT = 40_000  # Same limit as the Streamlit prompt box.
 MAX_BUDGET = 6000
 # spaCy and the TF-IDF vectorizer are used from one request at a time.
 ENGINE_LOCK = threading.Lock()
-# One AI rewrite at a time: two of them at once would only run into the free plans' rate limits.
-AI_LOCK = threading.Lock()
-# Each model gets up to a minute, plus one short wait if Groq asks for it.
+# The AI models the website offers (Qwen and GPT-OSS on Groq, Gemini on Google), each run on its
+# own so the website can show each one as soon as it answers. One
+# request per model at a time: more would only run into the free plans' rate limits.
+AI_MODELS = ("qwen", "gemini_flash", "gpt_oss_120b")
+AI_LOCKS = {model: threading.Lock() for model in AI_MODELS}
+# Hard stop for the optimizer process; each model is limited to 30 seconds inside it
 AI_SECONDS = 300
 AI_STATUS_SECONDS = 5
 _ai_status = {"at": 0.0, "value": None}
@@ -146,18 +149,26 @@ def compress(body):
 
 
 def optimize(body):
-    """The AI rewrite: Groq's Qwen and Google's Gemini each rewrite the same prompt. A rewrite that
+    """The AI rewrite: each chosen model (Qwen or GPT-OSS on Groq, Gemini on Google) rewrites the prompt. A rewrite that
     loses a number, saves nothing or comes back incomplete is rejected and the original is kept."""
     text = text_field(body, "text")
     if not text.strip():
         raise BadRequest("Paste a prompt first.")
     encoding = encoding_field(body)
-    if not AI_LOCK.acquire(blocking=False):
-        raise Unavailable("An AI rewrite is already running. Try again when it finishes.")
+    models = body.get("models", ["qwen", "gemini_flash"])
+    if not isinstance(models, list) or not models or len(set(models)) != len(models) or \
+            any(model not in AI_MODELS for model in models):
+        raise BadRequest("Choose one or more of: " + ", ".join(AI_MODELS) + ".")
+    taken = []
     try:
-        study = run_bridge("optimize", dict(prompt=text, encoding=encoding))
+        for model in models:
+            if not AI_LOCKS[model].acquire(blocking=False):
+                raise Unavailable("An AI rewrite is already running. Try again when it finishes.")
+            taken.append(model)
+        study = run_bridge("optimize", dict(prompt=text, encoding=encoding, models=models))
     finally:
-        AI_LOCK.release()
+        for model in taken:
+            AI_LOCKS[model].release()
     if study.get("code") == "NOT_CONFIGURED":
         raise Unavailable(study["error"])
     if study.get("code") == "BAD_REQUEST":
@@ -167,7 +178,7 @@ def optimize(body):
     for row in study["optimizations"]:
         tokens = row.get("optimized_tokens")
         candidates.append(dict(
-            provider=row["provider"], model=row["model"], status=row["status"],
+            key=row["key"], provider=row["provider"], model=row["model"], status=row["status"],
             optimized_prompt=row.get("optimized_prompt"), optimized_tokens=tokens,
             tokens_saved=None if tokens is None else original - tokens,
             reduction_percent=row.get("token_saving_pct"), checks=row.get("checks", []),

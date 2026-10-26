@@ -59,3 +59,12 @@ def test_chatgpt_handoff_escapes_script_injection_and_does_not_put_prompt_in_url
     assert json.loads(encoded) == prompt
     assert "window.open('https://chatgpt.com/'" in page
     assert 'chatgpt.com/?' not in page and 'fetch(' not in page
+
+
+def test_one_optimizer_at_a_time_calls_only_that_provider(cfg):
+    cfg, integration, repo = setup(cfg)
+    calls = []
+    study = optimize_prompts(cfg, repo, SAMPLES[0]['prompt'], integration=integration,
+                             provider_factory=factory(calls), keys=('gemini_flash',))
+    assert [call[0] for call in calls] == ['gemini']
+    assert study['status'] == 'completed' and [row['key'] for row in study['optimizations']] == ['gemini_flash']
