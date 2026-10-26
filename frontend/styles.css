@@ -1,6 +1,6 @@
 /* Inter: a clean, slightly tight sans-serif close to the reference screenshot.
    JetBrains Mono: used only on the academic-project notice before the intro */
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap");
 
 * {
   margin: 0;
@@ -2247,14 +2247,40 @@ textarea.wb-input {
   align-items: center;
   justify-content: center;
   margin: 0;
-  font-size: 13cqi;
+  /* Its own size box, so the word keeps its size when the panel grows (see the scroll effect) */
+  container-type: inline-size;
   font-weight: 500;
   line-height: 1;
   letter-spacing: -0.02em;
   text-transform: uppercase;
   color: #16171A;
-  transform: skewX(-12deg);
   pointer-events: none;
+}
+
+/* The word in a mask it can slide out of (and back into), with room for the slant */
+.home-title-mask {
+  display: block;
+  overflow: hidden;
+  padding: 0.12em 0.2em 0.16em;
+  font-size: 13cqi;
+}
+
+.home-title-word {
+  display: block;
+  transform: skewX(-12deg);
+}
+
+/* Each letter moves on its own, 0.075s after the one before it (--i is its place in the word) */
+.home-title-letter {
+  display: inline-block;
+  transition: transform 0.75s cubic-bezier(0.33, 1, 0.68, 1);
+  transition-delay: calc(var(--i) * 75ms);
+}
+
+/* Scrolled: the letters drop out of the mask one by one, left to right; back at the top they
+   rise back in the same order */
+html.home-tokenz-out .home-title-letter {
+  transform: translateY(135%);
 }
 
 .home-panel.is-lit .home-title {
@@ -2277,6 +2303,50 @@ textarea.wb-input {
   height: 100%;
 }
 
+/* The white space between the sidebar and the panel, as tall as the panel: the sentence at the
+   top, the headline sitting at the bottom. Type here is sized from this space's own width (cqi),
+   so it fills it edge to edge on any screen */
+.home-intro {
+  position: fixed;
+  top: 12px;
+  bottom: 12px;
+  left: 210px;
+  width: calc(60% - 210px);
+  padding: 28px 40px 0 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  container-type: inline-size;
+}
+
+/* The sentence: large and tight, starting a quarter of the way in, its first line pushed in further */
+.home-lede {
+  margin-left: 26%;
+  font-size: 3.6cqi;
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  text-indent: 3em;
+  color: #16171A;
+}
+
+/* The headline: very big, heavy and packed tight, on two lines ("Shorter prompts," then
+   "Same request."), each starting with a capital, near the bottom */
+.home-headline {
+  font-weight: 700;
+  /* Tight, but enough room that a tail (the p in "prompts") clears the line below */
+  line-height: 0.98;
+  letter-spacing: -0.055em;
+  /* Lifts it a little above the panel's bottom edge */
+  margin-bottom: 0.65em;
+  color: #16171A;
+}
+
+.home-headline span {
+  display: block;
+  font-size: 12cqi;
+}
+
 /* With the links in a top bar there's no room for halves: the panel takes the full width under it */
 @media (max-width: 800px) {
   .home-panel {
@@ -2284,6 +2354,17 @@ textarea.wb-input {
     inset: auto;
     height: 70vh;
     margin: 16px;
+  }
+
+  /* Above the panel, in the page's flow: the sentence, then the headline under it */
+  .home-intro {
+    position: static;
+    width: auto;
+    padding: 24px 16px 0;
+  }
+
+  .home-lede {
+    margin: 0 0 28px 0;
   }
 }
 
@@ -2446,4 +2527,144 @@ textarea.wb-input {
 
 .wb-ai-model.is-off .wb-ai-model-name {
   color: #9a9a9a;
+}
+
+/* Home's text mask animation (home.js): each line sits in a mask and rises from below it. The
+   mask has room above and below so tall letters and tails (the p in "prompts") aren't clipped;
+   the lines start low enough to be fully hidden in that room */
+html.home-text-waiting .home-intro {
+  visibility: hidden;
+}
+
+/* Lines in a column whose margins never merge, so each mask's extra room is cancelled exactly by
+   its negative margin and the masked lines sit where the plain text does (no jump afterwards) */
+.home-intro .is-masked {
+  display: flex;
+  flex-direction: column;
+}
+
+.home-intro .mask-line {
+  display: block;
+  overflow: hidden;
+  padding: 0.12em 0 0.2em;
+  margin: -0.12em 0 -0.2em;
+}
+
+.home-intro .mask-rise {
+  display: block;
+  transform: translateY(135%);
+}
+
+html.home-text-on .home-intro .mask-rise {
+  transform: none;
+  transition: transform 0.75s cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+/* Home's scroll effect (home.js, wider screens only, not for reduced motion). The page gets one
+   screen of scrolling; --grow runs from 0 to 1 across it. The panel is drawn the size of the whole
+   window from the start and shown through a clip the shape of the box, which widens to the full
+   window (over the sidebar), so the gradient never stretches or redraws. The headline and sentence
+   draw closer together. They're dark on the white page; a white copy of them inside the panel
+   shows only where the gradient is, so the text turns white exactly where the gradient reaches it */
+html.home-scroll .content.home {
+  height: 200vh;
+}
+
+html.home-scroll .home-panel {
+  inset: 0;
+  z-index: 11;
+  border-radius: 0;
+  clip-path: inset(calc(12px * (1 - var(--grow, 0))) calc(12px * (1 - var(--grow, 0)))
+                   calc(12px * (1 - var(--grow, 0))) calc(60% * (1 - var(--grow, 0)))
+                   round calc(12px * (1 - var(--grow, 0))));
+}
+
+/* TOKENZ stays where the box was */
+html.home-scroll .home-title {
+  inset: 12px 12px 12px 60%;
+}
+
+html.home-scroll .home-intro {
+  z-index: 10;
+  pointer-events: none;
+  /* Towards the middle of the window as the box grows */
+  transform: translate(var(--shift-x, 0px), var(--shift-y, 0px));
+}
+
+/* The white copy, inside the panel and above the gradient (home.js makes it) */
+.home-intro.is-copy {
+  z-index: 2;
+}
+
+.home-intro.is-copy .home-lede,
+.home-intro.is-copy .home-headline {
+  color: #ffffff;
+}
+
+html.home-scroll .home-lede {
+  transform: translateY(var(--pull, 0px));
+}
+
+html.home-scroll .home-headline {
+  transform: translateY(calc(var(--pull, 0px) * -1));
+}
+
+/* The sidebar during Home's scroll effect: always on top of the growing gradient. --edge is the
+   gradient's left edge in px (home.js). The sidebar shows only left of it (a mask, not a clip, so
+   its links can still be clicked where they're hidden), and a white copy (home.js makes it, with
+   no clicks or focus) shows only right of it, so the sidebar turns white exactly where the
+   gradient reaches it */
+html.home-scroll .nav {
+  z-index: 13;
+  background: transparent;
+  -webkit-mask-image: linear-gradient(to right, #000 var(--edge, 9999px), transparent var(--edge, 9999px));
+  mask-image: linear-gradient(to right, #000 var(--edge, 9999px), transparent var(--edge, 9999px));
+}
+
+html.home-scroll .nav.nav-copy {
+  z-index: 14;
+  pointer-events: none;
+  -webkit-mask-image: none;
+  mask-image: none;
+  clip-path: inset(0 0 0 clamp(0px, var(--edge, 9999px), 210px));
+}
+
+/* Only the real dot slides between pages */
+.nav-copy .nav-dot {
+  view-transition-name: none;
+  background: #ffffff;
+}
+
+.nav-copy .logo img {
+  filter: invert(1);
+}
+
+.nav-copy .nav-links a,
+.nav-copy .nav-links a.active {
+  color: #ffffff;
+}
+
+.nav-copy .nav-links .nav-extra a {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* The badge turns over: white, with the mark and words in near-black */
+.nav-copy .tz-lockup {
+  background: #ffffff;
+}
+
+.nav-copy .tz-lockup svg path {
+  fill: #16171A;
+}
+
+.nav-copy .tz-word {
+  color: #16171A;
+}
+
+.nav-copy .tz-desc {
+  color: #5c5c5c;
+}
+
+.nav-copy .tz-bar {
+  background: #c8c8c8;
 }

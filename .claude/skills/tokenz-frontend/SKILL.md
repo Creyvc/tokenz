@@ -64,8 +64,8 @@ Every page's `<head>` loads, in this order:
 <script src="modal.js" defer></script>
 ```
 
-`index.html` also loads `intro.js`, straight after `reload.js`, and `grainient.js` then
-`home.js` (both deferred) after `modal.js`.
+`index.html` also loads `intro.js`, straight after `reload.js`, then `grainient.js` (deferred)
+and `home.js` (not deferred, so it can hide Home's text before the first paint) after `modal.js`.
 
 - `reload.js`: refreshing any page (Cmd+R) starts over like a fresh visit: back to Home, intro
   and cookie banner again.
@@ -74,7 +74,15 @@ Every page's `<head>` loads, in this order:
 - `modal.js`: the Info and Cookies windows. Their text lives in its `CONTENT` object.
 - `grainient.js`: React Bits' Grainient (a drifting grainy gradient the cursor drags like paint)
   without React, as `Grainient(element, options)`; the options are the component's props.
-- `home.js`: Home only. Puts Grainient in `.home-panel`, after the intro has finished.
+- `home.js`: Home only. Puts Grainient in `.home-panel` after the intro has finished, and plays the
+  text mask animation (from olivierlarose/text-mask-animation) on the sentence and headline: each
+  line rises from behind a mask, 0.75s, 0.075s apart, a quarter of a second after the intro uncovers the page.
+  It also runs Home's scroll effect (over 800px wide, not for reduced motion): TOKENZ slides out of its
+  mask, the panel's clip widens until the gradient fills the window (over the sidebar), and the text
+  draws together. A white copy of the text inside the panel shows only where the gradient is. The
+  sidebar stays on top throughout: a white copy of it (`.nav-copy`, inert, hidden from screen readers,
+  its dot without the page-switch name) shows where the gradient is behind it, and the real sidebar
+  is masked (not clipped, so its links stay clickable) everywhere else.
 
 ## The sidebar is copied into every page
 

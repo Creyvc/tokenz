@@ -11,7 +11,7 @@
   <script src="consent.js" defer></script>
   <script src="modal.js" defer></script>
   <script src="grainient.js" defer></script>
-  <script src="home.js" defer></script>
+  <script src="home.js"></script>
 </head>
 <body>
   <div class="intro" aria-hidden="true"></div>
@@ -37,8 +37,12 @@
   </header>
 
   <main class="content home">
+    <div class="home-intro">
+      <p class="home-lede">Tokenz trims the extra words out of a prompt before you send it to an AI, so it uses fewer tokens.</p>
+      <p class="home-headline"><span>Shorter prompts,</span> <span>Same request.</span></p>
+    </div>
     <div class="home-panel">
-      <h1 class="home-title">Tokenz</h1>
+      <h1 class="home-title" aria-label="Tokenz"><span class="home-title-mask" aria-hidden="true"><span class="home-title-word"><span class="home-title-letter" style="--i: 0">T</span><span class="home-title-letter" style="--i: 1">o</span><span class="home-title-letter" style="--i: 2">k</span><span class="home-title-letter" style="--i: 3">e</span><span class="home-title-letter" style="--i: 4">n</span><span class="home-title-letter" style="--i: 5">z</span></span></span></h1>
     </div>
   </main>
 </body>
