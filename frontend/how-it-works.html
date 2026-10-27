@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="styles.css">
   <script src="consent.js" defer></script>
   <script src="modal.js" defer></script>
+  <script src="how.js" defer></script>
 </head>
 <body>
   <header class="nav">
@@ -33,6 +34,38 @@
     </div>
   </header>
 
-  <main class="content"></main>
+  <main class="content how">
+    <section class="hw-jump" aria-label="How it works">
+      <div class="hw-stage">
+        <canvas class="hw-canvas" aria-hidden="true"></canvas>
+        <p class="hw-word is-first" data-no-rise><span class="hw-mask"><span>Long prompts…</span></span></p>
+        <p class="hw-word is-second" data-no-rise><span class="hw-mask"><span>…fall through.</span></span></p>
+        <div class="hw-frame" aria-hidden="true">
+          <span class="hw-frame-label">How it works</span>
+          <span class="hw-frame-label hw-hint">Scroll ↓</span>
+        </div>
+      </div>
+    </section>
+    <section class="hw-after">
+      <h1 class="hw-title">How it works</h1>
+      <ol class="hw-steps">
+        <li class="hw-step">
+          <span class="hw-num">01</span>
+          <h2 class="hw-name">Paste a prompt</h2>
+          <p class="hw-text">On the Compare page, paste the prompt you would send to an AI.</p>
+        </li>
+        <li class="hw-step">
+          <span class="hw-num">02</span>
+          <h2 class="hw-name">Choose a method</h2>
+          <p class="hw-text">NLP tidies the wording and TF-IDF cuts off-topic sentences, both on your computer. AI Rewrite sends your prompt to Groq and Google to be rewritten shorter.</p>
+        </li>
+        <li class="hw-step">
+          <span class="hw-num">03</span>
+          <h2 class="hw-name">Compare the two</h2>
+          <p class="hw-text">See the original and the shorter version side by side, with the tokens each one uses. Check the shorter one still asks the same thing before you use it.</p>
+        </li>
+      </ol>
+    </section>
+  </main>
 </body>
 </html>

@@ -3841,3 +3841,204 @@ html.pt-switch::view-transition-new(root) {
   from { transform: translateY(110%); }
   to   { transform: none; }
 }
+
+/* How it works: the jump (how.js). The scene stays pinned for a long stretch of scrolling while
+   the camera dives into the funnel and the hole opens; --hw-open (0 to 1) is how far the hole has
+   opened, and the stage's white margin and rounded corners go as it fills the window, so it runs
+   straight on into the black section below */
+.content.how {
+  min-height: 0;
+  padding: 0;
+}
+
+.hw-jump {
+  position: relative;
+  height: 450vh;
+}
+
+html.hw-still .hw-jump {
+  height: 100vh;
+}
+
+.hw-stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  padding: calc(12px * (1 - var(--hw-open, 0)));
+}
+
+.hw-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: calc(12px * (1 - var(--hw-open, 0)));
+  background: #eeeeec;
+}
+
+/* Without WebGL2: still rings in CSS, and the hole as a black circle growing over them */
+.hw-stage.is-flat .hw-canvas {
+  background:
+    radial-gradient(circle at 55% 55%, #0b0b0c calc(var(--hw-open, 0) * 140%), transparent calc(var(--hw-open, 0) * 140% + 1px)),
+    repeating-radial-gradient(circle at 55% 55%, #f2f2f0 0 14px, #b9b4e6 15px 17px, #f2f2f0 18px 34px);
+}
+
+/* The two lines over the scene, white with a soft shadow, each rising in behind its mask and
+   leaving upwards (how.js times them) */
+.hw-word {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  text-align: center;
+  font-size: clamp(44px, 7.5vw, 128px);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.05em;
+  color: #ffffff;
+  /* A shadow round the whole word (not inside its mask, where it would be cut off square) */
+  filter: drop-shadow(0 2px 22px rgba(0, 0, 0, 0.28));
+  pointer-events: none;
+}
+
+.hw-mask {
+  display: inline-block;
+  overflow: hidden;
+  padding: 0.12em 0.08em 0.2em;
+  margin: -0.12em -0.08em -0.2em;
+  vertical-align: top;
+}
+
+.hw-mask > span {
+  display: inline-block;
+  transform: translateY(110%);
+  transition: transform 0.8s cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+.hw-word.is-on .hw-mask > span {
+  transform: none;
+}
+
+.hw-word.is-gone .hw-mask > span {
+  transform: translateY(-150%);
+}
+
+/* Along the bottom of the scene, like a print layout: a thin rule with small corner ticks, "How
+   it works" on the left and "Scroll" on the right (which goes once the scroll starts). All of it
+   fades as the hole opens */
+.hw-frame {
+  position: absolute;
+  left: 44px;
+  right: 44px;
+  bottom: 36px;
+  display: flex;
+  justify-content: space-between;
+  padding-top: 14px;
+  border-top: 1px solid rgba(22, 23, 26, 0.28);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #16171A;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+}
+
+.hw-frame::before,
+.hw-frame::after {
+  content: "";
+  position: absolute;
+  top: -1px;
+  width: 7px;
+  height: 7px;
+  border-top: 1px solid rgba(22, 23, 26, 0.5);
+}
+
+.hw-frame::before {
+  left: 0;
+  border-left: 1px solid rgba(22, 23, 26, 0.5);
+}
+
+.hw-frame::after {
+  right: 0;
+  border-right: 1px solid rgba(22, 23, 26, 0.5);
+}
+
+.hw-frame.is-gone,
+.hw-hint.is-gone {
+  opacity: 0;
+}
+
+.hw-hint {
+  transition: opacity 0.4s ease;
+}
+
+/* After the jump: the three steps, on the black the hole opened into */
+.hw-after {
+  min-height: 100vh;
+  padding: 18vh 48px 24vh;
+  background: #0b0b0c;
+  color: #ffffff;
+}
+
+.hw-title {
+  font-size: clamp(44px, 6vw, 104px);
+  font-weight: 700;
+  line-height: 0.98;
+  letter-spacing: -0.055em;
+}
+
+.hw-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 48px;
+  margin-top: 12vh;
+  padding: 0;
+  list-style: none;
+}
+
+.hw-step {
+  padding-top: 24px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.2);
+}
+
+.hw-num {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: #8B7FF2;
+}
+
+.hw-name {
+  margin-top: 18px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.hw-text {
+  margin-top: 10px;
+  max-width: 340px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #a3a3a3;
+}
+
+@media (max-width: 800px) {
+  .hw-after {
+    padding: 12vh 16px 16vh;
+  }
+
+  .hw-steps {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hw-mask > span {
+    transition: none;
+  }
+}

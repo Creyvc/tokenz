@@ -96,7 +96,7 @@
   // stay as they are, even when the Back button brings a page back already built
   var TEXT = "h1, h2, h3, h4, h5, h6, p, li, dt, dd, figcaption, blockquote, th, td, caption";
   var SKIP = "button, input, textarea, select, option, label, a, svg, script, style, pre, code, " +
-    "[role], [contenteditable], .wake-slider";
+    "[role], [contenteditable], [data-no-rise], .wake-slider";
 
   // The pieces of text to rise: the outermost blocks in the page's main area with text of their
   // own, in sight. Plain text is split into its lines as the browser wrapped them; text with links
