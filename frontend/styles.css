@@ -743,7 +743,13 @@ html.intro-play .intro.is-playing {
   transform: translateY(-1px) rotate(-45deg) scale(1);
 }
 
-.intro-warning-agree input:focus-visible,
+/* No ring around the tick box (it has focus as soon as the notice opens): its own border lights
+   up instead, so the keyboard can still see it */
+.intro-warning-agree input:focus-visible {
+  outline: none;
+  border-color: #EDEDED;
+}
+
 .intro-warning-continue:focus-visible {
   outline: 1px solid #EDEDED;
   outline-offset: 3px;
@@ -848,8 +854,9 @@ html.intro-play .intro.is-playing {
 
 /* About page: a single readable column, the project first and then the team */
 .content.about {
+  --column: 720px;
   min-height: 0;
-  max-width: 720px;
+  max-width: var(--column);
   padding: 96px 48px 120px;
 }
 
@@ -925,9 +932,25 @@ html.intro-play .intro.is-playing {
    banner, near-black pill buttons */
 .content.workbench,
 .content.results-page {
+  --column: 1000px;
   min-height: 0;
-  max-width: 1000px;
+  max-width: var(--column);
   padding: 96px 48px 120px;
+}
+
+/* With no runs yet, Results is only its 640px message, so the column fits that */
+.content.results-page:has(.rs-empty) {
+  --column: 736px;
+}
+
+/* On wider screens the column (Compare, Results and About) sits in the middle of the space right
+   of the sidebar, then 60px to the left of it */
+@media (min-width: 801px) {
+  .content.workbench,
+  .content.results-page,
+  .content.about {
+    margin-left: max(210px, calc((100% + 210px - var(--column)) / 2 - 60px));
+  }
 }
 
 .workbench h1,
@@ -1014,11 +1037,6 @@ html.intro-play .intro.is-playing {
   border-radius: 16px;
   background: #ffffff;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.wb-card:focus-within {
-  border-color: #16171A;
-  box-shadow: 0 0 0 1px #16171A;
 }
 
 .wb-card-head {
@@ -1109,10 +1127,11 @@ html.intro-play .intro.is-playing {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
+/* No ring around a tab or a step when it has keyboard focus: its text darkens instead */
 .wb-segmented input:focus-visible + span,
 .wb-steps input:focus-visible + span {
-  outline: 2px solid #16171A;
-  outline-offset: 2px;
+  outline: none;
+  color: #16171A;
 }
 
 /* Settings under the card, each under a thin line */
@@ -2279,8 +2298,27 @@ textarea.wb-input {
 
 /* Scrolled: the letters drop out of the mask one by one, left to right; back at the top they
    rise back in the same order */
-html.home-tokenz-out .home-title-letter {
+html.home-tokenz-out .home-title-letter,
+html.home-arriving .home-title-letter {
   transform: translateY(135%);
+}
+
+/* Arriving through the page switch (home.js), the letters are down from the start, not dropping */
+html.home-arriving .home-title-letter {
+  transition: none;
+}
+
+/* and the gradient box is hidden, then fades in as the switch's cover leaves */
+html.home-arriving .home-panel {
+  opacity: 0;
+}
+
+.home-panel {
+  transition: opacity 1s ease;
+}
+
+html.home-arriving .home-panel {
+  transition: none;
 }
 
 .home-panel.is-lit .home-title {
@@ -2621,9 +2659,9 @@ html.home-scroll .home-headline {
 }
 
 /* After the text has gone, a white page is laid on top of the gradient, like a second sheet: it
-   slides up with the scroll, with rounded top corners and a soft shadow on its edge, while the
-   gradient underneath darkens. --sheet runs from 0 to 1 as it comes up (home.js); the corners
-   flatten as it reaches the top. Without the scroll effect it's just the next page, after Home */
+   slides up with the scroll with a straight top edge, while the gradient underneath stays still
+   and darkens and blurs (after dashline.tech). --sheet runs from 0 to 1 as it comes up (home.js).
+   Without the scroll effect it's just the next page, after Home */
 .home-next {
   position: relative;
   /* Over Home's box and text, under the sidebar (the scroll effect lifts it higher, below) */
@@ -2651,7 +2689,7 @@ html.home-scroll .home-headline {
 
 /* Big and bold like Home's headline, on one line */
 .home-next-title {
-  font-size: 6.4cqi;
+  font-size: 8.6cqi;
   font-weight: 700;
   line-height: 0.98;
   letter-spacing: -0.055em;
@@ -2876,10 +2914,13 @@ html.home-scroll .home-end {
 
 .measure {
   display: grid;
-  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
-  column-gap: 64px;
-  /* Plenty of room after the last measure, so the title stays a while before the page ends */
-  padding: 15vh 40px 45vh 218px;
+  /* Split at the middle of the window: the title in the left half (from the sidebar), the
+     measures in the right half, with the dashed line down the middle */
+  grid-template-columns: minmax(0, calc(50vw - 218px)) minmax(0, 1fr);
+  /* Below the dashed line, just enough room that at the very end of the page the line stops
+     level with the title's bottom: the window less the title's pinned top (15vh) and its two
+     lines (1.96 times its font size) */
+  padding: 15vh 40px calc(85vh - 1.96 * (12.2vw - 63px)) 218px;
 }
 
 /* Big and bold like "Three Methods" */
@@ -2887,7 +2928,9 @@ html.home-scroll .home-end {
   position: sticky;
   top: 15vh;
   align-self: start;
-  font-size: clamp(40px, 5.2vw, 96px);
+  /* Very big: as large as fits its half with 40px to spare, where "What We", its widest line,
+     is about 4.1 times the font size across */
+  font-size: calc(12.2vw - 63px);
   font-weight: 700;
   line-height: 0.98;
   letter-spacing: -0.055em;
@@ -2898,7 +2941,10 @@ html.home-scroll .home-end {
   list-style: none;
   display: flex;
   flex-direction: column;
-  padding-left: 48px;
+  padding-left: 40px;
+  /* The dashed line runs on a little past the last measure, and the title stays pinned until it
+     reaches the line's end */
+  padding-bottom: 120px;
   border-left: 1px dashed #E5E4DF;
 }
 
@@ -2909,8 +2955,9 @@ html.home-scroll .home-end {
   margin-bottom: 240px;
 }
 
+/* Every other one against the right edge, so they zig-zag */
 .measure-item:nth-child(even) {
-  margin-left: calc(50% + 24px);
+  margin-left: calc(100% - 340px);
 }
 
 .measure-item:last-child {
@@ -2983,17 +3030,26 @@ html.home-scroll .home-end {
   40% { opacity: 1; }
 }
 
+/* Three solid coins, each a side and a top face filled with the page's colour, the bottom one
+   drawn first, so each hides the top of the one under it. They jump together, the top one
+   highest (--jump: 15px, 10px, 5px), so the stack springs apart and lands back together and no
+   coin ever comes closer to the one above than it rests */
 .mark-coin {
+  --jump: calc((3 - var(--n)) * 5px);
   animation: mark-bounce 1.8s infinite;
-  animation-delay: calc(var(--n) * 0.1s);
 }
 
-/* Each coin jumps well clear of the stack and lands with a small bounce, top first */
+.mark-coin path,
+.mark-coin ellipse {
+  fill: #ffffff;
+}
+
+/* A jump of --jump, landing with a small bounce that the whole stack makes together */
 @keyframes mark-bounce {
   0% { transform: translateY(0); animation-timing-function: cubic-bezier(0.33, 1, 0.68, 1); }
-  22% { transform: translateY(-16px); animation-timing-function: cubic-bezier(0.32, 0, 0.67, 0); }
+  22% { transform: translateY(calc(-1 * var(--jump))); animation-timing-function: cubic-bezier(0.32, 0, 0.67, 0); }
   42% { transform: translateY(0); animation-timing-function: cubic-bezier(0.33, 1, 0.68, 1); }
-  50% { transform: translateY(-4px); animation-timing-function: cubic-bezier(0.32, 0, 0.67, 0); }
+  50% { transform: translateY(-3px); animation-timing-function: cubic-bezier(0.32, 0, 0.67, 0); }
   58%, 100% { transform: translateY(0); }
 }
 
@@ -3039,6 +3095,348 @@ html.home-scroll .home-end {
   color: #5c5c5c;
 }
 
+/* "What We Measure" decrypting (decrypt.js): while scrambled, each letter holds the width of
+   the real one, centred in it, so the lines stay put. The real text is there for screen readers */
+.decrypt-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.decrypt-word {
+  white-space: nowrap;
+}
+
+.is-scrambled .decrypt-letter {
+  display: inline-block;
+  text-align: center;
+}
+
+/* With the scroll effect, "What We Measure" sits on the black that came in over the last panel,
+   so the black carries on and the measures come up on it in light colours. The sidebar is white
+   over it, with no fade behind it (html.home-dark, below) */
+html.home-scroll .home-end {
+  color: #ffffff;
+  background: #000000;
+}
+
+/* Once it's done, "What We Measure" stays put (home.js pins it by its bottom), and the next page
+   comes up over it: black too, with a faint line along its top edge so it reads as a page
+   laid on top, while the measures under it dim and blur away (--bury, home.js) */
+html.home-scroll .home-end {
+  position: sticky;
+}
+
+html.home-scroll .measure {
+  opacity: calc(1 - 0.75 * var(--bury, 0));
+  filter: blur(calc(10px * var(--bury, 0)));
+}
+
+/* The page after "What We Measure": the FAQ, on black, in the middle of the window (.faq fills
+   it, so it covers "What We Measure" completely as it comes up), then a little more black after */
+.home-cover {
+  position: relative;
+  z-index: 1;
+  padding-bottom: 30vh;
+  background: #000000;
+  color: #ffffff;
+}
+
+html.home-scroll .home-cover {
+  z-index: 12;
+  /* The FAQ's window, then one more for "SCROLL" to grow in while the FAQ stays locked, and two
+     more for the bars */
+  min-height: 400vh;
+  padding-bottom: 0;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+html.home-scroll .faq {
+  position: sticky;
+  top: 0;
+}
+
+/* "SCROLL" in the bottom-right corner, small and spaced out at first, growing to big and tight
+   (--outro, home.js). At its biggest (--outro-max, home.js) it's 9% of the window wide, smaller if
+   needed to stay 48px clear of the last question or an open answer. Later it gives way to
+   "COMPARE" (below); the two share the place, against the right */
+.faq-scroll {
+  display: none;
+}
+
+html.home-scroll .faq-scroll {
+  display: block;
+  position: absolute;
+  right: 40px;
+  bottom: 28px;
+  z-index: -1;
+  font-size: calc(13px + (var(--outro-max, 9vw) - 13px) * var(--outro, 0));
+  font-weight: 700;
+  line-height: 0.8;
+  letter-spacing: calc(0.24em - 0.29em * var(--outro, 0));
+  text-transform: uppercase;
+  color: #ffffff;
+  pointer-events: none;
+}
+
+/* The two words, one on top of the other, each letter in the word's mask: SCROLL drops down out
+   of sight a letter at a time, and COMPARE comes down into view from above the same way, so both
+   move downwards (html.home-compare, home.js). Scrolling back, it runs the other way */
+html.home-scroll .faq-scroll {
+  display: grid;
+  overflow: hidden;
+}
+
+.faq-word {
+  grid-area: 1 / 1;
+  justify-self: end;
+  white-space: nowrap;
+  color: inherit;
+  text-decoration: none;
+}
+
+.faq-word span {
+  display: inline-block;
+  transition: transform 0.6s cubic-bezier(0.33, 1, 0.68, 1);
+  transition-delay: calc(var(--i) * 50ms);
+}
+
+.faq-word.is-compare span {
+  transform: translateY(-110%);
+}
+
+html.home-compare .faq-word.is-scroll span {
+  transform: translateY(110%);
+}
+
+html.home-compare .faq-word.is-compare span {
+  transform: none;
+}
+
+/* COMPARE goes to the Compare page, once it's there */
+html.home-compare .faq-word.is-compare {
+  pointer-events: auto;
+}
+
+.faq-word.is-compare:focus-visible {
+  outline: 2px solid #8B7FF2;
+  outline-offset: 6px;
+}
+
+/* The FAQ: laid out like "What We Measure", split at the middle of the window, with the title and
+   a short line on the left and the questions on the right. Each question opens to its answer */
+.faq {
+  display: grid;
+  grid-template-columns: minmax(0, calc(50vw - 218px)) minmax(0, 1fr);
+  align-content: center;
+  min-height: 100vh;
+  padding: 10vh 40px 10vh 218px;
+  /* lets the answers open to their own height smoothly (in browsers that can) */
+  interpolate-size: allow-keywords;
+}
+
+.faq-intro {
+  padding-right: 40px;
+}
+
+/* A small label with a line running off it, in the measures' uppercase style */
+.faq-label {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #8B7FF2;
+}
+
+.faq-label::after {
+  content: "";
+  flex: 1;
+  border-top: 1px dashed rgba(255, 255, 255, 0.2);
+}
+
+.faq-title {
+  margin-top: 28px;
+  font-size: clamp(36px, 4.4vw, 72px);
+  font-weight: 700;
+  line-height: 1.02;
+  letter-spacing: -0.045em;
+}
+
+.faq-lede {
+  margin-top: 28px;
+  max-width: 420px;
+  font-size: 17px;
+  line-height: 1.5;
+  color: #a3a3a3;
+}
+
+/* The questions, behind the same dashed line as the measures */
+.faq-list {
+  padding-left: 40px;
+  border-left: 1px dashed rgba(255, 255, 255, 0.2);
+}
+
+.faq-item {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.faq-question {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 26px 0;
+  font-size: clamp(17px, 1.5vw, 22px);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  list-style: none;
+  cursor: pointer;
+}
+
+.faq-question::-webkit-details-marker {
+  display: none;
+}
+
+.faq-question:focus-visible {
+  outline: 2px solid #8B7FF2;
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+.faq-chevron {
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.35s cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+.faq-item[open] .faq-chevron {
+  transform: rotate(180deg);
+}
+
+/* The answer slides open under its question */
+.faq-item::details-content {
+  block-size: 0;
+  overflow: hidden;
+  transition: block-size 0.4s cubic-bezier(0.33, 1, 0.68, 1), content-visibility 0.4s allow-discrete;
+}
+
+.faq-item[open]::details-content {
+  block-size: auto;
+}
+
+.faq-answer {
+  max-width: 600px;
+  padding: 0 48px 28px 0;
+  font-size: 16px;
+  line-height: 1.6;
+  color: #a3a3a3;
+}
+
+/* The bars: once "SCROLL" is done growing, a row of thin rounded bars like the wake slider's
+   grows in with the scroll, one after another from the left, from just past the sidebar to 32px
+   short of the words, short at the left and as tall as their capitals at the right (home.js lays
+   them out and grows them) */
+.faq-line {
+  display: none;
+}
+
+html.home-scroll .faq-line {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  position: absolute;
+  left: 218px;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.faq-bar {
+  flex: none;
+  width: 2px;
+  border-radius: 2px;
+  background: #ffffff;
+  transform: scaleY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .faq-chevron,
+  .faq-item::details-content {
+    transition: none;
+  }
+}
+
+@media (max-width: 800px) {
+  .faq {
+    grid-template-columns: 1fr;
+    padding: 48px 16px 64px;
+  }
+
+  .faq-intro {
+    padding-right: 0;
+    margin-bottom: 32px;
+  }
+
+  .faq-title {
+    font-size: 9vw;
+  }
+
+  .faq-list {
+    padding-left: 0;
+    border-left: 0;
+  }
+}
+
+html.home-scroll .measure-title,
+html.home-scroll .measure-name {
+  color: #ffffff;
+}
+
+html.home-scroll .measure-list {
+  border-left-color: rgba(255, 255, 255, 0.2);
+}
+
+html.home-scroll .measure-mark {
+  stroke: #ffffff;
+}
+
+html.home-scroll .mark-coin path,
+html.home-scroll .mark-coin ellipse {
+  fill: #000000;
+}
+
+html.home-scroll .mark-dot {
+  fill: #ffffff;
+}
+
+html.home-scroll .measure-mark .measure-corner {
+  stroke: #5c5c5c;
+}
+
+/* The team's light violet: the darker one is too dim on black */
+html.home-scroll .measure-num {
+  color: #8B7FF2;
+}
+
+html.home-scroll .measure-text {
+  color: #a3a3a3;
+}
+
+/* The bounce past the end of the page shows black too, not a white strip */
+html.home-scroll.home-covered {
+  background: #000000;
+}
+
 @media (max-width: 800px) {
   .measure {
     grid-template-columns: 1fr;
@@ -3053,6 +3451,7 @@ html.home-scroll .home-end {
 
   .measure-list {
     padding-left: 0;
+    padding-bottom: 0;
     border-left: 0;
   }
 
@@ -3068,6 +3467,24 @@ html.home-scroll .home-track {
   top: 0;
   height: 100vh;
   overflow: hidden;
+}
+
+/* After the last panel, the purple turns black square by square, in a random order (a pixel
+   transition, drawn on this canvas by home.js). It's under the sidebar's white fade, so the
+   sidebar stays as it is */
+.home-pixels {
+  display: none;
+}
+
+html.home-scroll .home-pixels {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
 }
 
 /* The fade behind the sidebar: solid white under its links, then easing out to clear well past
@@ -3099,6 +3516,8 @@ html.home-scroll .home-track::after {
     rgba(255, 255, 255, 0.015) 236px,
     rgba(255, 255, 255, 0.000) 250px);
   pointer-events: none;
+  /* Gone by the time the window has turned black (--dark, home.js) */
+  opacity: calc(1 - var(--dark, 0));
 }
 
 html.home-scroll .home-row {
@@ -3123,7 +3542,7 @@ html.home-scroll .home-next-intro {
 }
 
 html.home-scroll .home-next-title {
-  font-size: 9.5cqi;
+  font-size: 13cqi;
 }
 
 /* At the bottom of its panel, like Home's sentence above its headline */
@@ -3180,9 +3599,33 @@ html.home-scroll .home-method-text {
   font-size: 2.2vw;
 }
 
-html.home-scroll .home-next {
-  border-radius: calc(24px * (1 - var(--sheet, 0))) calc(24px * (1 - var(--sheet, 0))) 0 0;
-  box-shadow: 0 -18px 60px rgba(0, 0, 0, 0.4);
+/* Once the slide is over, the last panel's text leaves like the first screen's: each piece (the
+   top line's two parts, the name, each word of the description) drops out of sight below its own
+   edge, a line at a time, top to bottom (home.js adds the masks and .is-leaving, and the delays) */
+html.home-scroll .panel-mask {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+  /* Room for the tails of g, j and p inside the mask, without moving the lines */
+  padding-bottom: 0.14em;
+  margin-bottom: -0.14em;
+}
+
+/* The name's lines are set tight, so its mask gets room for the letters' tops, without moving
+   the line; little below, so the falling letters don't show over the description */
+html.home-scroll .home-method-name .panel-mask {
+  display: block;
+  padding: 0.12em 0 0.04em;
+  margin: -0.12em 0 -0.04em;
+}
+
+html.home-scroll .panel-rise {
+  display: inline-block;
+  transition: transform 0.75s cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+html.home-scroll .home-method.is-leaving .panel-rise {
+  transform: translateY(135%);
 }
 
 /* Once the white page fills the window, the gradient and the text behind it are hidden, so the
@@ -3192,18 +3635,17 @@ html.home-covered .home-intro {
   visibility: hidden;
 }
 
-/* Its shadow would show as a grey band under it in the bounce; the top edge is out of sight by then */
-html.home-covered .home-next {
-  box-shadow: none;
-}
-
+/* Under the white page the gradient goes almost black and soft: a layer over it, black up to 92% and
+   blurring what's behind it up to 10px, both growing as the page comes up. (A blur on the gradient
+   itself would pull white in at the window's edges; blurring from a layer above repeats the edge) */
 html.home-scroll .home-panel::after {
   content: "";
   position: absolute;
   inset: 0;
   z-index: 3;
-  background: #000000;
-  opacity: calc(0.5 * var(--sheet, 0));
+  background: rgba(0, 0, 0, calc(0.92 * var(--sheet, 0)));
+  -webkit-backdrop-filter: blur(calc(10px * var(--sheet, 0)));
+  backdrop-filter: blur(calc(10px * var(--sheet, 0)));
   pointer-events: none;
 }
 
@@ -3228,6 +3670,25 @@ html.home-scroll .nav.nav-copy {
   -webkit-mask-image: none;
   mask-image: none;
   clip-path: inset(0 0 calc(100% - var(--cover, 100%)) clamp(0px, var(--edge, 9999px), 210px));
+}
+
+/* Over the black at the end, the whole sidebar is the white copy: the real one fades out (still
+   there to be clicked) and the copy fades in, uncut */
+html.home-scroll .nav:not(.nav-copy) {
+  transition: opacity 0.35s ease;
+}
+
+html.home-dark .nav:not(.nav-copy) {
+  opacity: 0;
+}
+
+html.home-dark .nav.nav-copy {
+  clip-path: none;
+  animation: nav-white-in 0.35s ease;
+}
+
+@keyframes nav-white-in {
+  from { opacity: 0; }
 }
 
 /* Only the real dot slides between pages */
@@ -3268,4 +3729,117 @@ html.home-scroll .nav.nav-copy {
 
 .nav-copy .tz-bar {
   background: #c8c8c8;
+}
+
+/* The page switch (page-transition.js), after zajno.com: the new page is laid on top of the old
+   one, which stays still underneath. While it runs (html.pt-switch):
+   - the new page is cut down to a box that starts as a thin line near the bottom of the window
+     and grows up and out until it fills the window (pt-box)
+   - a black cover (.pt-cover, page-transition.js) sits over the box: first all of it, as the
+     line and then the bar; then its bottom edge rises and the new page shows under it; once the
+     box fills the window it slides up off the top (pt-cover)
+   - the page's title rises in behind a mask as the cover leaves
+   Before any of that, the old page dims a little (pt-dim), and the rest waits for it (0.25s).
+   The sidebar's dot stays part of each page here, rather than sliding over the box */
+html.pt-switch .nav-dot {
+  view-transition-name: none;
+}
+
+.pt-cover {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  background: #16171A;
+  pointer-events: none;
+  /* Only there while the switch runs, which draws over the page, so it's never seen on the page
+     itself (page-transition.js removes it when the switch ends) */
+  view-transition-name: pt-cover;
+}
+
+/* Coming from a dark page (the end of Home), the cover is light, so the line and the bar show */
+.pt-cover.is-light {
+  background: #E5E4DF;
+}
+
+html.pt-switch::view-transition-group(root),
+html.pt-switch::view-transition-group(pt-cover) {
+  animation: none;
+}
+
+/* The old page, still, underneath: it dims a little first, and stays so */
+html.pt-switch::view-transition-old(root) {
+  mix-blend-mode: normal;
+  animation: pt-dim 0.3s ease-out forwards;
+}
+
+@keyframes pt-dim {
+  to { filter: brightness(0.8); }
+}
+
+/* The new page and its cover wait for the dimming, cut down to nothing until they start */
+html.pt-switch::view-transition-new(root),
+html.pt-switch::view-transition-new(pt-cover) {
+  clip-path: inset(50% 50% 50% 50%);
+}
+
+html.pt-switch::view-transition-new(root) {
+  mix-blend-mode: normal;
+  animation: pt-box 1.8s linear 0.25s forwards;
+}
+
+html.pt-switch::view-transition-new(pt-cover) {
+  animation: pt-cover 1.8s linear 0.25s forwards;
+}
+
+/* The box: top, right, bottom and left insets. A line near the bottom for the first quarter of
+   a second, thickening; then up and out into the window by 1.15s */
+@keyframes pt-box {
+  0%   { clip-path: inset(84.9% 9% 15% 9%); animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1); }
+  14%  { clip-path: inset(84.4% 9% 14.8% 9%); animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1); }
+  27%  { clip-path: inset(80% 9% 14% 9%); animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1); }
+  39%  { clip-path: inset(62% 8% 12% 8%); }
+  47%  { clip-path: inset(35% 6% 10% 6%); }
+  56%  { clip-path: inset(16% 4% 7% 4%); animation-timing-function: cubic-bezier(0.33, 0, 0.67, 1); }
+  64%, 100% { clip-path: inset(0 0 0 0); }
+}
+
+/* The cover: the whole box at first (faint, then black), then its bottom edge rises through the
+   box, and once the box is full it slides up off the top */
+@keyframes pt-cover {
+  0%   { clip-path: inset(84.9% 9% 15% 9%); opacity: 0.25; animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1); }
+  14%  { clip-path: inset(84.4% 9% 14.8% 9%); opacity: 1; animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1); }
+  27%  { clip-path: inset(80% 9% 14% 9%); animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1); }
+  39%  { clip-path: inset(62% 8% 12% 8%); }
+  47%  { clip-path: inset(35% 6% 12% 6%); }
+  56%  { clip-path: inset(16% 4% 25% 4%); animation-timing-function: cubic-bezier(0.33, 0, 0.67, 1); }
+  64%  { clip-path: inset(0 0 55% 0); opacity: 1; animation-timing-function: cubic-bezier(0.25, 0.6, 0.35, 1); }
+  100% { clip-path: inset(0 0 100% 0); opacity: 1; }
+}
+
+/* The text, rising in behind masks as the cover leaves (page-transition.js splits it into its
+   lines and sets each one's delay, top to bottom; text with links or tags inside rises whole) */
+.pt-line {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.12em;
+  margin-bottom: -0.12em;
+}
+
+.pt-mask {
+  overflow: hidden;
+}
+
+.pt-rise {
+  display: inline-block;
+  white-space: nowrap;
+  animation: pt-rise 0.8s cubic-bezier(0.33, 1, 0.68, 1) both;
+}
+
+.pt-rise.is-whole {
+  white-space: inherit;
+}
+
+@keyframes pt-rise {
+  from { transform: translateY(110%); }
+  to   { transform: none; }
 }

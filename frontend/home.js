@@ -25,6 +25,36 @@
 
   if (!still) root.classList.add("home-text-waiting");
 
+  // Arriving from another page through the page switch (page-transition.js), Home's text waits
+  // under the switch's black cover and only rises in as it leaves (ARRIVE ms in), all together:
+  // the sentence and headline line by line, and TOKENZ letter by letter (home-arriving holds
+  // its letters down, styles.css)
+  var ARRIVE = 1200;
+  var arriveAt = 0;
+  window.addEventListener("pagereveal", function (event) {
+    if (still || !event.viewTransition) return;
+    arriveAt = performance.now() + ARRIVE;
+    root.classList.add("home-arriving");
+    setTimeout(function () { root.classList.remove("home-arriving"); }, ARRIVE);
+    // The gradient box fades in as the cover leaves, its gradient blooming from the middle as on
+    // a first visit: if it's already up, it's taken down and put up again then
+    if (heroBackground) {
+      heroBackground.destroy();
+      heroBackground = null;
+      var panel = document.querySelector(".home-panel");
+      if (panel) panel.classList.remove("is-lit");
+      setTimeout(mountBackground, ARRIVE);
+    }
+    // Back on Home from the browser's memory (the Back button), its text was already in: down
+    // behind the masks again (at once), and in again as the cover leaves
+    if (root.classList.contains("home-text-on")) {
+      root.classList.remove("home-text-on");
+      setTimeout(function () {
+        try { reveal(); } catch (e) { root.classList.add("home-text-on"); }
+      }, ARRIVE);
+    }
+  });
+
   // is-lit turns the title in the panel white once the gradient is behind it. heroBackground is
   // kept so the scroll effect can pause it while the white page covers it
   var heroBackground = null;
@@ -50,6 +80,10 @@
     "is-ai": { colors: ["#2a1f8f", "#5B4FD6", "#8B7FF2", "#b4aaff", "#f1edff"], angle: 75 }
   };
 
+  // Each panel's gradient, by its class, so the scroll effect can pause the last one once the
+  // black has closed over it
+  var methodBackgrounds = {};
+
   function mountMethodBackgrounds() {
     if (!window.Grainient) return;
     Object.keys(METHOD_COLORS).forEach(function (name) {
@@ -69,6 +103,7 @@
         dpr: 1
       });
       if (background) box.classList.add("is-lit");
+      methodBackgrounds[name] = background;
     });
   }
 
@@ -147,12 +182,21 @@
     setTimeout(sentence.restore, (risers.length - 1) * STEP + RISE + 100);
   }
 
+  // The gradient, but not while the page switch's cover is still over Home (see ARRIVE)
+  function mountWhenArrived() {
+    var wait = arriveAt - performance.now();
+    if (wait > 0) return setTimeout(mountWhenArrived, wait);
+    if (!heroBackground) mountBackground();
+  }
+
   function start(delay) {
     if (still) return;
     // Lines are measured in the real font, so wait for it
     var fonts = document.fonts ? document.fonts.ready : Promise.resolve();
     fonts.then(function () {
-      setTimeout(function () {
+      setTimeout(function go() {
+        var wait = arriveAt - performance.now();
+        if (wait > 0) return setTimeout(go, wait);
         try { reveal(); } catch (e) { root.classList.remove("home-text-waiting"); }
       }, delay);
     });
@@ -175,6 +219,54 @@
     var next = document.querySelector(".home-next");
     var track = document.querySelector(".home-track");
     var row = document.querySelector(".home-row");
+    // "What We Measure", and the black page that comes up over it once it's done
+    var end = document.querySelector(".home-end");
+    var endCover = document.querySelector(".home-cover");
+    var faqList = endCover ? endCover.querySelector(".faq-list") : null;
+    var faqWord = endCover ? endCover.querySelector(".faq-scroll") : null;
+    var faqLine = endCover ? endCover.querySelector(".faq-line") : null;
+    var compareLink = endCover ? endCover.querySelector(".faq-word.is-compare") : null;
+    var BAR = 2, BAR_GAP = 7;  // px: each bar's width, and the space between them
+    var barsFor = "", barsAt = -1;
+    var lastBarsUp = -1, toCompare = 0;  // the bars last frame; the wait before going to Compare
+
+    // The bars between the page's left edge and the word, level with its capitals. Each grows a
+    // little taller than the one before (easing in, so the rise speeds up towards the word); made
+    // again only if the room or the word's size has changed
+    function layBars() {
+      var word = faqWord.getBoundingClientRect();
+      var box = faqLine.offsetParent.getBoundingClientRect();
+      var size = parseFloat(getComputedStyle(faqWord).fontSize);
+      var cap = 0.727 * size;  // Inter's capitals are about 0.727 of the font size tall
+      var left = 218, right = word.left - box.left - 32;
+      faqLine.style.top = (word.top + word.height / 2 - box.top - cap / 2).toFixed(1) + "px";
+      faqLine.style.height = cap.toFixed(1) + "px";
+      var key = Math.round(right) + "/" + Math.round(cap);
+      if (key === barsFor) return;
+      barsFor = key;
+      barsAt = -1;
+      var count = Math.max(2, Math.floor((right - left + BAR_GAP) / (BAR + BAR_GAP)));
+      faqLine.textContent = "";
+      for (var i = 0; i < count; i++) {
+        var t = i / (count - 1);
+        var bar = make("span", "faq-bar");
+        bar.style.height = (6 + (cap - 6) * Math.pow(t, 1.6)).toFixed(1) + "px";
+        faqLine.append(bar);
+      }
+    }
+
+    // `progress` 0 to 1 along the row: each bar rises over a short stretch of it, one after
+    // another from the left, the last one full at 1
+    function growBars(progress) {
+      if (!faqLine || progress === barsAt) return;
+      barsAt = progress;
+      var bars = faqLine.children, count = bars.length, SPAN = 0.15;
+      for (var i = 0; i < count; i++) {
+        var t = count > 1 ? i / (count - 1) : 1;
+        var up = clamp((progress * (1 + SPAN) - t) / SPAN);
+        bars[i].style.transform = "scaleY(" + up.toFixed(3) + ")";
+      }
+    }
     var travel = -1;  // how far the methods' row slides, measured once the row is laid out sideways
     var letters = splitLetters(document.querySelector(".home-next-lede"));
 
@@ -228,6 +320,8 @@
     // While the text is leaving or coming back, the page holds still where that started, so a
     // fast scroll can't rush past it. Held 1px past the point, so it doesn't start again after.
     var holdAt = 0, holdUntil = 0, textGone = null;
+    var GROW_TIME = 850;  // ms: the quickest the box may grow the whole way
+    var growShown = null, growAt = 0;
 
     function holding() { return Date.now() < holdUntil; }
 
@@ -249,6 +343,21 @@
 
     function stopWhileHolding(event) {
       if (holding()) event.preventDefault();
+    }
+
+    // From where the FAQ locks to the end of the page, the wheel drags: each turn moves the page
+    // DRAG as far as usual while "SCROLL" grows, and DRAG_BARS while the bars fill, so both take
+    // more effort, the bars most
+    var DRAG = 0.4, DRAG_BARS = 0.15;
+    function wheel(event) {
+      if (holding()) { event.preventDefault(); return; }
+      if (!endCover || !root.classList.contains("home-scroll") || event.ctrlKey) return;
+      if (window.scrollY < endCover.offsetTop) return;
+      var unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? window.innerHeight : 1;
+      // (the bars start a window past the lock, once "SCROLL" is full size)
+      var drag = window.scrollY - endCover.offsetTop >= window.innerHeight ? DRAG_BARS : DRAG;
+      event.preventDefault();
+      window.scrollBy({ top: event.deltaY * unit * drag, behavior: "instant" });
     }
 
     // The sentence rewraps on resize, so its masks are made again
@@ -286,7 +395,92 @@
     var panelTexts = boxes.map(function (box) {
       return { letters: splitLetters(box.querySelector(".home-method-text")), lit: 0 };
     });
-    var slide = { start: 0, step: 0, hold: 0, move: 0, gap: 0 };
+    // The last panel's text leaves once the slide is over, the way the first screen's text does:
+    // each line drops out of sight behind a mask, top to bottom (.is-leaving, styles.css)
+    var lastBox = boxes[boxes.length - 1];
+    var exits = lastBox ? maskPanel(lastBox) : [];
+    var panelGone = null, exitMs = RISE;
+    // The FAQ: when it locks in the middle of the window, the page holds for a moment
+    // (FAQ_HOLD ms) before "SCROLL" starts to grow
+    var FAQ_HOLD = 1250;
+    var faqLocked = null;
+
+    function maskPanel(box) {
+      var risers = [];
+      function wrap(mask, nodes) {
+        var inner = make("span", "panel-rise");
+        nodes.forEach(function (node) { inner.append(node); });
+        mask.classList.add("panel-mask");
+        mask.append(inner);
+        risers.push(inner);
+      }
+      box.querySelectorAll(".home-method-top > span").forEach(function (part) {
+        wrap(part, Array.prototype.slice.call(part.childNodes));
+      });
+      var name = box.querySelector(".home-method-name");
+      if (name) {
+        var mask = make("span", "");
+        wrap(mask, Array.prototype.slice.call(name.childNodes));
+        name.append(mask);
+      }
+      // The description is already in letters for its lighting; each word is masked
+      box.querySelectorAll(".home-method-text .home-next-word").forEach(function (word) {
+        wrap(word, Array.prototype.slice.call(word.childNodes));
+      });
+      return risers;
+    }
+
+    // One line after another, as the browser wrapped them. Returns how long they take, in ms
+    function staggerExits() {
+      var line = -1, lineTop = null;
+      exits.forEach(function (inner) {
+        var top = inner.getBoundingClientRect().top;
+        if (lineTop === null || Math.abs(top - lineTop) > 4) { line++; lineTop = top; }
+        inner.style.transitionDelay = (line * STEP) + "ms";
+      });
+      return Math.max(0, line) * STEP + RISE;
+    }
+
+    // After the last panel the page stays put for one more stretch (TAIL): its text leaves
+    // (above), then the purple turns black square by square, in a random order, until the whole
+    // window is black (a pixel transition), and only then does the black's bottom edge come up
+    // with "What We Measure" under it
+    var pixels = document.querySelector(".home-pixels");
+    var grid = { width: 0, height: 0, size: 0, cols: 0, cells: [], drawn: -1 };
+
+    // Squares about 1/24 of the window wide, each with its own point (0 to 1) where it turns black
+    function layPixels() {
+      var dpr = Math.min(window.devicePixelRatio || 1, 2);
+      grid.width = window.innerWidth;
+      grid.height = window.innerHeight;
+      grid.size = Math.ceil(grid.width / 24);
+      grid.cols = Math.ceil(grid.width / grid.size);
+      var count = grid.cols * Math.ceil(grid.height / grid.size);
+      grid.cells = [];
+      for (var c = 0; c < count; c++) grid.cells.push(Math.random() * 0.97);
+      pixels.width = Math.round(grid.width * dpr);
+      pixels.height = Math.round(grid.height * dpr);
+      pixels.getContext("2d").setTransform(dpr, 0, 0, dpr, 0, 0);
+      grid.drawn = -1;
+    }
+
+    // Draws every square whose point is behind `progress`; only redrawn when it changes
+    function drawPixels(progress) {
+      if (!pixels) return;
+      if (grid.width !== window.innerWidth || grid.height !== window.innerHeight) layPixels();
+      if (progress === grid.drawn) return;
+      grid.drawn = progress;
+      var context = pixels.getContext("2d");
+      context.clearRect(0, 0, grid.width, grid.height);
+      context.fillStyle = "#000000";
+      if (progress >= 1) { context.fillRect(0, 0, grid.width, grid.height); return; }
+      grid.cells.forEach(function (point, i) {
+        if (point < progress) {
+          context.fillRect((i % grid.cols) * grid.size, Math.floor(i / grid.cols) * grid.size, grid.size, grid.size);
+        }
+      });
+    }
+    var slide = { start: 0, step: 0, hold: 0, move: 0, gap: 0, tail: 0 };
     var CLEAR = 270;  // px from the window's left where a panel's text may start: past the sidebar's fade
     var GLIDE = 110;  // ms the row takes to catch most of the way up with the scroll
     var shown = null, shownAt = 0, jump = true;  // where the row is drawn, eased towards the scroll
@@ -297,8 +491,9 @@
       slide.step = 0.22 * window.innerWidth + space;  // a small panel and the gap after it
       slide.hold = 0.4 * window.innerHeight;
       slide.move = 1.8 * window.innerHeight;  // a slow handover: almost two windows of scrolling
+      slide.tail = 2.2 * window.innerHeight;
       travel = slide.start + Math.max(0, boxes.length - 1) * (slide.hold + slide.move) + slide.hold;
-      next.style.height = (window.innerHeight + travel) + "px";
+      next.style.height = (window.innerHeight + travel + slide.tail) + "px";
     }
 
     // Where the row is and how big each panel is, after scrolling `at` px into the slide
@@ -334,10 +529,14 @@
         remask();
         holdUntil = 0;
         textGone = null;
+        growShown = null;
         slideBegun = null;
         lastY = null;
         heldPanel = -1;
         lit = 0;
+        panelGone = null;
+        faqLocked = null;
+        if (lastBox) lastBox.classList.remove("is-leaving");
         root.classList.remove("home-tokenz-out", "home-text-out", "home-covered", "home-methods-in");
         if (heroBackground) heroBackground.hold(false);
         ["--grow", "--pull", "--edge", "--shift-x", "--shift-y", "--cover", "--sheet"].forEach(function (name) { root.style.removeProperty(name); });
@@ -346,6 +545,19 @@
         if (next) next.style.height = "";
         if (row) row.style.transform = "";
         boxes.forEach(function (box) { box.style.removeProperty("--box"); box.style.removeProperty("--clear"); });
+        if (pixels) drawPixels(0);
+        root.style.removeProperty("--dark");
+        root.classList.remove("home-dark");
+        if (end) end.style.removeProperty("top");
+        root.style.removeProperty("--bury");
+        root.style.removeProperty("--outro");
+        root.style.removeProperty("--outro-max");
+        root.classList.remove("home-compare");
+        growBars(0);
+        lastBarsUp = -1;
+        if (toCompare) clearTimeout(toCompare);
+        toCompare = 0;
+        if (methodBackgrounds["is-ai"]) methodBackgrounds["is-ai"].hold(false);
         travel = -1;
         jump = true;
         light(null);
@@ -381,9 +593,21 @@
         window.scrollTo({ top: holdAt, behavior: "instant" });
         y = holdAt;
       }
+      // How far the box has grown, before easing (0 to 1). It follows the scroll, but never faster
+      // than GROW_TIME for the whole way, so a fast scroll still sees it grow
+      var growTo = clamp((y - 0.12 * distance) / (0.88 * distance));
+      var nowGrow = performance.now();
+      if (growShown == null) growShown = growTo;
+      else {
+        var most = Math.min(nowGrow - growAt, 50) / GROW_TIME;
+        growShown += Math.max(-most, Math.min(most, growTo - growShown));
+      }
+      growAt = nowGrow;
+      if (growShown !== growTo) soon();
       var gone = holding() ? textGone : y > gate;
       if (textGone !== null && gone !== textGone) {
-        hold(gone ? gate + 1 : gate - 1);
+        // (going down, the hold also waits for the box to finish growing)
+        hold(gone ? gate + 1 : gate - 1, gone && growShown < 1 ? (1 - growShown) * GROW_TIME + RISE + 2 * STEP : null);
         y = holdAt;
       }
       textGone = gone;
@@ -413,11 +637,36 @@
             }
           }
         }
+        // A little way into the tail, the last panel's text masks out, and the page holds while
+        // it does (and while it comes back, scrolling up)
+        if (lastBox && travel >= 0) {
+          var exitAt = slideStart + travel + 0.1 * window.innerHeight;
+          var away = holding() ? panelGone : y > exitAt;
+          if (away !== panelGone) {
+            if (away) exitMs = staggerExits();
+            if (panelGone !== null) {
+              hold(away ? exitAt + 1 : exitAt - 1, exitMs);
+              y = holdAt;
+            }
+            lastBox.classList.toggle("is-leaving", away);
+          }
+          panelGone = away;
+        }
+        // Arriving at the FAQ's lock on the way down, the page holds with "SCROLL" still small
+        if (end && endCover) {
+          var lockAt = endCover.offsetTop;
+          var locked = holding() ? faqLocked : y > lockAt;
+          if (faqLocked === false && locked) {
+            hold(lockAt + 1, FAQ_HOLD);
+            y = holdAt;
+          }
+          faqLocked = locked;
+        }
         lastY = y;
       }
       root.classList.toggle("home-tokenz-out", y > 4);
       // The box starts growing once TOKENZ is on its way out
-      var grow = ease(clamp((y - 0.12 * distance) / (0.88 * distance)));
+      var grow = ease(growShown);
       root.style.setProperty("--grow", grow.toFixed(4));
       // The gradient's left edge, matching the panel's clip (60% of the window, shrinking to 0)
       root.style.setProperty("--edge", (0.6 * window.innerWidth * (1 - grow)).toFixed(1) + "px");
@@ -426,8 +675,10 @@
       root.style.setProperty("--pull", (grow * gap * 0.47).toFixed(1) + "px");
       root.style.setProperty("--shift-x", (grow * toCentre.x).toFixed(1) + "px");
       root.style.setProperty("--shift-y", (grow * toCentre.y).toFixed(1) + "px");
-      if (gone && !unmask && copy) unmask = maskCopy();
-      root.classList.toggle("home-text-out", gone);
+      // The text masks out once the box fills the window
+      var textOut = gone && growShown >= 1;
+      if (textOut && !unmask && copy) unmask = maskCopy();
+      root.classList.toggle("home-text-out", textOut);
       // The white page's top edge in the window, where the sidebar turns dark again
       if (next) {
         var nextTop = next.getBoundingClientRect().top;
@@ -449,7 +700,7 @@
           if (travel < 0) measureSlide();
           // The row follows the scroll with a short ease (like GSAP's scrub), so the steps of a
           // mouse wheel blend into one smooth glide. It keeps asking for frames until it catches up
-          var target = Math.min(travel, Math.max(0, -nextTop));
+          var target = Math.min(travel + slide.tail, Math.max(0, -nextTop));
           var now = performance.now();
           if (shown == null || jump) shown = target;
           // (time since the last frame, capped, so the first frame after a rest still eases)
@@ -471,6 +722,16 @@
             box.style.setProperty("--clear", clear.toFixed(2) + "px");
             edge += width + slide.gap;
           });
+          // The black squares come in over the tail, from a third of a window in to its last half
+          // window, which is all black; the purple under them stops drawing once it's covered
+          var H = window.innerHeight;
+          var black = Math.round(clamp((shown - travel - 0.35 * H) / (1.35 * H)) * 1000) / 1000;
+          drawPixels(black);
+          // and the white fade behind the sidebar goes with it (--dark), the sidebar turning white
+          // once the window is more black than purple
+          root.style.setProperty("--dark", black);
+          root.classList.toggle("home-dark", black > 0.5);
+          if (methodBackgrounds["is-ai"]) methodBackgrounds["is-ai"].hold(black >= 1);
           // The paragraph sweeps to lit once the slide has begun, and back to dim before it,
           // over SWEEP ms whatever the scroll does
           var nowMs = performance.now();
@@ -492,6 +753,56 @@
             lightLetters(text.letters, text.lit);
           });
         }
+        // "What We Measure" locks in place once its end is in the window (sticky, pinned by its
+        // bottom), and the next black page slides up over it; the measures dim and blur under it
+        // (--bury 0 to 1, styles.css)
+        if (end && endCover) {
+          end.style.top = Math.min(0, window.innerHeight - end.offsetHeight) + "px";
+          var coverTop = endCover.getBoundingClientRect().top;
+          root.style.setProperty("--bury", clamp(1 - coverTop / window.innerHeight).toFixed(4));
+          // Then the FAQ locks in the middle of the window. Over the next window "SCROLL" grows
+          // from small in the corner to big (--outro 0 to 1, styles.css), and over the last one
+          // the bars grow in under it, left to right
+          var pastLock = Math.max(0, -coverTop);
+          var outro = clamp(pastLock / window.innerHeight);
+          root.style.setProperty("--outro", outro.toFixed(4));
+          // At its biggest it's 9% of the window wide, and never closer than 48px to the last
+          // question (or an open answer): its letters are about 0.8 of its size tall
+          if (faqList) {
+            // (where the list's bottom will be once the FAQ has locked at the top)
+            var listBottom = faqList.getBoundingClientRect().bottom - Math.max(0, coverTop);
+            var below = window.innerHeight - 28 - listBottom - 48;
+            var biggest = Math.max(13, Math.min(0.09 * window.innerWidth, below / 0.8));
+            root.style.setProperty("--outro-max", biggest.toFixed(1) + "px");
+          }
+          // Once it's done growing, a row of thin bars like the wake slider's grows in with the
+          // scroll from the left to just short of it, small to big, the last as tall as its S.
+          // As soon as the bars begin, "SCROLL" masks out downwards and "COMPARE" comes down in
+          // its place (home-compare, styles.css)
+          if (faqWord && faqLine) {
+            // (over two windows of scrolling, so the row takes its time)
+            var barsUp = clamp((pastLock - window.innerHeight) / (2 * window.innerHeight));
+            if (barsUp > 0.995) barsUp = 1;  // the page's last pixel of scroll can fall a hair short
+            if (outro >= 1) layBars();
+            growBars(outro >= 1 ? barsUp : 0);
+            var comparing = barsUp > 0;
+            root.classList.toggle("home-compare", comparing);
+            // (the link can only be tabbed to while it's showing)
+            if (compareLink) compareLink.tabIndex = comparing ? 0 : -1;
+            // When the last bar reaches COMPARE, on the way down, the page goes on to Compare, a
+            // moment later so the row is seen full. Scrolling back before then stays
+            if (barsUp >= 1 && lastBarsUp < 1 && lastBarsUp >= 0 && compareLink && !toCompare) {
+              toCompare = setTimeout(function () {
+                if (window.TokenzTransition) window.TokenzTransition.go(compareLink.href);
+                else window.location.assign(compareLink.href);
+              }, 250);
+            } else if (barsUp < 1 && toCompare) {
+              clearTimeout(toCompare);
+              toCompare = 0;
+            }
+            lastBarsUp = barsUp;
+          }
+        }
       }
     }
 
@@ -503,7 +814,9 @@
     update();
     if (document.fonts) document.fonts.ready.then(function () { measure(); soon(); });
     window.addEventListener("scroll", soon, { passive: true });
-    window.addEventListener("wheel", stopWhileHolding, { passive: false });
+    // An answer opening or closing changes the room under the questions for "SCROLL"
+    if (faqList && window.ResizeObserver) new ResizeObserver(function () { soon(); }).observe(faqList);
+    window.addEventListener("wheel", wheel, { passive: false });
     window.addEventListener("touchmove", stopWhileHolding, { passive: false });
     window.addEventListener("resize", function () { remask(); measure(); jump = true; soon(); });
     if (wide.addEventListener) wide.addEventListener("change", function () { remask(); measure(); soon(); });
@@ -513,7 +826,7 @@
     scrollEffect();
     mountMethodBackgrounds();
     if (!root.classList.contains("intro-play")) {
-      mountBackground();
+      mountWhenArrived();
       return start(REVISIT);
     }
     var watch = new MutationObserver(function () {

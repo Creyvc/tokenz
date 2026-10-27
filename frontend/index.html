@@ -6,11 +6,13 @@
   <title>Tokenz</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <script src="reload.js"></script>
+  <script src="page-transition.js"></script>
   <script src="intro.js"></script>
   <link rel="stylesheet" href="styles.css">
   <script src="consent.js" defer></script>
   <script src="modal.js" defer></script>
   <script src="grainient.js" defer></script>
+  <script src="decrypt.js" defer></script>
   <script src="home.js"></script>
 </head>
 <body>
@@ -74,6 +76,7 @@
           </div>
         </article>
       </div>
+      <canvas class="home-pixels" aria-hidden="true"></canvas>
     </div>
   </section>
   <section class="home-end">
@@ -93,7 +96,7 @@
           <p class="measure-text">How many times the person had to type before the answer was complete.</p>
         </li>
         <li class="measure-item">
-          <svg class="measure-mark" viewBox="0 0 120 120" width="120" height="120" aria-hidden="true"><path class="measure-corner" d="M1 13V1H13M107 1H119V13M1 107V119H13M119 107V119H107"/><g class="mark-cost"><g class="mark-coin" style="--n: 0"><ellipse cx="60" cy="42" rx="28" ry="9"/></g><path class="mark-coin" style="--n: 1" d="M32 42V54C32 59 44.5 63 60 63S88 59 88 54V42"/><path class="mark-coin" style="--n: 2" d="M32 54V66C32 71 44.5 75 60 75S88 71 88 66V54"/><path class="mark-coin" style="--n: 3" d="M32 66V78C32 83 44.5 87 60 87S88 83 88 78V66"/></g></svg>
+          <svg class="measure-mark" viewBox="0 0 120 120" width="120" height="120" aria-hidden="true"><path class="measure-corner" d="M1 13V1H13M107 1H119V13M1 107V119H13M119 107V119H107"/><g class="mark-cost"><g class="mark-coin" style="--n: 2"><path d="M32 66V78C32 83 44.5 87 60 87S88 83 88 78V66"/><ellipse cx="60" cy="66" rx="28" ry="9"/></g><g class="mark-coin" style="--n: 1"><path d="M32 54V66C32 71 44.5 75 60 75S88 71 88 66V54"/><ellipse cx="60" cy="54" rx="28" ry="9"/></g><g class="mark-coin" style="--n: 0"><path d="M32 42V54C32 59 44.5 63 60 63S88 59 88 54V42"/><ellipse cx="60" cy="42" rx="28" ry="9"/></g></g></svg>
           <span class="measure-num">03</span>
           <h3 class="measure-name">Cost</h3>
           <p class="measure-text">US dollars per 1,000 questions, using each provider's list prices from October 2026.</p>
@@ -105,6 +108,39 @@
           <p class="measure-text">Scored 1 to 5 by raters who don't know which method wrote the answer.</p>
         </li>
       </ol>
+    </div>
+  </section>
+  <section class="home-cover">
+    <div class="faq">
+      <div class="faq-intro">
+        <p class="faq-label"><span>FAQ</span></p>
+        <h2 class="faq-title">What people ask before trimming a prompt.</h2>
+        <p class="faq-lede">Short answers about the three methods, where your prompt goes, and what we test.</p>
+      </div>
+      <div class="faq-list">
+        <details class="faq-item">
+          <summary class="faq-question"><span>What does Tokenz actually do?</span><svg class="faq-chevron" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 9L12 15L18 9"/></svg></summary>
+          <p class="faq-answer">It shortens a prompt before you send it to an AI, taking out the words that don't change what you're asking. The model reads fewer tokens, and the request stays the same.</p>
+        </details>
+        <details class="faq-item">
+          <summary class="faq-question"><span>Which of the three methods should I use?</span><svg class="faq-chevron" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 9L12 15L18 9"/></svg></summary>
+          <p class="faq-answer">NLP for any prompt: it tidies the wording, cutting polite openings and repeated sentences. TF-IDF for longer prompts with a lot of background, since it drops the sentences that are off-topic. AI Rewrite when you want the shortest version and don't mind your prompt being sent out to be rewritten.</p>
+        </details>
+        <details class="faq-item">
+          <summary class="faq-question"><span>Does my prompt leave my computer?</span><svg class="faq-chevron" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 9L12 15L18 9"/></svg></summary>
+          <p class="faq-answer">Not with NLP or TF-IDF: both run on your own computer. AI Rewrite sends your prompt to Groq and Google, so their models can write a shorter version.</p>
+        </details>
+        <details class="faq-item">
+          <summary class="faq-question"><span>Can a shorter prompt get a worse answer?</span><svg class="faq-chevron" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 9L12 15L18 9"/></svg></summary>
+          <p class="faq-answer">It can, so we check. AI Rewrite rejects any rewrite that drops a number or saves no tokens, and keeps your original instead. In our tests, every answer is scored 1 to 5 by raters who don't know which method wrote it.</p>
+        </details>
+        <details class="faq-item">
+          <summary class="faq-question"><span>Do the smarter methods really save money?</span><svg class="faq-chevron" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 9L12 15L18 9"/></svg></summary>
+          <p class="faq-answer">That's the question this project tests. AI Rewrite spends tokens of its own, so we count everything until the question is fully answered: every message, the resent history and every helper call, priced per 1,000 questions.</p>
+        </details>
+      </div>
+      <span class="faq-line" aria-hidden="true"></span>
+      <p class="faq-scroll"><span class="faq-word is-scroll" aria-hidden="true"><span style="--i: 0">S</span><span style="--i: 1">c</span><span style="--i: 2">r</span><span style="--i: 3">o</span><span style="--i: 4">l</span><span style="--i: 5">l</span></span><a class="faq-word is-compare" href="compare.html" aria-label="Compare" tabindex="-1"><span style="--i: 0">C</span><span style="--i: 1">o</span><span style="--i: 2">m</span><span style="--i: 3">p</span><span style="--i: 4">a</span><span style="--i: 5">r</span><span style="--i: 6">e</span></a></p>
     </div>
   </section>
 </body>
