@@ -65,7 +65,8 @@
     revealing = true;
     running = event.viewTransition;
     root.classList.add("pt-switch");
-    // (one cover only: two of them would make the browser refuse the whole switch)
+    // (one cover only, should one ever be left over). It's part of the new page, so the box cuts
+    // it to exactly its own edges (styles.css)
     Array.prototype.forEach.call(document.querySelectorAll(".pt-cover"), function (old) { old.remove(); });
     var cover = document.createElement("div");
     cover.className = "pt-cover";

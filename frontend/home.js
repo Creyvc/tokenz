@@ -30,20 +30,26 @@
   // the sentence and headline line by line, and TOKENZ letter by letter (home-arriving holds
   // its letters down, styles.css)
   var ARRIVE = 1200;
-  var arriveAt = 0;
+  // The gradient box comes in a little before that (BOX_ARRIVE ms in), just as the new page
+  // starts to show under the cover, so it's already there as the box grows, like the other
+  // pages' content (home-box-waiting, styles.css)
+  var BOX_ARRIVE = 800;
+  var arriveAt = 0, boxAt = 0;
   window.addEventListener("pagereveal", function (event) {
     if (still || !event.viewTransition) return;
     arriveAt = performance.now() + ARRIVE;
-    root.classList.add("home-arriving");
+    boxAt = performance.now() + BOX_ARRIVE;
+    root.classList.add("home-arriving", "home-box-waiting");
     setTimeout(function () { root.classList.remove("home-arriving"); }, ARRIVE);
-    // The gradient box fades in as the cover leaves, its gradient blooming from the middle as on
-    // a first visit: if it's already up, it's taken down and put up again then
+    setTimeout(function () { root.classList.remove("home-box-waiting"); }, BOX_ARRIVE);
+    // The gradient box fades in, its gradient blooming from the middle as on a first visit: if
+    // it's already up, it's taken down and put up again then
     if (heroBackground) {
       heroBackground.destroy();
       heroBackground = null;
       var panel = document.querySelector(".home-panel");
       if (panel) panel.classList.remove("is-lit");
-      setTimeout(mountBackground, ARRIVE);
+      setTimeout(mountBackground, BOX_ARRIVE);
     }
     // Back on Home from the browser's memory (the Back button), its text was already in: down
     // behind the masks again (at once), and in again as the cover leaves
@@ -182,9 +188,9 @@
     setTimeout(sentence.restore, (risers.length - 1) * STEP + RISE + 100);
   }
 
-  // The gradient, but not while the page switch's cover is still over Home (see ARRIVE)
+  // The gradient, but not while the page switch's cover is still over Home (see BOX_ARRIVE)
   function mountWhenArrived() {
-    var wait = arriveAt - performance.now();
+    var wait = boxAt - performance.now();
     if (wait > 0) return setTimeout(mountWhenArrived, wait);
     if (!heroBackground) mountBackground();
   }

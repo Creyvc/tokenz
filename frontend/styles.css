@@ -2308,16 +2308,17 @@ html.home-arriving .home-title-letter {
   transition: none;
 }
 
-/* and the gradient box is hidden, then fades in as the switch's cover leaves */
-html.home-arriving .home-panel {
+/* and the gradient box is hidden, then fades in just as the new page starts to show under the
+   switch's cover (home-box-waiting, home.js), so it's there as the box grows */
+html.home-box-waiting .home-panel {
   opacity: 0;
 }
 
 .home-panel {
-  transition: opacity 1s ease;
+  transition: opacity 0.6s ease;
 }
 
-html.home-arriving .home-panel {
+html.home-box-waiting .home-panel {
   transition: none;
 }
 
@@ -2950,6 +2951,7 @@ html.home-scroll .home-end {
 
 /* Down the page, one per row, swapping sides */
 .measure-item {
+  position: relative;
   max-width: 340px;
   /* Far apart, so the section takes a good while to scroll through */
   margin-bottom: 240px;
@@ -3070,10 +3072,13 @@ html.home-scroll .home-end {
   }
 }
 
+/* The number takes the place of the frame's bottom-left corner: its foot on the corner's line */
 .measure-num {
-  display: block;
-  margin-top: 14px;
+  position: absolute;
+  top: 107px;
+  left: 0;
   font-size: 13px;
+  line-height: 1;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: #5B4FD6;
@@ -3735,9 +3740,10 @@ html.home-dark .nav.nav-copy {
    one, which stays still underneath. While it runs (html.pt-switch):
    - the new page is cut down to a box that starts as a thin line near the bottom of the window
      and grows up and out until it fills the window (pt-box)
-   - a black cover (.pt-cover, page-transition.js) sits over the box: first all of it, as the
-     line and then the bar; then its bottom edge rises and the new page shows under it; once the
-     box fills the window it slides up off the top (pt-cover)
+   - a black cover (.pt-cover, page-transition.js) on the new page itself, so the box cuts it
+     to the same edges: first all of the box, as the line and then the bar; then its bottom edge
+     rises and the new page shows under it; once the box fills the window it slides up off the
+     top (pt-cover)
    - the page's title rises in behind a mask as the cover leaves
    Before any of that, the old page dims a little (pt-dim), and the rest waits for it (0.25s).
    The sidebar's dot stays part of each page here, rather than sliding over the box */
@@ -3751,9 +3757,9 @@ html.pt-switch .nav-dot {
   z-index: 2147483000;
   background: #16171A;
   pointer-events: none;
-  /* Only there while the switch runs, which draws over the page, so it's never seen on the page
-     itself (page-transition.js removes it when the switch ends) */
-  view-transition-name: pt-cover;
+  /* Only there while the switch runs, inside the box, so it's never seen on the page itself
+     (page-transition.js removes it when the switch ends) */
+  animation: pt-cover 1.8s linear 0.25s both;
 }
 
 /* Coming from a dark page (the end of Home), the cover is light, so the line and the bar show */
@@ -3761,8 +3767,7 @@ html.pt-switch .nav-dot {
   background: #E5E4DF;
 }
 
-html.pt-switch::view-transition-group(root),
-html.pt-switch::view-transition-group(pt-cover) {
+html.pt-switch::view-transition-group(root) {
   animation: none;
 }
 
@@ -3776,19 +3781,11 @@ html.pt-switch::view-transition-old(root) {
   to { filter: brightness(0.8); }
 }
 
-/* The new page and its cover wait for the dimming, cut down to nothing until they start */
-html.pt-switch::view-transition-new(root),
-html.pt-switch::view-transition-new(pt-cover) {
-  clip-path: inset(50% 50% 50% 50%);
-}
-
+/* The new page (and the cover on it) waits for the dimming, cut down to nothing until it starts */
 html.pt-switch::view-transition-new(root) {
+  clip-path: inset(50% 50% 50% 50%);
   mix-blend-mode: normal;
   animation: pt-box 1.8s linear 0.25s forwards;
-}
-
-html.pt-switch::view-transition-new(pt-cover) {
-  animation: pt-cover 1.8s linear 0.25s forwards;
 }
 
 /* The box: top, right, bottom and left insets. A line near the bottom for the first quarter of
@@ -3804,14 +3801,15 @@ html.pt-switch::view-transition-new(pt-cover) {
 }
 
 /* The cover: the whole box at first (faint, then black), then its bottom edge rises through the
-   box, and once the box is full it slides up off the top */
+   box, and once the box is full it slides up off the top. Only its bottom edge is set here: the
+   box cuts its top and sides, so they always line up with the white */
 @keyframes pt-cover {
-  0%   { clip-path: inset(84.9% 9% 15% 9%); opacity: 0.25; animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1); }
-  14%  { clip-path: inset(84.4% 9% 14.8% 9%); opacity: 1; animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1); }
-  27%  { clip-path: inset(80% 9% 14% 9%); animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1); }
-  39%  { clip-path: inset(62% 8% 12% 8%); }
-  47%  { clip-path: inset(35% 6% 12% 6%); }
-  56%  { clip-path: inset(16% 4% 25% 4%); animation-timing-function: cubic-bezier(0.33, 0, 0.67, 1); }
+  0%   { clip-path: inset(0 0 15% 0); opacity: 0.25; animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1); }
+  14%  { clip-path: inset(0 0 14.8% 0); opacity: 1; animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1); }
+  27%  { clip-path: inset(0 0 14% 0); animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1); }
+  39%  { clip-path: inset(0 0 12% 0); }
+  47%  { clip-path: inset(0 0 12% 0); }
+  56%  { clip-path: inset(0 0 25% 0); animation-timing-function: cubic-bezier(0.33, 0, 0.67, 1); }
   64%  { clip-path: inset(0 0 55% 0); opacity: 1; animation-timing-function: cubic-bezier(0.25, 0.6, 0.35, 1); }
   100% { clip-path: inset(0 0 100% 0); opacity: 1; }
 }
