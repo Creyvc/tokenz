@@ -45,5 +45,67 @@
       <h1 class="home-title" aria-label="Tokenz"><span class="home-title-mask" aria-hidden="true"><span class="home-title-word"><span class="home-title-letter" style="--i: 0">T</span><span class="home-title-letter" style="--i: 1">o</span><span class="home-title-letter" style="--i: 2">k</span><span class="home-title-letter" style="--i: 3">e</span><span class="home-title-letter" style="--i: 4">n</span><span class="home-title-letter" style="--i: 5">z</span></span></span></h1>
     </div>
   </main>
+  <section class="home-next">
+    <div class="home-track">
+      <div class="home-row">
+        <div class="home-next-intro">
+          <h2 class="home-next-title" aria-label="Three Methods"><span class="home-next-mask" aria-hidden="true"><span class="home-next-word"><span class="home-next-letter" style="--i: 0">T</span><span class="home-next-letter" style="--i: 1">h</span><span class="home-next-letter" style="--i: 2">r</span><span class="home-next-letter" style="--i: 3">e</span><span class="home-next-letter" style="--i: 4">e</span></span> <span class="home-next-word"><span class="home-next-letter" style="--i: 5">M</span><span class="home-next-letter" style="--i: 6">e</span><span class="home-next-letter" style="--i: 7">t</span><span class="home-next-letter" style="--i: 8">h</span><span class="home-next-letter" style="--i: 9">o</span><span class="home-next-letter" style="--i: 10">d</span><span class="home-next-letter" style="--i: 11">s</span></span></span></h2>
+          <p class="home-next-lede">Each one tries to get a complete answer from a single message. The question is whether the smarter ones save enough to pay for their own work.</p>
+        </div>
+        <article class="home-method is-nlp">
+          <p class="home-method-top"><span>01</span><span>Runs on your computer</span></p>
+          <div class="home-method-body">
+            <h3 class="home-method-name">NLP</h3>
+            <p class="home-method-text">Tidies the wording: cuts polite openings and repeated sentences. Good for any prompt.</p>
+          </div>
+        </article>
+        <article class="home-method is-tfidf">
+          <p class="home-method-top"><span>02</span><span>Runs on your computer</span></p>
+          <div class="home-method-body">
+            <h3 class="home-method-name">TF-IDF</h3>
+            <p class="home-method-text">Cuts whole sentences that are off-topic. Best for longer prompts with background.</p>
+          </div>
+        </article>
+        <article class="home-method is-ai">
+          <p class="home-method-top"><span>03</span><span>Sends your prompt to Groq and Google</span></p>
+          <div class="home-method-body">
+            <h3 class="home-method-name">AI Rewrite</h3>
+            <p class="home-method-text">AI models each rewrite the whole prompt shorter. A rewrite that drops a number or saves no tokens is rejected, and the original is kept.</p>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+  <section class="home-end">
+    <div class="measure">
+      <h2 class="measure-title">What We Measure</h2>
+      <ol class="measure-list">
+        <li class="measure-item">
+          <svg class="measure-mark" viewBox="0 0 120 120" width="120" height="120" aria-hidden="true"><path class="measure-corner" d="M1 13V1H13M107 1H119V13M1 107V119H13M119 107V119H107"/><g class="mark-tokens"><path class="mark-line" style="--n: 0" d="M28 38H92"/><path class="mark-line" style="--n: 1" d="M28 50H84"/><path class="mark-line" style="--n: 2" d="M28 62H74"/><path class="mark-line" style="--n: 3" d="M28 74H60"/><path class="mark-line" style="--n: 4" d="M28 86H44"/></g></svg>
+          <span class="measure-num">01</span>
+          <h3 class="measure-name">Total tokens</h3>
+          <p class="measure-text">Every message, the resent history, and every helper call, until the question is fully answered.</p>
+        </li>
+        <li class="measure-item">
+          <svg class="measure-mark" viewBox="0 0 120 120" width="120" height="120" aria-hidden="true"><path class="measure-corner" d="M1 13V1H13M107 1H119V13M1 107V119H13M119 107V119H107"/><g class="mark-messages"><g class="mark-bubble" style="--n: 0"><path d="M30 30H70A6 6 0 0 1 76 36V54A6 6 0 0 1 70 60H46L36 68V60H30A6 6 0 0 1 24 54V36A6 6 0 0 1 30 30Z"/><circle class="mark-dot" style="--n: 0" cx="40" cy="45" r="2"/><circle class="mark-dot" style="--n: 1" cx="50" cy="45" r="2"/><circle class="mark-dot" style="--n: 2" cx="60" cy="45" r="2"/></g><g class="mark-bubble" style="--n: 1"><path d="M50 66H90A6 6 0 0 1 96 72V84A6 6 0 0 1 90 90H86V98L76 90H50A6 6 0 0 1 44 84V72A6 6 0 0 1 50 66Z"/></g></g></svg>
+          <span class="measure-num">02</span>
+          <h3 class="measure-name">Messages</h3>
+          <p class="measure-text">How many times the person had to type before the answer was complete.</p>
+        </li>
+        <li class="measure-item">
+          <svg class="measure-mark" viewBox="0 0 120 120" width="120" height="120" aria-hidden="true"><path class="measure-corner" d="M1 13V1H13M107 1H119V13M1 107V119H13M119 107V119H107"/><g class="mark-cost"><g class="mark-coin" style="--n: 0"><ellipse cx="60" cy="42" rx="28" ry="9"/></g><path class="mark-coin" style="--n: 1" d="M32 42V54C32 59 44.5 63 60 63S88 59 88 54V42"/><path class="mark-coin" style="--n: 2" d="M32 54V66C32 71 44.5 75 60 75S88 71 88 66V54"/><path class="mark-coin" style="--n: 3" d="M32 66V78C32 83 44.5 87 60 87S88 83 88 78V66"/></g></svg>
+          <span class="measure-num">03</span>
+          <h3 class="measure-name">Cost</h3>
+          <p class="measure-text">US dollars per 1,000 questions, using each provider's list prices from October 2026.</p>
+        </li>
+        <li class="measure-item">
+          <svg class="measure-mark" viewBox="0 0 120 120" width="120" height="120" aria-hidden="true"><path class="measure-corner" d="M1 13V1H13M107 1H119V13M1 107V119H13M119 107V119H107"/><g class="mark-quality"><path class="mark-bar" style="--n: 0" d="M36 90V78"/><path class="mark-bar" style="--n: 1" d="M48 90V68"/><path class="mark-bar" style="--n: 2" d="M60 90V58"/><path class="mark-bar" style="--n: 3" d="M72 90V46"/><path class="mark-bar" style="--n: 4" d="M84 90V32"/></g></svg>
+          <span class="measure-num">04</span>
+          <h3 class="measure-name">Quality</h3>
+          <p class="measure-text">Scored 1 to 5 by raters who don't know which method wrote the answer.</p>
+        </li>
+      </ol>
+    </div>
+  </section>
 </body>
 </html>

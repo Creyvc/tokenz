@@ -5,6 +5,7 @@
 //
 //   var bg = Grainient(element, { colors: ["#120f17", "#9a3412", "#fed7aa"], angle: 55 });
 //   bg.set({ ...any option }) changes options later; bg.destroy() takes it out again.
+//   bg.hold(true) pauses it while it's hidden behind something; bg.hold(false) carries on.
 // Options are the component's props. Without WebGL2 it returns null and leaves the element as it was.
 (function () {
   var MAX_COLORS = 8;
@@ -504,7 +505,7 @@ void main() {
 
     function frame(now) {
       raf = 0;
-      if (!visible || document.hidden) return;
+      if (!visible || held || document.hidden) return;
       var s = settings;
       var dt = last ? clamp((now - last) / 1000, 0.001, 0.05) : 1 / 60;
       last = now;
@@ -523,7 +524,7 @@ void main() {
     }
 
     function wake() {
-      if (!raf && visible && !document.hidden) raf = requestAnimationFrame(frame);
+      if (!raf && visible && !held && !document.hidden) raf = requestAnimationFrame(frame);
     }
 
     function locate(event) {
@@ -568,6 +569,8 @@ void main() {
       wake();
     }
 
+    // held: paused by the page (hold), for when it's on screen but covered by something else
+    var held = false;
     var resizeObserver = new ResizeObserver(resize);
     resizeObserver.observe(container);
     var intersection = new IntersectionObserver(function (entries) {
@@ -589,6 +592,14 @@ void main() {
         Object.assign(props, next || {});
         settings = settle(props);
         wake();
+      },
+      hold: function (on) {
+        if (held === !!on) return;
+        held = !!on;
+        if (!held) {
+          last = 0;
+          wake();
+        }
       },
       destroy: function () {
         cancelAnimationFrame(raf);

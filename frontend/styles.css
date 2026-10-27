@@ -2560,14 +2560,14 @@ html.home-text-on .home-intro .mask-rise {
   transition: transform 0.75s cubic-bezier(0.33, 1, 0.68, 1);
 }
 
-/* Home's scroll effect (home.js, wider screens only, not for reduced motion). The page gets one
-   screen of scrolling; --grow runs from 0 to 1 across it. The panel is drawn the size of the whole
+/* Home's scroll effect (home.js, wider screens only, not for reduced motion). --grow runs from 0
+   to 1 across the first screen of scrolling; a little further, the text masks out. The panel is drawn the size of the whole
    window from the start and shown through a clip the shape of the box, which widens to the full
    window (over the sidebar), so the gradient never stretches or redraws. The headline and sentence
    draw closer together. They're dark on the white page; a white copy of them inside the panel
    shows only where the gradient is, so the text turns white exactly where the gradient reaches it */
 html.home-scroll .content.home {
-  height: 200vh;
+  height: 260vh;
 }
 
 html.home-scroll .home-panel {
@@ -2601,12 +2601,610 @@ html.home-scroll .home-intro {
   color: #ffffff;
 }
 
+/* Past the full window, the copy's lines slide back down into their masks, the same motion as
+   their entrance played backwards (home.js adds the masks and home-text-out) */
+.home-intro.is-copy .mask-rise {
+  transform: none;
+  transition: transform 0.75s cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+html.home-text-out .home-intro.is-copy .mask-rise {
+  transform: translateY(135%);
+}
+
 html.home-scroll .home-lede {
   transform: translateY(var(--pull, 0px));
 }
 
 html.home-scroll .home-headline {
   transform: translateY(calc(var(--pull, 0px) * -1));
+}
+
+/* After the text has gone, a white page is laid on top of the gradient, like a second sheet: it
+   slides up with the scroll, with rounded top corners and a soft shadow on its edge, while the
+   gradient underneath darkens. --sheet runs from 0 to 1 as it comes up (home.js); the corners
+   flatten as it reaches the top. Without the scroll effect it's just the next page, after Home */
+.home-next {
+  position: relative;
+  /* Over Home's box and text, under the sidebar (the scroll effect lifts it higher, below) */
+  z-index: 1;
+  min-height: 100vh;
+  /* In line with Home's text, just right of the sidebar */
+  padding: 96px 40px 96px 218px;
+  background: #ffffff;
+}
+
+/* The title and the three methods. Stacked here; with the scroll effect, a row that slides
+   sideways (below) */
+.home-row {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.home-next-intro {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 72px;
+  container-type: inline-size;
+}
+
+/* Big and bold like Home's headline, on one line */
+.home-next-title {
+  font-size: 6.4cqi;
+  font-weight: 700;
+  line-height: 0.98;
+  letter-spacing: -0.055em;
+  color: #16171A;
+}
+
+/* Its text mask, letter by letter like TOKENZ: with the scroll effect each letter waits below
+   the mask, and once the white page is most of the way up (home-methods-in, home.js) they rise
+   in one after another, 75ms apart; scrolling back up past that, they slide back down */
+.home-next-mask {
+  display: block;
+  overflow: hidden;
+  padding: 0.12em 0 0.2em;
+  margin: -0.12em 0 -0.2em;
+}
+
+.home-next-letter {
+  display: inline-block;
+  transition: transform 0.75s cubic-bezier(0.33, 1, 0.68, 1);
+  transition-delay: calc(var(--i) * 75ms);
+}
+
+html.home-scroll:not(.home-methods-in) .home-next-letter {
+  transform: translateY(135%);
+}
+
+/* Its letters are split into spans (home.js) for the opacity sweep; words never break inside */
+.home-next-word {
+  white-space: nowrap;
+}
+
+/* Set like Home's sentence: the right half, first line indented */
+.home-next-lede {
+  max-width: 50%;
+  margin: 1.4em 0 0 50%;
+  font-size: 2cqi;
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  text-indent: 3em;
+  color: #16171A;
+}
+
+/* One rounded panel per method: its number and where it runs at the top, its name big at the
+   bottom, in white. Each has its own soft, blurred gradient under a film grain: NLP a cool steel
+   grey with a diagonal streak of light, TF-IDF a deep teal blooming from two corners, AI
+   rewrite the team's violet in mottled spots */
+.home-method {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 420px;
+  padding: 28px 32px 36px;
+  border-radius: 12px;
+  background: #3a4552;
+  color: #ffffff;
+  container-type: inline-size;
+}
+
+/* The colours, drawn larger than the panel and blurred so every edge melts */
+.home-method::before {
+  content: "";
+  position: absolute;
+  inset: -15%;
+  z-index: -2;
+  filter: blur(36px);
+  background:
+    radial-gradient(35% 28% at 70% 40%, #d3dde7 0%, rgba(211, 221, 231, 0) 100%),
+    linear-gradient(128deg, #1d232c 0%, #34404d 30%, #9aabbc 47%, #b8c5d2 52%, #4a5867 66%, #1f262f 100%);
+}
+
+/* With WebGL2, the moving gradient (home.js) fills the panel under the grain and text, in place
+   of the still one */
+.home-method > .grainient-container {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+}
+
+.home-method.is-lit::before {
+  display: none;
+}
+
+/* While the panels grow and shrink in the sliding row, the moving gradient stays the size of the
+   window, centred in its panel, which shows more or less of it. Its canvas never resizes, so
+   growing costs nothing */
+html.home-scroll .home-method > .grainient-container {
+  inset: auto;
+  top: 50%;
+  left: 50%;
+  width: 100vw;
+  height: 100vh;
+  transform: translate(-50%, -50%);
+}
+
+/* The grain, over the colours and under the text: fine, high-contrast speckle, so the surface
+   looks rough rather than smooth */
+.home-method::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='3.6' intercept='-1.3'/%3E%3CfeFuncG type='linear' slope='3.6' intercept='-1.3'/%3E%3CfeFuncB type='linear' slope='3.6' intercept='-1.3'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+  opacity: 0.85;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+.home-method.is-tfidf {
+  background: #1f5f5b;
+}
+
+.home-method.is-tfidf::before {
+  background:
+    radial-gradient(45% 40% at 92% 6%, #c8eadf 0%, rgba(200, 234, 223, 0) 100%),
+    radial-gradient(55% 50% at 70% 30%, #4fa596 0%, rgba(79, 165, 150, 0) 100%),
+    radial-gradient(60% 55% at 8% 96%, #071b1c 0%, rgba(7, 27, 28, 0) 100%),
+    radial-gradient(50% 45% at 35% 70%, #0f3a3b 0%, rgba(15, 58, 59, 0) 100%),
+    #1f5f5b;
+}
+
+.home-method.is-ai {
+  background: #8B7FF2;
+}
+
+.home-method.is-ai::before {
+  background:
+    radial-gradient(30% 26% at 28% 42%, #f1edff 0%, rgba(241, 237, 255, 0) 100%),
+    radial-gradient(34% 30% at 78% 28%, #5B4FD6 0%, rgba(91, 79, 214, 0) 100%),
+    radial-gradient(38% 32% at 32% 78%, #3a2fb0 0%, rgba(58, 47, 176, 0) 100%),
+    radial-gradient(28% 24% at 88% 86%, #d6cfff 0%, rgba(214, 207, 255, 0) 100%),
+    radial-gradient(24% 20% at 58% 56%, #b4aaff 0%, rgba(180, 170, 255, 0) 100%),
+    #8B7FF2;
+}
+
+.home-method-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.home-method-name {
+  font-size: min(12cqi, 104px);
+  font-weight: 700;
+  line-height: 0.98;
+  letter-spacing: -0.055em;
+}
+
+.home-method-text {
+  max-width: 26em;
+  margin-top: 18px;
+  font-size: clamp(16px, 1.4vw, 22px);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+/* Without the scroll effect on a wide screen, Home's text and box stay put for one screen and
+   this page scrolls up over them */
+@media (min-width: 801px) {
+  html:not(.home-scroll) .content.home {
+    height: 100vh;
+  }
+}
+
+@media (max-width: 800px) {
+  .home-next {
+    min-height: 0;
+    padding: 48px 16px 64px;
+  }
+
+  .home-next-intro {
+    margin-bottom: 32px;
+  }
+
+  .home-next-title {
+    font-size: 12cqi;
+  }
+
+  .home-next-lede {
+    max-width: none;
+    margin: 20px 0 0;
+    font-size: 5cqi;
+  }
+
+  .home-method {
+    min-height: 340px;
+    padding: 20px 20px 24px;
+  }
+}
+
+/* With the scroll effect: the horizontal section from olivierlarose.com's demo. The page holds
+   still beside the sidebar while the row slides left as you scroll down, easing out (home.js
+   sets the white page's height for the scroll room and moves the row). The panels are 70% of
+   the window tall and 100px apart. They slide on under the sidebar, which fades from white to
+   clear over them, so its links stay readable and the panels are still seen going past */
+html.home-scroll .home-next {
+  z-index: 12;
+  padding: 0;
+}
+
+/* Once the last method has slid in, the page scrolls on as normal: the row moves up and away and
+   "What We Measure" follows it. The title on the left stays put while the four measures go past
+   on the right, staggered left and right, each with a small line drawing in a cornered frame
+   (after isidor.ai, in this site's ink, with the numbers in the team's violet) */
+.home-end {
+  position: relative;
+  z-index: 1;
+  background: #ffffff;
+}
+
+html.home-scroll .home-end {
+  z-index: 12;
+  min-height: 100vh;
+}
+
+.measure {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  column-gap: 64px;
+  /* Plenty of room after the last measure, so the title stays a while before the page ends */
+  padding: 15vh 40px 45vh 218px;
+}
+
+/* Big and bold like "Three Methods" */
+.measure-title {
+  position: sticky;
+  top: 15vh;
+  align-self: start;
+  font-size: clamp(40px, 5.2vw, 96px);
+  font-weight: 700;
+  line-height: 0.98;
+  letter-spacing: -0.055em;
+  color: #16171A;
+}
+
+.measure-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  padding-left: 48px;
+  border-left: 1px dashed #E5E4DF;
+}
+
+/* Down the page, one per row, swapping sides */
+.measure-item {
+  max-width: 340px;
+  /* Far apart, so the section takes a good while to scroll through */
+  margin-bottom: 240px;
+}
+
+.measure-item:nth-child(even) {
+  margin-left: calc(50% + 24px);
+}
+
+.measure-item:last-child {
+  margin-bottom: 0;
+}
+
+.measure-mark {
+  display: block;
+  width: 120px;
+  height: 120px;
+  fill: none;
+  stroke: #16171A;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.measure-mark .measure-corner {
+  stroke: #9a9a9a;
+  stroke-width: 1;
+  stroke-linecap: square;
+}
+
+/* The drawings move, each in a way that matches what it measures: the token lines trim and grow
+   back one after another, the message bubbles bob while dots type in the first, the coins in
+   the stack bounce from the top down, and the quality bars rise and fall like a level meter.
+   --n staggers the pieces */
+.measure-mark path:not(.measure-corner),
+.measure-mark ellipse,
+.measure-mark circle {
+  transform-box: fill-box;
+  vector-effect: non-scaling-stroke;
+}
+
+.mark-line {
+  transform-origin: left center;
+  animation: mark-trim 2.4s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  animation-delay: calc(var(--n) * 0.15s);
+}
+
+@keyframes mark-trim {
+  0%, 100% { transform: scaleX(1); }
+  50% { transform: scaleX(0.45); }
+}
+
+.mark-bubble {
+  transform-origin: center bottom;
+  animation: mark-bob 2.4s ease-in-out infinite;
+  /* the reply follows a moment behind, close enough that the two never overlap */
+  animation-delay: calc(var(--n) * 0.08s);
+}
+
+/* A clear bob with a little tilt */
+@keyframes mark-bob {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-6px) rotate(-3deg); }
+  50% { transform: translateY(-10px) rotate(0deg); }
+  75% { transform: translateY(-6px) rotate(3deg); }
+}
+
+.mark-dot {
+  fill: #16171A;
+  stroke: none;
+  animation: mark-type 1.2s ease-in-out infinite;
+  animation-delay: calc(var(--n) * 0.2s);
+}
+
+@keyframes mark-type {
+  0%, 100% { opacity: 0.2; }
+  40% { opacity: 1; }
+}
+
+.mark-coin {
+  animation: mark-bounce 1.8s infinite;
+  animation-delay: calc(var(--n) * 0.1s);
+}
+
+/* Each coin jumps well clear of the stack and lands with a small bounce, top first */
+@keyframes mark-bounce {
+  0% { transform: translateY(0); animation-timing-function: cubic-bezier(0.33, 1, 0.68, 1); }
+  22% { transform: translateY(-16px); animation-timing-function: cubic-bezier(0.32, 0, 0.67, 0); }
+  42% { transform: translateY(0); animation-timing-function: cubic-bezier(0.33, 1, 0.68, 1); }
+  50% { transform: translateY(-4px); animation-timing-function: cubic-bezier(0.32, 0, 0.67, 0); }
+  58%, 100% { transform: translateY(0); }
+}
+
+.mark-bar {
+  transform-origin: center bottom;
+  animation: mark-level 2s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  animation-delay: calc(var(--n) * 0.12s);
+}
+
+@keyframes mark-level {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(0.35); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .measure-mark * {
+    animation: none;
+  }
+}
+
+.measure-num {
+  display: block;
+  margin-top: 14px;
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: #5B4FD6;
+}
+
+.measure-name {
+  margin-top: 18px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #16171A;
+}
+
+.measure-text {
+  margin-top: 10px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #5c5c5c;
+}
+
+@media (max-width: 800px) {
+  .measure {
+    grid-template-columns: 1fr;
+    padding: 48px 16px 64px;
+  }
+
+  .measure-title {
+    position: static;
+    margin-bottom: 40px;
+    font-size: 12vw;
+  }
+
+  .measure-list {
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  .measure-item,
+  .measure-item:nth-child(even) {
+    margin-left: 0;
+    margin-bottom: 48px;
+  }
+}
+
+html.home-scroll .home-track {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* The fade behind the sidebar: solid white under its links, then easing out to clear well past
+   its edge. The stops follow a smooth S-curve that starts and ends flat, so there's no visible
+   line where the fade begins or ends */
+html.home-scroll .home-track::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1;
+  width: 250px;
+  background: linear-gradient(to right,
+    #ffffff 0,
+    #ffffff 60px,
+    rgba(255, 255, 255, 0.985) 74px,
+    rgba(255, 255, 255, 0.945) 87px,
+    rgba(255, 255, 255, 0.882) 101px,
+    rgba(255, 255, 255, 0.802) 114px,
+    rgba(255, 255, 255, 0.708) 128px,
+    rgba(255, 255, 255, 0.606) 141px,
+    rgba(255, 255, 255, 0.500) 155px,
+    rgba(255, 255, 255, 0.394) 169px,
+    rgba(255, 255, 255, 0.292) 182px,
+    rgba(255, 255, 255, 0.198) 196px,
+    rgba(255, 255, 255, 0.118) 209px,
+    rgba(255, 255, 255, 0.055) 223px,
+    rgba(255, 255, 255, 0.015) 236px,
+    rgba(255, 255, 255, 0.000) 250px);
+  pointer-events: none;
+}
+
+html.home-scroll .home-row {
+  flex-direction: row;
+  gap: 100px;
+  width: max-content;
+  height: 100%;
+  /* Starts just right of the sidebar; everything sits centred on the window's middle, so the
+     panels keep their height in the window as they grow */
+  align-items: center;
+  padding: 0 0 0 218px;
+  will-change: transform;
+}
+
+html.home-scroll .home-next-intro {
+  flex: none;
+  justify-content: space-between;
+  width: 55vw;
+  height: 70vh;
+  /* Extra room before the first panel: 340px in all, against 100px between the panels */
+  margin: 0 240px 0 0;
+}
+
+html.home-scroll .home-next-title {
+  font-size: 9.5cqi;
+}
+
+/* At the bottom of its panel, like Home's sentence above its headline */
+html.home-scroll .home-next-lede {
+  margin-top: 0;
+  font-size: 3cqi;
+}
+
+/* The panels are small, half their width and height (a quarter of the area), except the one in
+   the middle of the window, which grows to the window's size. --box runs from 0 to 1 on each
+   (home.js); the corners straighten as it grows, and its text grows with it */
+html.home-scroll .home-method {
+  /* --k: how big the panel is against the window (0.22 to 1) */
+  --k: calc(0.22 + 0.78 * var(--box, 0));
+  flex: none;
+  width: calc(100vw * var(--k));
+  height: calc(35vh + 65vh * var(--box, 0));
+  min-height: 0;
+  padding: 0;
+  border-radius: calc(12px * (1 - var(--box, 0)));
+}
+
+/* Its text is laid out once at full-window size and scaled down with the panel (a transform, so
+   it grows and shrinks smoothly instead of re-wrapping every frame): the number and label from
+   the top-left corner, the name and description from the bottom-left. --clear (home.js) moves
+   them right while the panel reaches under the sidebar, and takes the same room off their width */
+html.home-scroll .home-method-top,
+html.home-scroll .home-method-body {
+  position: absolute;
+  left: 0;
+  width: calc(100vw - var(--clear, 0px) / var(--k));
+  transform: translateX(var(--clear, 0px)) scale(var(--k));
+}
+
+html.home-scroll .home-method-top {
+  top: 0;
+  padding: 44px 52px 0;
+  font-size: 1.3vw;
+  transform-origin: top left;
+}
+
+html.home-scroll .home-method-body {
+  bottom: 0;
+  padding: 0 52px 56px;
+  transform-origin: bottom left;
+}
+
+html.home-scroll .home-method-name {
+  font-size: 9vw;
+}
+
+html.home-scroll .home-method-text {
+  margin-top: 1.2vw;
+  font-size: 2.2vw;
+}
+
+html.home-scroll .home-next {
+  border-radius: calc(24px * (1 - var(--sheet, 0))) calc(24px * (1 - var(--sheet, 0))) 0 0;
+  box-shadow: 0 -18px 60px rgba(0, 0, 0, 0.4);
+}
+
+/* Once the white page fills the window, the gradient and the text behind it are hidden, so the
+   bounce at the end of the page shows the white page background instead of them */
+html.home-covered .home-panel,
+html.home-covered .home-intro {
+  visibility: hidden;
+}
+
+/* Its shadow would show as a grey band under it in the bounce; the top edge is out of sight by then */
+html.home-covered .home-next {
+  box-shadow: none;
+}
+
+html.home-scroll .home-panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background: #000000;
+  opacity: calc(0.5 * var(--sheet, 0));
+  pointer-events: none;
 }
 
 /* The sidebar during Home's scroll effect: always on top of the growing gradient. --edge is the
@@ -2617,8 +3215,11 @@ html.home-scroll .home-headline {
 html.home-scroll .nav {
   z-index: 13;
   background: transparent;
-  -webkit-mask-image: linear-gradient(to right, #000 var(--edge, 9999px), transparent var(--edge, 9999px));
-  mask-image: linear-gradient(to right, #000 var(--edge, 9999px), transparent var(--edge, 9999px));
+  /* Left of the gradient, and below the top of the white page once it comes up (--cover, px) */
+  -webkit-mask-image: linear-gradient(to right, #000 var(--edge, 9999px), transparent var(--edge, 9999px)),
+                      linear-gradient(to bottom, transparent var(--cover, 9999px), #000 var(--cover, 9999px));
+  mask-image: linear-gradient(to right, #000 var(--edge, 9999px), transparent var(--edge, 9999px)),
+              linear-gradient(to bottom, transparent var(--cover, 9999px), #000 var(--cover, 9999px));
 }
 
 html.home-scroll .nav.nav-copy {
@@ -2626,7 +3227,7 @@ html.home-scroll .nav.nav-copy {
   pointer-events: none;
   -webkit-mask-image: none;
   mask-image: none;
-  clip-path: inset(0 0 0 clamp(0px, var(--edge, 9999px), 210px));
+  clip-path: inset(0 0 calc(100% - var(--cover, 100%)) clamp(0px, var(--edge, 9999px), 210px));
 }
 
 /* Only the real dot slides between pages */
