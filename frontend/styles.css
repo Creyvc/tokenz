@@ -4188,3 +4188,94 @@ html.hw-still .hw-land {
     transition: none;
   }
 }
+
+
+/* About: the team toy (team.js), under the title: three cartoon people to bonk by clicking them */
+.hw-land .about {
+  max-width: 1000px;
+}
+
+.team-toy {
+  margin-top: 8px;
+}
+
+.team-canvas {
+  display: block;
+  width: 100%;
+  aspect-ratio: 8 / 3;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.team-canvas:focus-visible {
+  outline: 2px solid #8B7FF2;
+  outline-offset: 4px;
+  border-radius: 12px;
+}
+
+/* Each name under its person (at the same points across as team.js draws them) */
+.team-names {
+  position: relative;
+  height: 56px;
+  margin: -4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.team-names li {
+  position: absolute;
+  top: 0;
+  left: var(--at);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  transform: translateX(-50%);
+  font-size: 15px;
+  font-weight: 600;
+  color: #16171A;
+  white-space: nowrap;
+}
+
+/* Just the sound switch, on the right */
+/* Their LinkedIn, under each name */
+.team-in {
+  display: block;
+  line-height: 0;
+  border-radius: 4px;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.team-in:hover {
+  transform: translateY(-2px);
+}
+
+.team-in:focus-visible {
+  outline: 2px solid #8B7FF2;
+  outline-offset: 3px;
+}
+
+.team-bar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: 8px;
+  font-size: 13px;
+  color: #8a8a8a;
+}
+
+.team-sound {
+  padding: 6px 14px;
+  border: 1px solid #E5E4DF;
+  border-radius: 999px;
+  background: #ffffff;
+  font: inherit;
+  font-size: 12px;
+  color: #262626;
+  cursor: pointer;
+}
+
+.team-sound[aria-pressed="false"] {
+  color: #8a8a8a;
+}
