@@ -1,20 +1,20 @@
 // Home. Loaded in <head> without defer, so the headline and sentence can be hidden before the
 // first paint; everything else waits for the page.
 //
-// - The Grainient background fills the rounded panel on the right. On a first visit it waits for
-//   the intro to finish, so its own bloom from the middle is seen rather than hidden under the
-//   intro's cover. Without WebGL2 the panel just stays plain grey.
+// - The Grainient background: on wider screens it fills the whole window from the start, with
+//   the sentence and headline in white in the middle of it (no box, no TOKENZ); on narrow screens
+//   and with reduced motion it fills the rounded panel on the right, with TOKENZ in it. On a first
+//   visit it waits for the intro to finish, so its own bloom from the middle is seen rather than
+//   hidden under the intro's cover. Without WebGL2 it just stays plain.
 // - The sentence, then the headline, rise into place line by line from behind a mask: the text
 //   mask animation from olivierlarose/text-mask-animation (each line slides up from 100%, 0.75s,
 //   ease [0.33, 1, 0.68, 1], 0.075s apart). It starts a quarter of a second after the intro uncovers the
 //   page, or straight away on a later visit. People who prefer less motion just see the text.
-// - Scrolling (wider screens, not for reduced motion): TOKENZ slides up out of its mask, then
-//   the box grows until the gradient fills the whole window, while the sentence and headline
-//   turn white above it, draw closer together and move to the middle of the window. Scrolling a
-//   little further, they mask out line by line, like their entrance played backwards. Then a
-//   white page scrolls up over the gradient, and the sidebar turns dark again where it covers
-//   it. Then it holds still while its title and the three methods slide past sideways (the
-//   horizontal section from olivierlarose.com). All of it follows the scroll, both ways.
+// - Scrolling (wider screens, not for reduced motion): a little way down, the sentence and
+//   headline mask out line by line, like their entrance played backwards. Then a white page
+//   scrolls up over the gradient, and the sidebar turns dark again where it covers it. Then it
+//   holds still while its title and the three methods slide past sideways (the horizontal
+//   section from olivierlarose.com). All of it follows the scroll, both ways.
 (function () {
   var root = document.documentElement;
   var still = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -179,13 +179,27 @@
     var sentence = maskSentence(lede);
     var risers = sentence.risers.concat(maskHeadline(headline));
     risers.forEach(function (inner, i) { inner.style.transitionDelay = (i * STEP) + "ms"; });
+    // The white copy over the gradient (the scroll effect's) rises in the same way, at the same
+    // time: with the gradient filling the window from the start, it's the one that shows
+    var copyBlock = document.querySelector(".home-intro.is-copy");
+    var copySentence = null;
+    if (copyBlock) {
+      copySentence = maskSentence(copyBlock.querySelector(".home-lede"));
+      copySentence.risers.concat(maskHeadline(copyBlock.querySelector(".home-headline"))).forEach(function (inner, i) {
+        inner.style.transitionDelay = (i * STEP) + "ms";
+      });
+    }
     root.classList.remove("home-text-waiting");
     // Next frame, so the lines are drawn below their masks before they move
     requestAnimationFrame(function () {
       requestAnimationFrame(function () { root.classList.add("home-text-on"); });
     });
     // Once every line is in, the sentence goes back to plain text, so it rewraps on resize
-    setTimeout(sentence.restore, (risers.length - 1) * STEP + RISE + 100);
+    setTimeout(function () {
+      sentence.restore();
+      // (not if it's already leaving: its exit has masks of its own then)
+      if (copySentence && !root.classList.contains("home-text-out")) copySentence.restore();
+    }, (risers.length - 1) * STEP + RISE + 100);
   }
 
   // The gradient, but not while the page switch's cover is still over Home (see BOX_ARRIVE)
@@ -384,7 +398,8 @@
       var top = intro.offsetTop + lede.offsetTop;
       var bottom = intro.offsetTop + headline.offsetTop + headline.offsetHeight;
       toCentre.x = window.innerWidth / 2 - (left + right) / 2;
-      toCentre.y = window.innerHeight / 2 - (top + bottom) / 2;
+      // (a little above the middle, 6% of the window, so it sits clear of "Scroll" below)
+      toCentre.y = window.innerHeight / 2 - 0.06 * window.innerHeight - (top + bottom) / 2;
       travel = -1;
     }
 
@@ -592,16 +607,17 @@
         panel.append(copy);
       }
       var y = window.scrollY, distance = window.innerHeight;
-      // A little past the full window, the sentence and headline mask out line by line, and come
+      // A quarter of a window down, the sentence and headline mask out line by line, and come
       // back the same way when scrolling up
-      var gate = 1.2 * distance;
+      var gate = 0.25 * distance;
       if (holding() && Math.abs(y - holdAt) > 1) {
         window.scrollTo({ top: holdAt, behavior: "instant" });
         y = holdAt;
       }
       // How far the box has grown, before easing (0 to 1). It follows the scroll, but never faster
       // than GROW_TIME for the whole way, so a fast scroll still sees it grow
-      var growTo = clamp((y - 0.12 * distance) / (0.88 * distance));
+      // (the gradient fills the window from the start now: there's no box to grow)
+      var growTo = 1;
       var nowGrow = performance.now();
       if (growShown == null) growShown = growTo;
       else {

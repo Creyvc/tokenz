@@ -70,10 +70,10 @@
     "  float F, ph, amp, f2, p2, a2;",
     "  float h = heightAt(q, F, ph, amp);",
     "  float e = uL / uSize.x;",
-    "  float hx = heightAt(q + vec2(e, 0.0), f2, p2, a2) - heightAt(q - vec2(e, 0.0), f2, p2, a2);",
-    "  float hz = heightAt(q + vec2(0.0, e), f2, p2, a2) - heightAt(q - vec2(0.0, e), f2, p2, a2);",
+    "  float hx = heightAt(q + vec2(e, 0.0), f2, p2, a2) - h;",
+    "  float hz = heightAt(q + vec2(0.0, e), f2, p2, a2) - h;",
     "  o0 = vec4(h, cos(6.28318 * ph), sin(6.28318 * ph), F);",
-    "  o1 = vec4(hx / (2.0 * e), hz / (2.0 * e), amp, 0.0);",
+    "  o1 = vec4(hx / e, hz / e, amp, 0.0);",
     "}"
   ].join("\n");
 
@@ -84,16 +84,22 @@
   var LOOK = [
     "#version 300 es",
     "precision highp float;",
+    "QUALITY",
     "uniform sampler2D uMap0, uMap1;",
     "uniform vec2 uRes, uCenter;",
     "uniform float uL, uTime, uHoleR, uPix;",
+    "uniform vec3 uLand;",
     "uniform vec3 uRo, uFw, uRt, uUp;",
     "out vec4 o;",
     "float hash(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }",
     // Value noise and four layers of it, for the material's grain
     "float vnoise(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);",
     "  return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x), f.y); }",
-    "float fbm(vec2 p) { float s = 0.0, a = 0.5; for (int i = 0; i < 4; i++) { s += a * vnoise(p); p = p * 2.03 + vec2(1.7, 9.2); a *= 0.5; } return s; }",
+    "float fbm(vec2 p) { float s = 0.0, a = 0.5; for (int i = 0; i < OCT; i++) { s += a * vnoise(p); p = p * 2.03 + vec2(1.7, 9.2); a *= 0.5; } return s; }",
+    "vec3 noised(vec2 x) { vec2 i = floor(x), f = fract(x); vec2 u = f * f * (3.0 - 2.0 * f), du = 6.0 * f * (1.0 - f);",
+    "  float a = hash(i), b = hash(i + vec2(1.0, 0.0)), c = hash(i + vec2(0.0, 1.0)), d = hash(i + vec2(1.0, 1.0));",
+    "  return vec3(a + (b - a) * u.x + (c - a) * u.y + (a - b - c + d) * u.x * u.y, du * (vec2(b - a, c - a) + (a - b - c + d) * u.yx)); }",
+    "vec3 fbmd(vec2 p) { vec3 s = vec3(0.0); float a = 0.5, k = 1.0; for (int i = 0; i < OCT; i++) { vec3 n = noised(p); s += a * vec3(n.x, n.yz * k); p = p * 2.03 + vec2(1.7, 9.2); k *= 2.03; a *= 0.5; } return s; }",
     "const vec3 SUN = vec3(-0.3634, 0.0785, -0.9283);",
     "vec2 mapUV(vec2 q) { return (q - uCenter) / (2.0 * uL) + 0.5; }",
     "float H(vec2 q) { vec2 m = mapUV(q); if (m.x < 0.0 || m.y < 0.0 || m.x > 1.0 || m.y > 1.0) return 0.0; return texture(uMap0, m).r; }",
@@ -106,19 +112,19 @@
     "  vec3 fogCol = mix(vec3(0.6, 0.58, 0.78), vec3(1.15, 0.98, 0.82), pow(max(dot(rd, SUN), 0.0), 10.0));",
     "  float t = max(0.0, (ro.y - 0.25) / max(-rd.y, 1e-4));",
     "  float lastT = t; bool hit = false;",
-    "  for (int i = 0; i < 110; i++) {",
+    "  for (int i = 0; i < MARCH; i++) {",
     "    vec3 p = ro + rd * t;",
     "    float d = p.y - H(p.xz);",
     "    if (d < 0.0) { hit = true; break; }",
     "    lastT = t;",
-    "    t += max(0.002 * t + 0.0015, d * 0.5);",
+    "    t += max(STEP_GROW * t + 0.0015, d * 0.5);",
     "    if (t > 40.0 || p.y < -2.0) break;",
     "  }",
     "  vec3 col = fogCol;",
     "  float pit = 0.0;",
     "  if (hit) {",
     "    float a = lastT, b = t;",
-    "    for (int k = 0; k < 7; k++) { float m = 0.5 * (a + b); vec3 pm = ro + rd * m; if (pm.y - H(pm.xz) < 0.0) b = m; else a = m; }",
+    "    for (int k = 0; k < BISECT; k++) { float m = 0.5 * (a + b); vec3 pm = ro + rd * m; if (pm.y - H(pm.xz) < 0.0) b = m; else a = m; }",
     "    t = b;",
     "    vec3 p = ro + rd * t;",
     "    vec2 m = mapUV(p.xz);",
@@ -137,17 +143,19 @@
     // (seen from above on the flatter parts, from the side on the steep walls, blended, so it
     // doesn't stretch into streaks where the surface stands up)
     "    float steep = 1.0 - smoothstep(0.35, 0.8, n.y);",
-    "    vec2 gp = p.xz * 60.0;",
-    "    float g0 = fbm(gp);",
-    "    float gx = fbm(gp + vec2(0.35, 0.0)) - g0, gz = fbm(gp + vec2(0.0, 0.35)) - g0;",
+    "    float coarseFade = 1.0 - smoothstep(0.008, 0.035, footprint);",
+    "    vec3 gt = fbmd(p.xz * 60.0) + 0.6 * vec3(1.0, 0.25, 0.25) * fbmd(p.xz * 15.0 + 3.0) * coarseFade;",
+    "    vec3 bump = vec3(-gt.y, 0.0, -gt.z) * 0.35;",
+    "    float g0 = gt.x / 1.6;",
     "    vec2 side = normalize(vec2(-n.z, n.x) + 1e-4);",
-    "    vec2 sp = vec2(dot(p.xz, side), p.y) * 60.0;",
-    "    float s0g = fbm(sp);",
-    "    float su = fbm(sp + vec2(0.35, 0.0)) - s0g, sv = fbm(sp + vec2(0.0, 0.35)) - s0g;",
-    "    vec3 bumpTop = vec3(-gx, 0.0, -gz);",
-    "    vec3 bumpSide = vec3(side.x, 0.0, side.y) * -su + vec3(0.0, -sv, 0.0);",
-    "    n = normalize(n + mix(bumpTop, bumpSide, steep) * 0.95 * grainFade);",
-    "    g0 = mix(g0, s0g, steep);",
+    "    if (steep > 0.01) {",
+    "      vec2 sp = vec2(dot(p.xz, side), p.y);",
+    "      vec3 gs = fbmd(sp * 60.0) + 0.6 * vec3(1.0, 0.25, 0.25) * fbmd(sp * 15.0 + 3.0) * coarseFade;",
+    "      vec3 bumpSide = (vec3(side.x, 0.0, side.y) * -gs.y + vec3(0.0, -gs.z, 0.0)) * 0.35;",
+    "      bump = mix(bump, bumpSide, steep);",
+    "      g0 = mix(g0, gs.x / 1.6, steep);",
+    "    }",
+    "    n = normalize(n + bump * 1.3 * grainFade);",
     "    float patches = fbm(p.xz * 2.2 + 4.0);",
     "    float strata = sin(6.28318 * (r * 8.0 + fbm(p.xz * 4.0) * 0.9));",
     "    strata = smoothstep(0.55, 1.0, strata) * strataFade;",
@@ -155,11 +163,11 @@
     // A low sun ahead, near the horizon: long shadows, dark valleys
     "    vec3 l = SUN;",
     "    float sh = 1.0, st = 0.012;",
-    "    for (int i = 0; i < 24; i++) {",
+    "    for (int i = 0; i < SHADOW; i++) {",
     "      vec3 q = p + n * 0.006 + l * st;",
     "      float dd = q.y - H(q.xz);",
-    "      sh = min(sh, 14.0 * dd / st);",
-    "      st += 0.02 + st * 0.22;",
+    "      sh = min(sh, 18.0 * dd / st);",
+    "      st += 0.02 + st * SHADOW_GROW;",
     "      if (sh < 0.0 || st > 3.5) break;",
     "    }",
     "    sh = clamp(sh, 0.0, 1.0);",
@@ -168,21 +176,23 @@
     // Ambient occlusion: how much of the sky the ground nearby hides, looked for in eight
     // directions at three distances, so grooves and inner bends darken as they would for real
     "    float occ = 0.0;",
-    "    for (int i = 0; i < 8; i++) {",
-    "      float ang = float(i) * 0.785398 + 0.3;",
+    "    for (int i = 0; i < AO_DIRS; i++) {",
+    "      float ang = float(i) * 6.28318 / float(AO_DIRS) + 0.3;",
     "      vec2 dir = vec2(cos(ang), sin(ang));",
-    "      for (int j = 1; j <= 3; j++) {",
+    "      for (int j = 1; j <= AO_STEPS; j++) {",
     "        float rad = 0.03 * float(j * j);",
     "        occ += clamp((H(p.xz + dir * rad) - p.y) / rad, 0.0, 1.0) / float(j);",
     "      }",
     "    }",
-    "    float ao = 1.0 - 0.85 * clamp(occ / (8.0 * 1.833), 0.0, 1.0);",
-    "    ao *= mix(1.0, mix(0.7, 1.0, smoothstep(0.0, 0.2, groove)), amp);",
+    "    float ao = 1.0 - clamp(occ / (float(AO_DIRS) * AO_NORM), 0.0, 1.0);",
+    "    ao *= mix(1.0, mix(0.5, 1.0, smoothstep(0.0, 0.2, groove)), amp);",
+    // the crevices of the grain hold a little shadow of their own
+    "    ao *= mix(1.0, 0.62 + 0.55 * g0, grainFade);",
     // Light as real materials take it: plaster lets a little wrap round the ridges; the
     // highlights follow a rough, physically based reflection (GGX), stronger at grazing angles
     "    float rough = mix(0.3, 0.62, patches);",
     "    float nl = dot(n, l);",
-    "    float dif = clamp((nl + 0.08) / 1.08, 0.0, 1.0);",
+    "    float dif = clamp((nl + 0.03) / 1.03, 0.0, 1.0);",
     "    float nv = max(dot(n, v), 1e-3);",
     "    vec3 hv = normalize(l + v);",
     "    float nh = max(dot(n, hv), 0.0), vh = max(dot(v, hv), 0.0), nlc = max(nl, 0.0);",
@@ -203,17 +213,17 @@
     "    vec3 Fh = F0 + (1.0 - F0) * pow(1.0 - vh, 5.0);",
     "    vec3 Fv = F0 + (1.0 - F0) * pow(1.0 - nv, 5.0);",
     "    vec3 spec = D * G * Fh / max(4.0 * nv * nlc, 1e-3) * nlc * sh * smoothstep(0.03, 0.12, groove);",
-    "    vec3 albedo = vec3(0.86, 0.86, 0.85) * (0.9 + 0.16 * patches) * (1.0 - 0.07 * strata) * (0.96 + 0.05 * g0 * grainFade);",
+    "    vec3 albedo = vec3(0.86, 0.86, 0.85) * (0.9 + 0.16 * patches) * (1.0 - 0.07 * strata) * mix(1.0, 0.76 + 0.42 * g0, grainFade);",
     "    vec3 sun = vec3(1.0, 0.9, 0.78) * 1.25;",
     "    float skyAmt = 0.55 + 0.45 * n.y;",
     // In shadow, only a cool violet sky light: the alien dark of the valleys
-    "    col = albedo * (1.0 - Fv * 0.5) * (sun * dif * sh + vec3(0.42, 0.40, 0.62) * skyAmt * 0.5 * ao + vec3(0.9, 0.8, 0.75) * 0.1 * (1.0 - n.y) * ao);",
+    "    col = albedo * (1.0 - Fv * 0.5) * (sun * dif * sh + vec3(0.42, 0.40, 0.62) * skyAmt * 0.36 * ao + vec3(0.9, 0.8, 0.75) * 0.08 * (1.0 - n.y) * ao);",
     // The coating seen against the bright sky, and the sun's highlights in it
     "    col += film * Fv * coat * skyAmt * 0.6 * ao + film * coat * (0.05 + 0.1 * sh * dif) * ao + spec * sun * 1.1;",
     // Glitter: tiny facets in the grain that catch the sun
     "    float spark = step(0.982, hash(floor(p.xz * 240.0))) * grainFade;",
     "    col += spark * sh * pow(max(dot(n, hv), 0.0), 18.0) * sun * 1.6;",
-    "    col *= mix(0.45, 1.0, smoothstep(-1.1, -0.15, p.y));",
+    "    col *= mix(0.3, 1.0, smoothstep(-1.1, -0.15, p.y));",
     "    float aaF = fwidth(F) * 1.5 + 0.004;",
     "    pit = 1.0 - smoothstep(uHoleR - aaF, uHoleR + aaF, F);",
     "    float rim = exp(-abs(F - uHoleR) * 22.0) * (1.0 - pit);",
@@ -223,11 +233,12 @@
     // The glow round the sun, over everything
     "  float toSun = max(dot(rd, SUN), 0.0);",
     "  col += vec3(1.0, 0.86, 0.72) * (pow(toSun, 400.0) * 1.6 + pow(toSun, 40.0) * 0.55 + pow(toSun, 8.0) * 0.2) * (1.0 - pit);",
-    "  col = aces(col * 1.24);",
+    "  col = aces(col * 1.18);",
     // A soft vignette, as a lens would give
-    "  col *= 1.0 - 0.2 * dot(uv * vec2(0.75, 1.0), uv * vec2(0.75, 1.0));",
+    "  col *= 1.0 - 0.3 * dot(uv * vec2(0.75, 1.0), uv * vec2(0.75, 1.0));",
     "  col += (hash(gl_FragCoord.xy + fract(uTime) * 97.0) - 0.5) * 0.012 * (1.0 - pit);",
-    "  col = mix(col, vec3(0.043, 0.043, 0.047), pit);",
+    // The opening: exactly the colour of what comes after it on the page, so they meet without a seam
+    "  col = mix(col, uLand, pit);",
     "  o = vec4(col, 1.0);",
     "}"
   ].join("\n");
@@ -252,9 +263,32 @@
   }
   function norm(v) { var l = Math.hypot(v[0], v[1], v[2]) || 1; return [v[0] / l, v[1] / l, v[2] / l]; }
 
+  // The colour the opening shows: the canvas's data-land ("light" for a white page after it)
+  function landColour(canvas) {
+    return canvas.getAttribute("data-land") === "light" ? [1, 1, 1] : [0.043, 0.043, 0.047];
+  }
+
+  // The two quality levels: the same picture, the light one with fewer steps in its marching,
+  // shadows and shading, a smaller height map, and at most the screen's own pixels (not 2x)
+  var QUALITY = {
+    full: { defines: "#define MARCH 110\n#define STEP_GROW 0.002\n#define BISECT 7\n#define SHADOW 24\n#define SHADOW_GROW 0.22\n#define AO_DIRS 8\n#define AO_STEPS 3\n#define AO_NORM 1.833\n#define OCT 4", map: 2048, most: 2, least: 0.6 },
+    light: { defines: "#define MARCH 72\n#define STEP_GROW 0.0035\n#define BISECT 5\n#define SHADOW 14\n#define SHADOW_GROW 0.34\n#define AO_DIRS 5\n#define AO_STEPS 2\n#define AO_NORM 1.5\n#define OCT 3", map: 1024, most: 1, least: 0.5 }
+  };
+
+  // A phone, or few cores or little memory, or a graphics chip known to be modest
+  function lowEnd(gl) {
+    var cores = navigator.hardwareConcurrency || 8, memory = navigator.deviceMemory || 8;
+    if (cores <= 4 || memory <= 4 || /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent)) return true;
+    var info = gl.getExtension("WEBGL_debug_renderer_info");
+    var chip = info ? String(gl.getParameter(info.UNMASKED_RENDERER_WEBGL)) : "";
+    return /SwiftShader|llvmpipe|Mali|Adreno|PowerVR|Intel\(R\) (HD|UHD) Graphics [1-6]/i.test(chip);
+  }
+
   function makeScene(canvas) {
-    var gl = canvas.getContext("webgl2", { antialias: false, alpha: false, preserveDrawingBuffer: false });
+    var land = landColour(canvas);
+    var gl = canvas.getContext("webgl2", { antialias: false, alpha: false, preserveDrawingBuffer: false, powerPreference: "high-performance" });
     if (!gl || !gl.getExtension("EXT_color_buffer_float")) return null;
+    var level = lowEnd(gl) ? QUALITY.light : QUALITY.full;
     function program(source) {
       function shader(type, src) {
         var s = gl.createShader(type);
@@ -280,7 +314,7 @@
     var mapPass, lookPass;
     try {
       mapPass = program(MAP);
-      lookPass = program(LOOK);
+      lookPass = program(LOOK.replace("QUALITY", level.defines));
     } catch (e) {
       return null;
     }
@@ -291,7 +325,7 @@
     gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
 
     // The two maps, half floats, smoothly blended between texels
-    var MAP_SIZE = 2048;
+    var MAP_SIZE = level.map;
     function texture() {
       var tex = gl.createTexture();
       gl.bindTexture(gl.TEXTURE_2D, tex);
@@ -302,19 +336,26 @@
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
       return tex;
     }
-    var map0 = texture(), map1 = texture();
-    var fbo = gl.createFramebuffer();
-    gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, map0, 0);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT1, gl.TEXTURE_2D, map1, 0);
-    gl.drawBuffers([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT1]);
-    if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) return null;
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    var map0, map1, fbo = gl.createFramebuffer();
+    function maps() {
+      if (map0) { gl.deleteTexture(map0); gl.deleteTexture(map1); }
+      map0 = texture();
+      map1 = texture();
+      gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, map0, 0);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT1, gl.TEXTURE_2D, map1, 0);
+      gl.drawBuffers([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT1]);
+      var ok = gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE;
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      return ok;
+    }
+    if (!maps()) return null;
+    var mapFresh = false, mapTick = 0;
 
     return {
       // As sharp as the screen (up to 2x on Retina), unless it can't keep up: the detail drops a
       // step when frames run slow, and comes back when there's room again
-      scale: Math.min(window.devicePixelRatio || 1, 2),
+      scale: Math.min(window.devicePixelRatio || 1, level.most),
       size: function () {
         var w = Math.max(1, Math.round(canvas.clientWidth * this.scale));
         var h = Math.max(1, Math.round(canvas.clientHeight * this.scale));
@@ -327,11 +368,26 @@
         this.base = Math.min((this.base || ms) * 1.002, ms);
         this.slow = (this.slow || 0) * 0.92 + (ms > this.base * 1.35 ? 1 : 0) * 0.08;
         this.fast = (this.fast || 0) * 0.92 + (ms < this.base * 1.1 ? 1 : 0) * 0.08;
-        var most = Math.min(window.devicePixelRatio || 1, 2);
-        if (this.slow > 0.6 && this.scale > 0.6) { this.scale = Math.max(0.6, this.scale * 0.85); this.slow = 0; }
+        var most = Math.min(window.devicePixelRatio || 1, level.most);
+        if (this.slow > 0.6 && this.scale > level.least) { this.scale = Math.max(level.least, this.scale * 0.85); this.slow = 0; }
+        else if (this.slow > 0.6 && level === QUALITY.full) this.lighten();
         else if (this.fast > 0.9 && this.scale < most) { this.scale = Math.min(most, this.scale * 1.1); this.fast = 0; }
       },
-      draw: function (time, p, hole) {
+      // Still too slow at the least sharpness: over to the light level for good
+      lighten: function () {
+        try {
+          var next = program(LOOK.replace("QUALITY", QUALITY.light.defines));
+          gl.deleteProgram(lookPass.prog);
+          lookPass = next;
+          level = QUALITY.light;
+          MAP_SIZE = level.map;
+          maps();
+          mapFresh = false;
+          this.scale = Math.min(this.scale, level.most);
+        } catch (e) {}
+        this.slow = 0;
+      },
+      draw: function (time, p, hole, resting) {
         var cam = camera(p, time);
         var holeR = 0.07 + hole * hole * 2.6;
         // The map covers the ground the camera can see: wide while it looks out across the cave,
@@ -340,10 +396,13 @@
         var L = Math.max(1.2, cam.dist * mix(3.0, 0.78, smooth(0, 0.62, p)));
         var center = [cam.target[0], cam.target[2]];
         var pix = 1.6 / (canvas.height * 1.7);
+        var u;
+        if (!resting || !mapFresh || ++mapTick % 2 === 0) {
+        mapFresh = true;
         gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
         gl.viewport(0, 0, MAP_SIZE, MAP_SIZE);
         gl.useProgram(mapPass.prog);
-        var u = mapPass.u;
+        u = mapPass.u;
         gl.uniform1f(u.uTime, time);
         gl.uniform2f(u.uCenter, center[0], center[1]);
         gl.uniform2f(u.uSize, MAP_SIZE, MAP_SIZE);
@@ -353,6 +412,7 @@
         gl.uniform3fv(u.uRo, cam.ro);
         gl.drawArrays(gl.TRIANGLES, 0, 3);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        }
         gl.viewport(0, 0, canvas.width, canvas.height);
         gl.useProgram(lookPass.prog);
         u = lookPass.u;
@@ -368,6 +428,7 @@
         gl.uniform1f(u.uTime, time);
         gl.uniform1f(u.uHoleR, holeR);
         gl.uniform1f(u.uPix, pix);
+        gl.uniform3fv(u.uLand, land);
         gl.uniform3fv(u.uRo, cam.ro);
         gl.uniform3fv(u.uFw, cam.fw);
         gl.uniform3fv(u.uRt, cam.rt);
@@ -390,7 +451,7 @@
     if (!scene) stage.classList.add("is-flat");
     if (still) root.classList.add("hw-still");
 
-    var shown = null, shownAt = 0, inSight = true, frame = 0, lastDraw = 0;
+    var shown = null, shownAt = 0, inSight = true, frame = 0, lastDraw = 0, skipped = false;
     var start = performance.now();
 
     // How far through the jump the scroll is (0 to 1): the section's height less one window
@@ -421,12 +482,16 @@
       word(second, 0.48, 0.8, p);
       if (hint) hint.classList.toggle("is-gone", p > 0.03);
       if (frameBar) frameBar.classList.toggle("is-gone", hole > 0.05);
-      if (scene) {
-        if (lastDraw) scene.pace(now - lastDraw);
+      // At rest the ridges only drift slowly, so it's drawn at about half the pace then (the
+      // detail is only judged from frames drawn back to back)
+      var resting = shown === goal;
+      if (scene && !(resting && now - lastDraw < 30)) {
+        if (lastDraw && !skipped) scene.pace(now - lastDraw);
         lastDraw = now;
+        skipped = false;
         scene.size();
-        scene.draw((now - start) / 1000, p, hole);
-      }
+        scene.draw((now - start) / 1000, p, hole, resting);
+      } else skipped = true;
       // Keeps going while in sight (the rings drift), unless it's a still frame
       if (scene && inSight && !still) frame = requestAnimationFrame(tick);
     }

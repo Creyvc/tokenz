@@ -2605,8 +2605,99 @@ html.home-text-on .home-intro .mask-rise {
    window (over the sidebar), so the gradient never stretches or redraws. The headline and sentence
    draw closer together. They're dark on the white page; a white copy of them inside the panel
    shows only where the gradient is, so the text turns white exactly where the gradient reaches it */
+/* The gradient fills the window from the start; a short stretch of scrolling for the text to
+   mask out, then the white page comes up over it */
 html.home-scroll .content.home {
-  height: 260vh;
+  height: 150vh;
+}
+
+/* With the scroll effect there's no box and no TOKENZ in it: the title stays only for screen
+   readers (and on narrow screens, where the box is still there) */
+html.home-scroll .home-title {
+  position: absolute;
+  inset: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+/* Over the full-window gradient the text's space is wider, so the sentence and headline (sized
+   from its width) are about a quarter bigger; it's still moved to the middle of the window */
+html.home-scroll .home-intro {
+  width: calc(72% - 210px);
+}
+
+/* "Scroll", small, at the bottom middle of the window over the gradient, with a short line under
+   it and a dot running down it. It fades in once the text is in, and out as soon as the page
+   scrolls */
+.home-hint {
+  display: none;
+}
+
+html.home-scroll .home-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 32px;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  transform: translateX(-50%);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  /* (the letter spacing leaves room after the last letter; this keeps the word centred) */
+  text-indent: 0.22em;
+  color: #ffffff;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  pointer-events: none;
+}
+
+html.home-scroll.home-text-on .home-hint {
+  opacity: 1;
+  transition-delay: 0.9s;
+}
+
+html.home-scroll.home-tokenz-out .home-hint {
+  opacity: 0;
+  transition-delay: 0s;
+}
+
+.home-hint-line {
+  position: relative;
+  width: 1px;
+  height: 40px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.home-hint-line::after {
+  content: "";
+  position: absolute;
+  left: -1.5px;
+  top: 0;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #ffffff;
+  animation: home-hint 1.8s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+@keyframes home-hint {
+  0% { transform: translateY(-6px); opacity: 0; }
+  20% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { transform: translateY(40px); opacity: 0; }
+}
+
+/* The white copy's lines wait below their masks until the text comes on, then rise in with the
+   page's own (home.js, reveal) */
+html.home-scroll:not(.home-text-on) .home-intro.is-copy .mask-rise {
+  transform: translateY(135%);
 }
 
 html.home-scroll .home-panel {
@@ -3267,7 +3358,7 @@ html.home-compare .faq-word.is-compare {
 
 .faq-title {
   margin-top: 28px;
-  font-size: clamp(36px, 4.4vw, 72px);
+  font-size: clamp(30px, 3.4vw, 56px);
   font-weight: 700;
   line-height: 1.02;
   letter-spacing: -0.045em;
@@ -3276,7 +3367,7 @@ html.home-compare .faq-word.is-compare {
 .faq-lede {
   margin-top: 28px;
   max-width: 420px;
-  font-size: 17px;
+  font-size: 15px;
   line-height: 1.5;
   color: #a3a3a3;
 }
@@ -3296,8 +3387,8 @@ html.home-compare .faq-word.is-compare {
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  padding: 26px 0;
-  font-size: clamp(17px, 1.5vw, 22px);
+  padding: 22px 0;
+  font-size: clamp(15px, 1.2vw, 18px);
   font-weight: 600;
   letter-spacing: -0.01em;
   line-height: 1.3;
@@ -3342,8 +3433,8 @@ html.home-compare .faq-word.is-compare {
 
 .faq-answer {
   max-width: 600px;
-  padding: 0 48px 28px 0;
-  font-size: 16px;
+  padding: 0 48px 24px 0;
+  font-size: 14px;
   line-height: 1.6;
   color: #a3a3a3;
 }
@@ -3888,10 +3979,11 @@ html.hw-still .hw-jump {
   position: absolute;
   left: 0;
   right: 0;
-  top: 50%;
+  /* Low in the scene, just above the frame line at its bottom */
+  top: 83%;
   transform: translateY(-50%);
   text-align: center;
-  font-size: clamp(44px, 7.5vw, 128px);
+  font-size: clamp(32px, 5.2vw, 88px);
   font-weight: 500;
   line-height: 1;
   letter-spacing: -0.05em;
@@ -3909,10 +4001,12 @@ html.hw-still .hw-jump {
   vertical-align: top;
 }
 
+/* Each letter its own: they rise in, and leave, one after another */
 .hw-mask > span {
   display: inline-block;
   transform: translateY(110%);
-  transition: transform 0.8s cubic-bezier(0.33, 1, 0.68, 1);
+  transition: transform 0.7s cubic-bezier(0.33, 1, 0.68, 1);
+  transition-delay: calc(var(--i, 0) * 35ms);
 }
 
 .hw-word.is-on .hw-mask > span {
