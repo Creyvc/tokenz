@@ -3948,7 +3948,51 @@ html.pt-switch::view-transition-new(root) {
 }
 
 html.hw-still .hw-jump {
-  height: 100vh;
+  height: auto;
+}
+
+/* With reduced motion the scene is one still picture, and the page's text simply follows it */
+html.hw-still .hw-stage {
+  position: relative;
+  height: auto;
+}
+
+html.hw-still .hw-canvas {
+  height: calc(100vh - 24px);
+}
+
+/* What's on the other side of the opening (About's text): over the scene, in the middle of the
+   window, fading in and settling as the opening fills it, so the dive ends right there with
+   nothing more to scroll */
+.hw-land {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+  opacity: calc((var(--hw-open, 0) - 0.85) * 6.67);
+  transform: translateY(calc((1 - var(--hw-open, 0)) * 80px));
+  pointer-events: none;
+}
+
+.hw-stage.is-landed .hw-land {
+  pointer-events: auto;
+}
+
+.hw-land .about {
+  width: 100%;
+  max-width: 720px;
+  margin: auto;
+  padding: 48px;
+}
+
+html.hw-still .hw-land {
+  position: static;
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
 }
 
 .hw-stage {
@@ -3964,6 +4008,14 @@ html.hw-still .hw-jump {
   height: 100%;
   border-radius: calc(12px * (1 - var(--hw-open, 0)));
   background: #eeeeec;
+}
+
+/* Without WebGL2: still rings in CSS, and the hole as a black circle growing over them (white
+   where the page after it is white) */
+.hw-stage.is-flat .hw-canvas[data-land="light"] {
+  background:
+    radial-gradient(circle at 55% 55%, #ffffff calc(var(--hw-open, 0) * 140%), transparent calc(var(--hw-open, 0) * 140% + 1px)),
+    repeating-radial-gradient(circle at 55% 55%, #f2f2f0 0 14px, #b9b4e6 15px 17px, #f2f2f0 18px 34px);
 }
 
 /* Without WebGL2: still rings in CSS, and the hole as a black circle growing over them */

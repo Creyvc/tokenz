@@ -482,6 +482,8 @@
       word(second, 0.48, 0.8, p);
       if (hint) hint.classList.toggle("is-gone", p > 0.03);
       if (frameBar) frameBar.classList.toggle("is-gone", hole > 0.05);
+      // Once the opening fills the window, what's on the other side can be used (About's text)
+      stage.classList.toggle("is-landed", hole > 0.9);
       // At rest the ridges only drift slowly, so it's drawn at about half the pace then (the
       // detail is only judged from frames drawn back to back)
       var resting = shown === goal;
