@@ -67,12 +67,67 @@
     try { return sessionStorage.getItem(NAME + "_answered") === "1"; } catch (e) { return false; }
   }
 
-  function decide(choice) {
+  function decide(choice, button) {
     saveChoice(choice);
     try { sessionStorage.setItem(NAME + "_answered", "1"); } catch (e) {}
     apply(choice);
     var banner = document.querySelector(".consent");
-    if (banner) banner.remove();
+    if (!banner) return;
+    if (reduceMotion) {
+      banner.remove();
+      return;
+    }
+    // The button blinks, then the whole banner blinks out (intro-blink-out in styles.css)
+    banner.inert = true;
+    reblink(button);
+    setTimeout(function () {
+      banner.classList.add("is-leaving");
+      setTimeout(function () { banner.remove(); }, BLINK_TIME);
+    }, BLINK_TIME);
+  }
+
+  // ---- The blink, the same as the intro notice's (intro-blink in styles.css) ----
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var BLINK_TIME = 120; // ms, the length of one blink
+
+  // The banner blinks on, then each word and button inside it in reading order, 10ms apart
+  function blinkIn(banner) {
+    var pieces = [];
+    var walker = document.createTreeWalker(banner, NodeFilter.SHOW_TEXT);
+    var nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach(function (node) {
+      if (!node.nodeValue.trim()) return;
+      // A button blinks on as a whole just before its own words
+      var button = node.parentNode.closest("button");
+      if (button && pieces.indexOf(button) === -1) pieces.push(button);
+      var fragment = document.createDocumentFragment();
+      node.nodeValue.split(/(\s+)/).forEach(function (part) {
+        if (!part) return;
+        if (!part.trim()) {
+          fragment.appendChild(document.createTextNode(part));
+          return;
+        }
+        var span = document.createElement("span");
+        span.textContent = part;
+        fragment.appendChild(span);
+        pieces.push(span);
+      });
+      node.parentNode.replaceChild(fragment, node);
+    });
+    banner.classList.add("intro-blink");
+    pieces.forEach(function (el, i) {
+      el.classList.add("intro-blink");
+      el.style.animationDelay = 150 + i * 10 + "ms";
+    });
+  }
+
+  // Plays the blink again on one element, straight away
+  function reblink(el) {
+    el.classList.remove("intro-blink");
+    void el.offsetWidth; // let the browser see the class gone, so the animation restarts
+    el.style.animationDelay = "0ms";
+    el.classList.add("intro-blink");
   }
 
   function showBanner() {
@@ -89,9 +144,26 @@
         '<button type="button" class="consent-deny">Deny All</button>' +
       '</div>';
 
-    banner.querySelector(".consent-accept").addEventListener("click", function () { decide("accepted"); });
-    banner.querySelector(".consent-deny").addEventListener("click", function () { decide("denied"); });
+    banner.querySelector(".consent-accept").addEventListener("click", function () { decide("accepted", this); });
+    banner.querySelector(".consent-deny").addEventListener("click", function () { decide("denied", this); });
     document.body.appendChild(banner);
+    if (reduceMotion) return;
+
+    // On Home's first visit the intro covers the page, so the banner waits, hidden, and blinks
+    // on once the intro has gone (intro.js removes intro-play from <html>)
+    var root = document.documentElement;
+    if (!root.classList.contains("intro-play")) {
+      blinkIn(banner);
+      return;
+    }
+    banner.style.opacity = "0";
+    var watch = new MutationObserver(function () {
+      if (root.classList.contains("intro-play")) return;
+      watch.disconnect();
+      banner.style.opacity = "";
+      blinkIn(banner);
+    });
+    watch.observe(root, { attributes: true, attributeFilter: ["class"] });
   }
 
   // On the Cookies page, show the current choice next to the settings button

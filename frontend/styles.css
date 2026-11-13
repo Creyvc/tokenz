@@ -784,7 +784,7 @@ html.intro-play .intro.is-playing {
 /* The notice window, then its outlined box, each word and Continue, blink on one after another, as
    on bitkraft.vc's loading screen: each piece is hidden until its turn,
    then 20% → 82% → 29% → fully on, jumping between steps rather than fading, in 0.12s.
-   intro.js wraps the words and sets each one's delay. */
+   intro.js wraps the words and sets each one's delay. The cookie banner uses it too (consent.js). */
 .intro-blink {
   opacity: 0;
   animation: intro-blink 0.12s step-end forwards;
@@ -803,6 +803,27 @@ html.intro-play .intro.is-playing {
   100% {
     opacity: 1;
   }
+}
+
+/* The same blink backwards, for leaving: 29% → 82% → 20% → gone. The cookie banner uses it
+   after a choice (consent.js adds is-leaving). */
+@keyframes intro-blink-out {
+  0% {
+    opacity: 0.29;
+  }
+  30% {
+    opacity: 0.82;
+  }
+  60% {
+    opacity: 0.2;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.consent.is-leaving {
+  animation: intro-blink-out 0.12s step-end forwards;
 }
 
 @media (max-width: 700px) {
