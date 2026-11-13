@@ -1,0 +1,862 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tokenz film</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=block" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; }
+  body { font-family: "Inter", sans-serif; -webkit-font-smoothing: antialiased; }
+  #stage { position: absolute; inset: 0; overflow: hidden; background: #000; perspective: 1800px; perspective-origin: 960px 540px; }
+  #cam { position: absolute; inset: 0; transform-style: preserve-3d; transform-origin: 960px 540px; z-index: 2; }
+  .scene { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; visibility: hidden; transform-style: preserve-3d; transform-origin: 960px 540px; }
+  .p3 { transform-style: preserve-3d; }
+  .mono { font-family: "JetBrains Mono", monospace; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; }
+  .mask { display: block; overflow: hidden; padding: 0.06em 0 0.14em; margin: -0.06em 0 -0.14em; }
+  .abs { position: absolute; left: 0; top: 0; }
+
+  #hud { position: absolute; inset: 0; pointer-events: none; z-index: 50; }
+  #hud .mono { position: absolute; font-size: 15px; }
+  #hud-l { left: 56px; top: 44px; } #hud-r { right: 56px; top: 44px; }
+  #hud-b { left: 56px; bottom: 40px; } #hud-br { right: 56px; bottom: 40px; }
+
+  /* the chevrons and the diamond live in screen space, over the camera, and follow what they act on */
+  .chev, #dia { position: absolute; left: 0; top: 0; overflow: visible; z-index: 40; transform-origin: 0 0; }
+  #wipe { position: absolute; left: 0; top: 0; border-radius: 50%; z-index: 1; }
+
+  /* scene labels: a small mono kicker and a line, floating in front of the set */
+  .label { position: absolute; left: 230px; top: 120px; }
+  .label .k { font-size: 18px; color: #5B4FD6; }
+  .label .h { margin-top: 14px; font-weight: 700; font-size: 52px; letter-spacing: -0.04em; line-height: 1; }
+  .label .ex { display: inline-block; margin-left: 16px; padding: 4px 8px 3px; font-size: 13px; border: 1px solid currentColor; vertical-align: middle; }
+
+  /* A */
+  #a-ticker { position: absolute; left: 0; top: 380px; white-space: nowrap; font-weight: 800; font-size: 210px; color: #121212; letter-spacing: -0.04em; }
+  #a-word { position: absolute; left: 50%; top: 50%; font-weight: 800; font-size: 300px; color: #fff; white-space: nowrap; letter-spacing: -0.05em; line-height: 1; }
+  /* B */
+  #b-label { position: absolute; left: 50%; top: 250px; transform: translateX(-50%); color: #8a8a8a; font-size: 18px; }
+  #b-num { position: absolute; left: 50%; top: 468px; font-weight: 800; font-size: 420px; color: #fff; line-height: 1; letter-spacing: -0.06em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  #b-line { position: absolute; left: 50%; top: 770px; transform: translateX(-50%); font-weight: 700; font-size: 76px; color: #fff; white-space: nowrap; }
+  #b-pill { position: absolute; left: 50%; top: 760px; font-size: 22px; background: #8B7FF2; color: #000; padding: 10px 16px 9px; letter-spacing: 0.12em; }
+  /* C */
+  .c-t { position: absolute; left: 0; top: 0; font-weight: 700; font-size: 150px; line-height: 1; letter-spacing: -0.045em; white-space: nowrap; transform-origin: 0 50%; }
+
+  /* N: NLP */
+  #n-measure, #n-final { position: absolute; visibility: hidden; font-weight: 600; font-size: 76px; line-height: 1.12; letter-spacing: -0.035em; }
+  #n-measure { left: 260px; top: 0; width: 1400px; }
+  #n-final { left: 0; top: 0; width: 1240px; }
+  .w { position: absolute; left: 0; top: 0; font-weight: 600; font-size: 76px; line-height: 1.12; letter-spacing: -0.035em; color: #16171A; white-space: nowrap; transform-origin: 0 0; }
+  .w .strike { position: absolute; left: -4px; right: -4px; top: 55%; height: 7px; background: #F07A28; transform-origin: 0 50%; }
+  .w .alt { position: absolute; left: 0; top: 0; }
+  .chip { position: absolute; font-size: 24px; display: flex; gap: 14px; align-items: center; white-space: nowrap; }
+  .chip .save { background: #5B4FD6; color: #fff; padding: 8px 12px 7px; }
+
+  /* T: TF-IDF */
+  #t-stack { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 960px 470px; }
+  .t-card { position: absolute; left: 330px; width: 1260px; height: 96px; background: #fff; border: 1px solid #E5E4DF; display: flex; align-items: center; gap: 22px; padding: 0 26px; box-shadow: 0 18px 40px rgba(0,0,0,0.07); }
+  .t-card .tag { flex: none; width: 170px; font-size: 15px; padding: 6px 0 5px; text-align: center; color: #fff; }
+  .t-card .tx { flex: 1; font-weight: 600; font-size: 32px; letter-spacing: -0.02em; color: #16171A; white-space: nowrap; overflow: hidden; }
+  .t-card .tk { flex: none; font-size: 20px; color: #5c5c5c; }
+  .t-card.kept { border-color: #5B4FD6; }
+  #t-slider { position: absolute; left: 0; top: 0; }
+  #t-bars { position: absolute; left: 460px; top: 880px; width: 1000px; height: 70px; display: flex; align-items: flex-end; justify-content: space-between; }
+  #t-bars span { width: 3px; background: #16171A; border-radius: 2px; }
+  #t-sl-label { position: absolute; left: 460px; top: 838px; font-size: 15px; color: #5c5c5c; white-space: nowrap; }
+  #t-val { position: absolute; top: 790px; font-size: 18px; background: #5B4FD6; color: #fff; padding: 7px 10px 6px; white-space: nowrap; }
+
+  /* R: AI rewrite */
+  #r-prompt { position: absolute; left: 410px; top: 250px; width: 1100px; padding: 24px 28px; background: #121212; border: 1px solid #2c2c2c; color: #a3a3a3; font-size: 28px; line-height: 1.35; letter-spacing: -0.01em; }
+  #r-prompt .tk { position: absolute; right: 18px; top: -34px; font-size: 15px; color: #8a8a8a; }
+  .r-card { position: absolute; width: 580px; height: 330px; margin-left: -290px; margin-top: -165px; background: #111; border: 1px solid #2c2c2c; padding: 26px 28px; color: #fff; }
+  .r-card .who { font-size: 17px; color: #8a8a8a; }
+  .r-card .out { margin-top: 26px; font-weight: 700; font-size: 48px; line-height: 1.08; letter-spacing: -0.035em; min-height: 90px; }
+  .r-card .foot { position: absolute; left: 28px; right: 28px; bottom: 22px; display: flex; justify-content: space-between; font-size: 16px; color: #8a8a8a; }
+  .r-card .ok { color: #8B7FF2; }
+  .r-card .win { position: absolute; right: -1px; top: -1px; font-size: 13px; background: #8B7FF2; color: #000; padding: 7px 10px 6px; }
+  #r-beams { position: absolute; left: 0; top: 0; overflow: visible; }
+
+  /* S: results */
+  #s-chart { position: absolute; left: 960px; top: 800px; width: 0; height: 0; }
+  .s-bar { position: absolute; left: 0; top: 0; width: 0; height: 0; }
+  .s-face { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+  .s-val { position: absolute; font-weight: 800; font-size: 88px; letter-spacing: -0.05em; color: #fff; white-space: nowrap; transform: translate(-50%, -100%); }
+  .s-name { position: absolute; font-size: 18px; color: #a3a3a3; white-space: nowrap; transform: translateX(-50%); }
+  #s-floor { position: absolute; left: -900px; top: 0; width: 1800px; height: 900px; transform-origin: 900px 0; background: radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.08), transparent 60%); }
+
+  /* E + cuts */
+  #e-upto { position: absolute; left: 50%; top: 196px; transform: translateX(-50%); color: #fff; font-weight: 600; font-size: 64px; letter-spacing: -0.045em; }
+  #e-num { position: absolute; left: 50%; top: 300px; height: 440px; display: flex; color: #fff; font-weight: 800; font-size: 460px; line-height: 440px; letter-spacing: -0.06em; }
+  #e-sub { position: absolute; left: 50%; top: 772px; transform: translateX(-50%); color: #fff; font-weight: 700; font-size: 88px; white-space: nowrap; letter-spacing: -0.045em; }
+  #e-foot { position: absolute; left: 56px; bottom: 80px; color: rgba(255,255,255,0.7); font-size: 14px; }
+  .cut { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 210px; letter-spacing: -0.055em; white-space: nowrap; }
+
+  /* F */
+  #f-wall { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 960px 540px; }
+  .f-row { position: absolute; left: 0; white-space: nowrap; font-weight: 700; font-size: 92px; letter-spacing: -0.04em; line-height: 1; }
+  #f-head { position: absolute; left: 50%; top: 50%; font-weight: 800; font-size: 150px; line-height: 0.98; letter-spacing: -0.055em; color: #fff; white-space: nowrap; text-align: center; transform-origin: 50% 50%; }
+  #f-tag { position: absolute; left: 50%; top: 820px; transform: translateX(-50%); color: #8a8a8a; font-size: 18px; white-space: nowrap; }
+  /* G */
+  #g-word { position: absolute; top: 50%; font-weight: 700; font-size: 190px; color: #fff; letter-spacing: -0.05em; line-height: 1; white-space: nowrap; }
+  #g-word span { display: inline-block; }
+  #g-tag { position: absolute; left: 50%; top: 680px; color: #8a8a8a; font-size: 20px; white-space: nowrap; }
+  #g-tag b { color: #8B7FF2; font-weight: 500; }
+
+  #grain { position: absolute; inset: 0; z-index: 60; pointer-events: none; mix-blend-mode: overlay; }
+  #vignette { position: absolute; inset: 0; z-index: 59; pointer-events: none; background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.28) 100%); }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="wipe"></div>
+  <div id="cam">
+
+    <div class="scene" id="A">
+      <div id="a-ticker">Hey! Hope you're doing well. Could you please kindly help me write a short poem about the ocean? Thanks so much in advance! Hey! Hope you're doing well. Could you please kindly help me</div>
+      <div id="a-word"></div>
+    </div>
+
+    <div class="scene" id="B">
+      <div id="b-label" class="mono">Tokens</div>
+      <div id="b-num">0</div>
+      <div id="b-line"><span class="mask"><span id="b-line-in" style="display:inline-block">Every word <span style="color:#8B7FF2">costs.</span></span></span></div>
+      <div id="b-pill" class="mono">−71%</div>
+    </div>
+
+    <div class="scene" id="C">
+      <div class="c-t" id="c-lead">Trim it with</div>
+      <div class="c-t" id="c-w0">NLP</div>
+      <div class="c-t" id="c-w1">TF‑IDF</div>
+      <div class="c-t" id="c-w2">AI Rewrite</div>
+    </div>
+
+    <div class="scene" id="N">
+      <div class="label" id="n-label" style="color:#16171A"><div class="k mono">01 · NLP</div><div class="h">Tidies the wording.</div></div>
+      <div id="n-measure"></div><div id="n-final"></div>
+      <div id="n-words" class="abs p3"></div>
+      <div class="chip mono" id="n-chip" style="right:120px;bottom:110px;color:#16171A"><span id="n-count">41</span><span>Tokens</span><span class="save" id="n-save">−37%</span></div>
+    </div>
+
+    <div class="scene" id="T">
+      <div class="label" id="t-label" style="color:#16171A"><div class="k mono">02 · TF‑IDF</div><div class="h">Keeps what's on topic.</div></div>
+      <div id="t-stack" class="p3"></div>
+      <div id="t-slider">
+        <div id="t-sl-label" class="mono">How much to keep</div>
+        <div id="t-bars"></div>
+        <div id="t-val" class="mono">74 tokens</div>
+      </div>
+      <div class="chip mono" id="t-chip" style="right:120px;top:130px;color:#16171A"><span>74 → 43 Tokens</span><span class="save">−42%</span></div>
+    </div>
+
+    <div class="scene" id="R">
+      <div class="label" id="r-label" style="color:#fff"><div class="k mono" style="color:#8B7FF2">03 · AI Rewrite <span class="ex">Example</span></div><div class="h">Rewrites it shorter. Then checks it.</div></div>
+      <div id="r-prompt">Hey! Hope you are doing well. Could you please kindly help me write a short poem about the ocean? Thanks so much in advance!<span class="tk mono">28 tokens</span></div>
+      <svg id="r-beams" width="1920" height="1080"><path id="rb0"/><path id="rb1"/><path id="rb2"/></svg>
+      <div class="r-card" id="rc0"><div class="who mono">Qwen · Groq</div><div class="out"></div><div class="foot mono"><span class="n"></span><span class="ok"></span></div></div>
+      <div class="r-card" id="rc1"><div class="who mono">Gemini Flash · Google</div><div class="out"></div><div class="foot mono"><span class="n"></span><span class="ok"></span></div></div>
+      <div class="r-card" id="rc2"><div class="who mono">GPT‑OSS 120B · Groq</div><div class="out"></div><div class="foot mono"><span class="n"></span><span class="ok"></span></div><div class="win mono">Shortest · Accepted</div></div>
+    </div>
+
+    <div class="scene" id="S">
+      <div class="label" id="s-label" style="color:#fff"><div class="k mono" style="color:#8B7FF2">Results · best in our tests</div><div class="h">Tokens saved.</div></div>
+      <div id="s-chart" class="p3"><div id="s-floor"></div></div>
+    </div>
+
+    <div class="scene" id="E">
+      <div id="e-upto">Up to</div>
+      <div id="e-num">69%</div>
+      <div id="e-sub">fewer tokens.</div>
+      <div id="e-foot" class="mono">Best result in our tests · AI Rewrite</div>
+    </div>
+    <div class="scene" id="E1"><div class="cut" style="color:#fff">Fewer tokens.</div></div>
+    <div class="scene" id="E2"><div class="cut" style="color:#16171A">Same request.</div></div>
+    <div class="scene" id="E3"><div class="cut" style="color:#000">Lower cost.</div></div>
+
+    <div class="scene" id="F">
+      <div id="f-wall" class="p3"></div>
+      <div id="f-head"><div>Shorter prompts,</div><div style="color:#8B7FF2">Same request.</div></div>
+      <div id="f-tag" class="mono">Tokenz trims the extra words before you send</div>
+    </div>
+
+    <div class="scene" id="G">
+      <div id="g-word"></div>
+      <div id="g-tag" class="mono">Token saver <b>·</b> tokenz</div>
+    </div>
+  </div>
+
+  <svg class="chev" id="chev-l" viewBox="0 0 19 36" width="19" height="36"><path d="M0 0 H9 L19 18 L9 36 H0 L10 18 Z"/></svg>
+  <svg class="chev" id="chev-r" viewBox="0 0 19 36" width="19" height="36"><path d="M19 0 H10 L0 18 L10 36 H19 L9 18 Z"/></svg>
+  <svg id="dia" viewBox="-1 -1 2 2" width="2" height="2"><path d="M0 -1 L1 0 L0 1 L-1 0 Z"/></svg>
+
+  <div id="hud"><span class="mono" id="hud-l">Tokenz</span><span class="mono" id="hud-r"></span><span class="mono" id="hud-b">Token saver</span><span class="mono" id="hud-br"></span></div>
+  <div id="vignette"></div>
+  <canvas id="grain" width="1920" height="1080"></canvas>
+</div>
+
+<script>
+// The film, drawn from the time t alone (0 to 40 seconds), so any frame can be rendered on its
+// own and it loops: t = 40 looks exactly like t = 0.
+// The logo's two chevrons run through all of it, squeezing things and carrying each scene into
+// the next; a camera moves through the set in 3D.
+const DUR = 40;
+const $ = (id) => document.getElementById(id);
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const prog = (t, a, d) => clamp((t - a) / d);
+const lerp = (a, b, k) => a + (b - a) * k;
+const outExpo = (k) => (k >= 1 ? 1 : 1 - Math.pow(2, -10 * k));
+const inExpo = (k) => (k <= 0 ? 0 : Math.pow(2, 10 * k - 10));
+const outCubic = (k) => 1 - Math.pow(1 - k, 3);
+const inCubic = (k) => k * k * k;
+const inOut = (k) => (k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
+const inOutSine = (k) => 0.5 - 0.5 * Math.cos(Math.PI * k);
+const outBack = (k) => { const c = 1.6; return 1 + (c + 1) * Math.pow(k - 1, 3) + c * Math.pow(k - 1, 2); };
+const W = 1920, H = 1080, CX = 960, CY = 540, PERSP = 1800;
+const INK = "#16171A", VIOLET = "#8B7FF2", DVIOLET = "#5B4FD6", ORANGE = "#F07A28", LIGHT = "#F4F4F1";
+
+// ---------- camera ----------
+let CAM = { x: 0, y: 0, z: 0, rx: 0, ry: 0 };
+function setCam(c) {
+  CAM = { x: 0, y: 0, z: 0, rx: 0, ry: 0, ...c };
+  $("cam").style.transform = `translate3d(${-CAM.x}px, ${-CAM.y}px, ${CAM.z}px) rotateX(${CAM.rx}deg) rotateY(${CAM.ry}deg)`;
+}
+// where a point of the set lands on screen
+function project(px, py, pz = 0) {
+  const x = px - CX, y = py - CY, z = pz;
+  const ry = CAM.ry * Math.PI / 180, rx = CAM.rx * Math.PI / 180;
+  const x1 = x * Math.cos(ry) + z * Math.sin(ry), z1 = -x * Math.sin(ry) + z * Math.cos(ry);
+  const y2 = y * Math.cos(rx) - z1 * Math.sin(rx), z2 = y * Math.sin(rx) + z1 * Math.cos(rx);
+  const X = x1 - CAM.x, Y = y2 - CAM.y, Z = z2 + CAM.z;
+  const f = PERSP / (PERSP - Z);
+  return { x: CX + X * f, y: CY + Y * f, f };
+}
+
+// ---------- chevrons (screen space) ----------
+function markState(x, y, size, open = 0) { const u = size / 64; return { lx: x - (7 + open) * u, rx: x + (7 + open) * u, y, h: 36 * u }; }
+function mix(a, b, k) { return { lx: lerp(a.lx, b.lx, k), rx: lerp(a.rx, b.rx, k), y: lerp(a.y, b.y, k), h: lerp(a.h, b.h, k) }; }
+function bracket(x0, x1, y, h, pad = 40) { return { lx: x0 - pad, rx: x1 + pad, y, h }; }
+// a set-space bracket, seen through the camera
+function seen(c, z = 0) { const a = project(c.lx, c.y, z), b = project(c.rx, c.y, z); return { lx: a.x, rx: b.x, y: (a.y + b.y) / 2, h: c.h * (a.f + b.f) / 2 }; }
+// a bracket round an element as it is on screen
+function around(el, pad = 40, hs = 1, minH = 0) {
+  const r = el.getBoundingClientRect();
+  return { lx: r.left - pad, rx: r.right + pad, y: r.top + r.height / 2, h: Math.max(minH, r.height * hs) };
+}
+function drawChev(c, color = "#fff", alpha = 1, blur = 0) {
+  const u = c.h / 36, l = $("chev-l"), r = $("chev-r");
+  l.style.transform = `translate(${c.lx - 19 * u}px, ${c.y - 18 * u}px) scale(${u})`;
+  r.style.transform = `translate(${c.rx}px, ${c.y - 18 * u}px) scale(${u})`;
+  [l, r].forEach((s) => { s.style.fill = color; s.style.opacity = alpha; s.style.filter = blur > 0.3 ? `blur(${blur / u}px)` : "none"; });
+}
+function drawDia(x, y, r, spin = 0, color = "#fff") {
+  $("dia").style.transform = `translate(${x}px, ${y}px) rotate(${spin}deg) scale(${Math.max(r, 0.0001)}) translate(-1px, -1px)`;
+  $("dia").style.fill = color; $("dia").style.opacity = r > 0.01 ? 1 : 0;
+}
+function wipe(x, y, k, color) {
+  const el = $("wipe");
+  if (k <= 0) { el.style.display = "none"; return 0; }
+  const r = Math.hypot(Math.max(x, W - x), Math.max(y, H - y)) * 1.02 * k;
+  el.style.display = "block"; el.style.width = el.style.height = 2 * r + "px";
+  el.style.transform = `translate(${x - r}px, ${y - r}px)`; el.style.background = color;
+  return r;
+}
+function mixColor(a, b, k) {
+  const p = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+  const A = p(a), B = p(b);
+  return `rgb(${A.map((v, i) => Math.round(lerp(v, B[i], k))).join(",")})`;
+}
+
+const REST_SIZE = 150, END_SIZE = 200;
+const OFF = { lx: -320, rx: W + 320, y: CY, h: 300 };
+const sceneIds = ["A", "B", "C", "N", "T", "R", "S", "E", "E1", "E2", "E3", "F", "G"];
+function show(...ids) { sceneIds.forEach((s) => { const el = $(s); el.style.visibility = ids.includes(s) ? "visible" : "hidden"; if (!ids.includes(s)) el.style.transform = ""; }); }
+function hud(right, light, br = "") {
+  const h = $("hud");
+  h.style.color = light ? "rgba(22,23,26,0.55)" : "rgba(255,255,255,0.55)";
+  h.style.opacity = 1;
+  $("hud-r").textContent = right; $("hud-br").textContent = br;
+  $("vignette").style.opacity = light ? 0.25 : 1;
+  $("grain").style.opacity = light ? 0.05 : 0.09;
+}
+// one scene handing over to the next like a camera panning across the set
+function pan(outId, inId, k) {
+  const e = inOut(k);
+  $(outId).style.transform = `translate3d(${-1500 * e}px, 0, ${-500 * Math.sin(Math.PI * e)}px) rotateY(${22 * e}deg)`;
+  $(inId).style.transform = `translate3d(${1500 * (1 - e)}px, 0, ${-500 * Math.sin(Math.PI * e)}px) rotateY(${-22 * (1 - e)}deg)`;
+}
+
+// ---------- content ----------
+const A_WORDS = ["Hey!", "Hope", "you're", "doing", "well.", "Could", "you", "please", "kindly", "help…"];
+const C_COLORS = [INK, DVIOLET, ORANGE];
+const N_TEXT = "Hi! I hope you are doing well today. I would like you to help me prepare for a job interview at a bank. Please give me 5 common questions and good answers. Thanks in advance!";
+const T_ROWS = [
+  { tag: "Task", c: DVIOLET, tx: "What I mainly need you to do is summarize the causes of World War I in 5 bullet points.", tk: 21 },
+  { tag: "Off-topic", c: "#9a9a9a", tx: "I am currently studying for my history exam and I feel a bit stressed about it.", tk: 17, drop: 59.5 },
+  { tag: "Instruction", c: INK, tx: "Please focus on alliances, militarism, imperialism and nationalism.", tk: 13 },
+  { tag: "Instruction", c: INK, tx: "Do not include anything about World War II.", tk: 9 },
+  { tag: "Off-topic", c: "#9a9a9a", tx: "My roommate keeps playing loud music, which makes it hard to concentrate.", tk: 14, drop: 73.5 },
+];
+const R_OUT = [
+  { text: "Write a short poem about the ocean.", tk: 8 },
+  { text: "Write a brief poem about the ocean.", tk: 8 },
+  { text: "Write a short ocean poem.", tk: 6 },
+];
+const S_BARS = [
+  { name: "NLP", v: 52, front: "#E9E9E6", top: "#ffffff", side: "#b9b9b5" },
+  { name: "TF‑IDF", v: 48, front: "#8B7FF2", top: "#ada4f7", side: "#5B4FD6" },
+  { name: "AI Rewrite", v: 69, front: "#F07A28", top: "#f6a06a", side: "#b8561a" },
+];
+const F_ROWS = [
+  "Hey! I hope you are doing well today. ", "Could you please kindly help me out with this? ",
+  "Thanks so much in advance, I really appreciate it! ", "I was just wondering if maybe you could ",
+  "Sorry for the long message, but basically ", "Just to give you a little bit of context first, ",
+  "If it's not too much trouble, could you possibly ", "As I mentioned before, and to be honest, ",
+  "Let me know if you have any questions at all! ", "Hope this makes sense. Best regards, cheers! ",
+];
+let M = {}, NW = [];
+
+function width(text, css) {
+  const m = document.createElement("span");
+  m.style.cssText = "position:absolute;visibility:hidden;white-space:nowrap;" + css;
+  m.textContent = text; document.body.appendChild(m);
+  const w = m.getBoundingClientRect().width; m.remove(); return w;
+}
+// TF-IDF budget over time: all 74 tokens, then the slider sweeps down to the suggested 43
+const budget = (t) => lerp(74, 43, inOut(prog(t, 16.9, 1.9)));
+
+function build() {
+  const cCss = "font-family:Inter;font-weight:700;font-size:150px;letter-spacing:-0.045em";
+  M.lead = width("Trim it with", cCss);
+  M.words = ["NLP", "TF‑IDF", "AI Rewrite"].map((w) => width(w, cCss));
+  const cutCss = "font-family:Inter;font-weight:800;font-size:210px;letter-spacing:-0.055em";
+  M.cuts = ["Fewer tokens.", "Same request.", "Lower cost."].map((w) => width(w, cutCss));
+  M.head = width("Shorter prompts,", "font-family:Inter;font-weight:800;font-size:150px;letter-spacing:-0.055em");
+  M.gword = width("Tokenz", "font-family:Inter;font-weight:700;font-size:190px;letter-spacing:-0.05em");
+  M.num = width("69%", "font-family:Inter;font-weight:800;font-size:460px;letter-spacing:-0.06em");
+
+  // N: where each word sits in the prompt, and where the kept words sit in NLP's version
+  const words = N_TEXT.split(" ");
+  const keep = {};
+  for (let i = 8; i <= 22; i++) keep[i] = words[i];
+  keep[24] = "Give";
+  for (let i = 25; i <= 31; i++) keep[i] = words[i];
+  const meas = $("n-measure"), fin = $("n-final");
+  meas.innerHTML = words.map((w) => `<span>${w}</span>`).join(" ");
+  const kIdx = Object.keys(keep).map(Number);
+  fin.innerHTML = kIdx.map((i) => `<span>${keep[i]}</span>`).join(" ");
+  const ms = [...meas.querySelectorAll("span")], fs = [...fin.querySelectorAll("span")];
+  const lines0 = new Set(ms.map((s) => s.offsetTop)).size, lines1 = new Set(fs.map((s) => s.offsetTop)).size;
+  const lh = 76 * 1.12;
+  const top0 = CY + 30 - lines0 * lh / 2, top1 = CY + 30 - lines1 * lh / 2;
+  const fw = Math.max(...fs.map((s) => s.offsetLeft + s.offsetWidth));
+  const left1 = CX - fw / 2;
+  ms.forEach((sp, i) => {
+    const el = document.createElement("div"); el.className = "w";
+    const k = keep[i] != null, changes = k && keep[i] !== words[i];
+    el.innerHTML = changes ? `<span class="from">${words[i]}</span><span class="alt" style="opacity:0">${keep[i]}</span>` : `<span class="from">${words[i]}</span>`;
+    if (!k) el.insertAdjacentHTML("beforeend", '<span class="strike"></span>');
+    $("n-words").appendChild(el);
+    const o = { el, keep: k, changes, i, x0: sp.offsetLeft + 260, y0: sp.offsetTop + top0, w: sp.offsetWidth };
+    if (k) { const f = fs[kIdx.indexOf(i)]; o.x1 = left1 + f.offsetLeft; o.y1 = f.offsetTop + top1; }
+    NW.push(o);
+  });
+  M.n0 = { x0: Math.min(...NW.map((o) => o.x0)), x1: Math.max(...NW.map((o) => o.x0 + o.w)), y: CY + 30, h: lines0 * lh + 60 };
+  M.n1 = { x0: left1, x1: left1 + fw, y: CY + 30, h: lines1 * lh + 50 };
+  NW.forEach((o) => {
+    const cx = o.x0 + o.w / 2, cy = o.y0 + 40;
+    o.edge = clamp(Math.abs(cx - CX) / ((M.n0.x1 - M.n0.x0) / 2));
+    const r = Math.sin(o.i * 12.9898) * 43758.5453, rnd = r - Math.floor(r);
+    o.fy = (cy < CY + 30 ? -1 : 1) * (380 + rnd * 260); o.fx = (CX - cx) * 0.3; o.rot = (rnd - 0.5) * 30; o.fz = -300 - rnd * 500;
+  });
+
+  // T: the sentence cards and the slider's bars
+  T_ROWS.forEach((row, i) => {
+    const c = document.createElement("div"); c.className = "t-card"; c.id = "tc" + i;
+    c.innerHTML = `<span class="tag mono" style="background:${row.c}">${row.tag}</span><span class="tx">${row.tx}</span><span class="tk mono">${row.tk}</span>`;
+    $("t-stack").appendChild(c);
+    // when the falling budget leaves no room for it
+    if (row.drop) { let tt = 16.9; while (budget(tt) > row.drop && tt < 19) tt += 0.001; row.at = tt; }
+  });
+  for (let i = 0; i < 64; i++) { const s = document.createElement("span"); s.style.height = (14 + 56 * Math.pow(i / 63, 1.4)) + "px"; $("t-bars").appendChild(s); }
+
+  // S: three bars, each a box of three faces
+  S_BARS.forEach((b, i) => {
+    const g = document.createElement("div"); g.className = "s-bar p3"; g.id = "sb" + i;
+    g.style.transform = `translate3d(${(i - 1) * 420}px, 0, 0)`;
+    g.innerHTML = `<div class="s-face" data-f="front" style="background:${b.front}"></div><div class="s-face" data-f="top" style="background:${b.top}"></div><div class="s-face" data-f="side" style="background:${b.side}"></div><div class="s-val" id="sv${i}">0%</div><div class="s-name mono" style="top:40px">${b.name}</div>`;
+    $("s-chart").appendChild(g);
+  });
+
+  // F: rows of bloated prompts, at different depths
+  F_ROWS.forEach((txt, i) => {
+    const row = document.createElement("div"); row.className = "f-row"; row.id = "fr" + i;
+    row.textContent = txt.repeat(6);
+    row.style.top = (i * 108 - 6) + "px";
+    row.style.color = i % 3 === 1 ? "#2e2e2e" : "#1f1f1f";
+    $("f-wall").appendChild(row);
+  });
+
+  $("g-word").innerHTML = "Tokenz".split("").map((c) => `<span>${c}</span>`).join("");
+
+  window.GRAIN = [];
+  for (let g = 0; g < 6; g++) {
+    const c = document.createElement("canvas"); c.width = 480; c.height = 270;
+    const x = c.getContext("2d"); const img = x.createImageData(480, 270);
+    let seed = 1234 + g * 7919;
+    for (let p = 0; p < img.data.length; p += 4) { seed = (seed * 1664525 + 1013904223) >>> 0; const v = seed >>> 24; img.data[p] = img.data[p + 1] = img.data[p + 2] = v; img.data[p + 3] = 255; }
+    x.putImageData(img, 0, 0); GRAIN.push(c);
+  }
+}
+
+const C_H = 150, C_U = C_H / 36, C_CW = 19 * C_U, C_PAD = 30, C_GAP = 44;
+function cLayout(ww) {
+  const total = M.lead + C_GAP + C_CW + C_PAD + ww + C_PAD + C_CW;
+  const x = CX - total / 2, lx = x + M.lead + C_GAP + C_CW;
+  return { leadX: x, lx, wordX: lx + C_PAD, rx: lx + C_PAD + ww + C_PAD };
+}
+
+// ================= the scenes that hand over by panning: each draws itself and
+// returns where the chevrons should be (on screen) =================
+function drawN(t) {
+  const strikeT = 11.35, sqT = 12.1, sqD = 0.55, joinT = 12.55;
+  const sq = inOut(prog(t, sqT, sqD));
+  const lab = outExpo(prog(t, 10.6, 0.6));
+  $("n-label").style.transform = `translate3d(${(1 - lab) * -80}px, 0, 160px)`;
+  $("n-label").style.opacity = lab;
+  let k0 = Infinity, k1 = -Infinity, ky0 = Infinity, ky1 = -Infinity;
+  NW.forEach((o, n) => {
+    const el = o.el;
+    const rise = outExpo(prog(t, 10.55 + n * 0.014, 0.5));
+    let x = o.x0, y = o.y0 + (1 - rise) * 70, z = 0, s = 1, op = clamp(rise * 1.6), blur = (1 - rise) * 10, rot = 0, sx = 1;
+    if (!o.keep) {
+      const k = outExpo(prog(t, strikeT + n * 0.02, 0.25));
+      el.querySelector(".strike").style.transform = `scaleX(${k})`;
+      el.style.color = k > 0 ? `rgba(22,23,26,${lerp(1, 0.32, k)})` : INK;
+      const push = prog(t, sqT + (1 - o.edge) * sqD * 0.7, 0.42), f = inCubic(push);
+      x += o.fx * f; y += o.fy * f; z = o.fz * f; rot = o.rot * f; op *= 1 - outCubic(push); blur += 14 * f; sx = 1 - 0.5 * f;
+    } else {
+      el.style.color = INK;
+      const j = inOut(prog(t, joinT + (o.i - 8) * 0.012, 0.6));
+      x = lerp(o.x0, o.x1, j); y = lerp(o.y0, o.y1, j);
+      if (o.changes) { el.querySelector(".from").style.opacity = 1 - clamp(j * 2); el.querySelector(".alt").style.opacity = clamp(j * 2); }
+      // a little lift off the page as it lands
+      z = 60 * Math.sin(Math.PI * j);
+      k0 = Math.min(k0, x); k1 = Math.max(k1, x + o.w); ky0 = Math.min(ky0, y); ky1 = Math.max(ky1, y + 76 * 1.12);
+    }
+    el.style.opacity = op;
+    el.style.transform = `translate3d(${x}px, ${y}px, ${z}px) rotate(${rot}deg) scale(${s * sx}, ${s})`;
+    el.style.filter = blur > 0.2 ? `blur(${blur}px)` : "none";
+  });
+  $("n-count").textContent = Math.round(lerp(41, 26, outCubic(prog(t, sqT, 1.0))));
+  const chipIn = outExpo(prog(t, 10.9, 0.5));
+  $("n-chip").style.opacity = chipIn;
+  $("n-chip").style.transform = `translate3d(0, ${(1 - chipIn) * 30}px, 120px)`;
+  const sv = prog(t, 13.2, 0.35);
+  $("n-save").style.opacity = clamp(sv * 3);
+  $("n-save").style.transform = `scale(${lerp(0.5, 1, outBack(sv))})`;
+  const wide = bracket(M.n0.x0, M.n0.x1, M.n0.y, M.n0.h, 56);
+  const hug = bracket(k0, k1, (ky0 + ky1) / 2, ky1 - ky0 + 50, 46);
+  return seen(mix(wide, hug, sq));
+}
+
+function drawT(t) {
+  const lab = outExpo(prog(t, 15.7, 0.6));
+  $("t-label").style.transform = `translate3d(${(1 - lab) * -80}px, 0, 160px)`;
+  $("t-label").style.opacity = lab;
+  // the stack tilts back in 3D and settles a little as the camera comes round
+  const settle = inOutSine(prog(t, 15.5, 5.5));
+  $("t-stack").style.transform = `rotateX(${lerp(18, 8, settle)}deg) rotateY(${lerp(-15, 5, settle)}deg)`;
+  const b = budget(t);
+  // cards fly in from the depth; an off-topic card falls away once the budget can't fit it, and
+  // the cards under the first one to go move up into its place
+  const g1 = inOut(prog(t, T_ROWS[1].at + 0.15, 0.45));
+  T_ROWS.forEach((row, i) => {
+    const el = $("tc" + i);
+    const fly = outExpo(prog(t, 15.65 + i * 0.07, 0.7));
+    const f = row.at ? outCubic(prog(t, row.at, 0.7)) : 0;
+    const slot = i === 2 || i === 3 ? i - g1 : i;
+    el.style.opacity = clamp(fly * 1.5) * (1 - f);
+    el.style.transform = `translate3d(0, ${240 + slot * 112 + (1 - fly) * 80 - f * 60}px, ${-900 * (1 - fly) - 1100 * f}px) rotateX(${55 * f}deg)`;
+    el.classList.toggle("kept", !row.drop && t > 18.9);
+  });
+  // the slider: a row of bars between the chevrons; the right one is the handle
+  const sl = outExpo(prog(t, 16.3, 0.5));
+  $("t-slider").style.opacity = sl;
+  $("t-slider").style.transform = `translate3d(0, ${(1 - sl) * 40}px, 40px)`;
+  const frac = (b - 0) / 74, knob = 460 + 1000 * frac;
+  [...$("t-bars").children].forEach((s, i) => { s.style.background = 460 + (i / 63) * 1000 <= knob + 1 ? INK : "#cfcfcb"; });
+  $("t-val").textContent = Math.round(b) + " tokens";
+  $("t-val").style.left = knob - 60 + "px";
+  const ch = outBack(prog(t, 19.0, 0.45));
+  $("t-chip").style.opacity = clamp(ch * 2);
+  $("t-chip").style.transform = `translate3d(0,0,140px) scale(${lerp(0.6, 1, ch)})`;
+  const r = $("t-bars").getBoundingClientRect();
+  const kx = r.left + r.width * frac;
+  return { lx: r.left - 22, rx: kx + 22, y: r.top + r.height / 2 - 6, h: r.height * 1.6 };
+}
+
+function drawR(t) {
+  const lab = outExpo(prog(t, 21.7, 0.6));
+  $("r-label").style.transform = `translate3d(${(1 - lab) * -80}px, 0, 160px)`;
+  $("r-label").style.opacity = lab;
+  const pIn = outExpo(prog(t, 21.6, 0.6));
+  $("r-prompt").style.opacity = pIn;
+  $("r-prompt").style.transform = `translate3d(0, ${(1 - pIn) * -40}px, ${80 - (1 - pIn) * 300}px)`;
+  const win = inOut(prog(t, 24.35, 0.7));
+  const cards = [{ x: CX - 640, ry: 26, z: -80 }, { x: CX, ry: 0, z: 0 }, { x: CX + 640, ry: -26, z: -80 }];
+  const beams = outCubic(prog(t, 22.0, 0.45));
+  cards.forEach((c, i) => {
+    const el = $("rc" + i);
+    const fin = outExpo(prog(t, 22.1 + i * 0.1, 0.7));
+    let x = c.x, ry = c.ry, z = c.z - (1 - fin) * 600, y = 700, sc = 1, op = clamp(fin * 1.5);
+    if (i === 2) { x = lerp(c.x, CX, win); ry = lerp(c.ry, 0, win); z = lerp(c.z, 170, win); y = lerp(700, 650, win); }
+    else { x += (i === 0 ? -1 : 1) * 260 * win; z -= 380 * win; op *= 1 - 0.75 * win; ry *= 1 + 0.5 * win; }
+    el.style.opacity = op;
+    el.style.transform = `translate3d(${x}px, ${y}px, ${z}px) rotateY(${ry}deg) scale(${sc})`;
+    const out = R_OUT[i];
+    const chars = Math.floor(clamp((t - 22.5 - i * 0.12) * 30, 0, out.text.length));
+    el.querySelector(".out").textContent = out.text.slice(0, chars) + (chars < out.text.length && t > 22.4 ? "▍" : "");
+    el.querySelector(".n").textContent = chars >= out.text.length ? out.tk + " tokens" : "";
+    const okN = Math.floor(clamp((t - 23.7 - i * 0.12) / 0.09, 0, 3));
+    el.querySelector(".ok").textContent = ["", "✓ numbers", "✓ numbers ✓ limits", "✓ numbers ✓ limits ✓ “not”"][okN];
+    if (i === 2) { const w = el.querySelector(".win"); const k = outBack(prog(t, 24.75, 0.4)); w.style.opacity = clamp(k * 2); w.style.transform = `scale(${lerp(0.5, 1, k)})`; el.style.borderColor = win > 0.5 ? VIOLET : "#2c2c2c"; }
+  });
+  // the prompt goes out to each model
+  [0, 1, 2].forEach((i) => {
+    const p = $("rb" + i), x1 = cards[i].x + (i === 2 ? (CX - cards[i].x) * win : (i === 0 ? -260 : i === 2 ? 0 : 0) * win);
+    p.setAttribute("d", `M${CX} 390 C ${CX} 460, ${x1} 460, ${x1} 536`);
+    p.style.fill = "none"; p.style.stroke = VIOLET; p.style.strokeWidth = 2;
+    p.style.strokeDasharray = "600"; p.style.strokeDashoffset = 600 * (1 - beams);
+    p.style.opacity = (1 - win) * 0.8;
+  });
+  // chevrons: round the prompt, then round the winner
+  const aroundPrompt = around($("r-prompt"), 40, 1.25);
+  const aroundWin = around($("rc2"), 36, 1.05);
+  return mix(aroundPrompt, aroundWin, inOut(prog(t, 24.4, 0.6)));
+}
+
+function drawS(t) {
+  const lab = outExpo(prog(t, 26.7, 0.6));
+  $("s-label").style.transform = `translate3d(${(1 - lab) * -80}px, 0, 160px)`;
+  $("s-label").style.opacity = lab;
+  const orbit = inOutSine(prog(t, 26.5, 4));
+  $("s-chart").style.transform = `rotateX(${lerp(-22, -12, orbit)}deg) rotateY(${lerp(-38, -16, orbit)}deg)`;
+  $("s-floor").style.transform = `rotateX(90deg)`;
+  const w = 200, d = 200;
+  S_BARS.forEach((b, i) => {
+    const g = $("sb" + i);
+    const k = outExpo(prog(t, 26.85 + i * 0.16, 1.0));
+    const h = Math.max(1, 560 * (b.v / 70) * k);
+    const [front, top, side] = g.querySelectorAll(".s-face");
+    front.style.width = w + "px"; front.style.height = h + "px";
+    front.style.transform = `translate3d(${-w / 2}px, ${-h}px, ${d / 2}px)`;
+    top.style.width = w + "px"; top.style.height = d + "px";
+    top.style.transform = `translate3d(${-w / 2}px, ${-h}px, ${-d / 2}px) rotateX(90deg)`;
+    side.style.width = d + "px"; side.style.height = h + "px";
+    side.style.transform = `translate3d(${w / 2}px, ${-h}px, ${d / 2}px) rotateY(90deg)`;
+    const v = $("sv" + i);
+    v.textContent = Math.round(b.v * k) + "%";
+    v.style.left = "0px"; v.style.top = -h - 24 + "px";
+    v.style.transform = `translate(-50%, -100%) translateZ(${d / 2}px)`;
+    v.style.opacity = clamp(k * 3);
+    v.style.color = i === 2 ? ORANGE : "#fff";
+  });
+  return around($("sv2"), 34, 1.15);
+}
+
+// ---------- the timeline ----------
+function render(tIn) {
+  const t = ((tIn % DUR) + DUR) % DUR;
+  const st = $("stage");
+  const g = $("grain").getContext("2d");
+  g.imageSmoothingEnabled = false;
+  g.drawImage(GRAIN[Math.floor(t * 60) % GRAIN.length], 0, 0, W, H);
+  wipe(0, 0, 0);
+  setCam({});
+
+  // ===== A: 0 – 3 =====
+  if (t < 3) {
+    show("A"); st.style.background = "#000";
+    hud("01 / 09", false);
+    $("hud").style.opacity = prog(t, 0.5, 0.3);
+    // each slam punches the camera in a touch, and it drifts
+    const i = Math.floor((t - 0.5) / 0.25);
+    const kick = t >= 0.5 && i < A_WORDS.length ? Math.exp(-(t - 0.5 - i * 0.25) * 14) : 0;
+    setCam({ z: 70 * kick + 60 * prog(t, 0.5, 2.5), ry: lerp(-3, 3, inOutSine(prog(t, 0.5, 2.5))) });
+    const anticip = prog(t, 0.15, 0.25), burst = prog(t, 0.4, 0.45);
+    const open = -2.2 * Math.sin(Math.PI * anticip) * (1 - burst);
+    drawChev(mix(markState(CX, CY, REST_SIZE, open), OFF, inExpo(burst)), "#fff", 1, 30 * Math.sin(Math.PI * burst));
+    drawDia(CX, CY, 10.55 * (1 - outCubic(prog(t, 0.4, 0.25))), 180 * outCubic(prog(t, 0.4, 0.3)));
+    const tick = $("a-ticker");
+    tick.style.opacity = 0.55 * outCubic(prog(t, 0.45, 0.4));
+    tick.style.transform = `translate3d(${300 - t * 900}px, 0, -400px)`;
+    const w = $("a-word");
+    if (t >= 0.5 && i < A_WORDS.length) {
+      const k = prog(t, 0.5 + i * 0.25, 0.16);
+      w.textContent = A_WORDS[i];
+      w.style.opacity = clamp(k * 3);
+      w.style.color = i >= 5 ? "#fff" : "#d8d8d8";
+      let tr = `translate(-50%, -52%) translateZ(${lerp(300, 0, outExpo(k))}px)`;
+      w.style.filter = `blur(${lerp(14, 0, outExpo(k))}px)`;
+      if (i === A_WORDS.length - 1) {
+        const c = inExpo(prog(t, 2.78, 0.22));
+        tr = `translate(-50%, -52%) scale(${lerp(1, 0.02, c)}, ${lerp(1, 0.06, c)})`;
+        tick.style.opacity = 0.55 * (1 - c);
+      }
+      w.style.transform = tr;
+    } else w.style.opacity = 0;
+    return;
+  }
+
+  // ===== B: 3 – 6.5 =====
+  if (t < 6.5) {
+    show("B"); st.style.background = "#000";
+    setCam({ z: lerp(-40, 90, inOutSine(prog(t, 3, 2.3))) - 120 * inOut(prog(t, 5.6, 0.9)), rx: lerp(4, 0, prog(t, 3, 2)) });
+    const n = $("b-num"), lab = $("b-label");
+    const grow = outExpo(prog(t, 3.0, 0.4));
+    const count = Math.round(28 * outCubic(prog(t, 3.05, 0.85)));
+    const after = t >= 5.32, hit = prog(t, 5.32, 0.5);
+    n.textContent = after ? "8" : String(count);
+    n.style.color = after ? VIOLET : "#fff";
+    const sx = after ? lerp(0.55, 1, outBack(hit)) : 1, sy = after ? lerp(1.18, 1, outBack(hit)) : 1;
+    const shake = after ? 10 * Math.exp(-(t - 5.32) * 18) * Math.sin((t - 5.32) * 90) : 0;
+    const leave = prog(t, 6.0, 0.3), sc = 1 - 0.8 * inCubic(leave);
+    n.style.transform = `translate(-50%, -50%) translateX(${shake}px) scale(${lerp(0.02, 1, grow) * sx * sc}, ${lerp(0.06, 1, grow) * sy * sc})`;
+    n.style.opacity = 1 - leave;
+    lab.style.opacity = grow * (after ? 0 : 1);
+    const li = $("b-line-in");
+    li.style.transform = `translateY(${110 * (1 - outExpo(prog(t, 3.95, 0.5))) + 110 * inCubic(prog(t, 4.85, 0.25))}%)`;
+    const p = $("b-pill"), pk = prog(t, 5.45, 0.4);
+    p.style.opacity = clamp(pk * 3) * (1 - leave);
+    p.style.transform = `translate(-50%, ${lerp(30, 0, outExpo(pk))}px) scale(1.6)`;
+    const at8 = { lx: CX - 155, rx: CX + 155, y: 468, h: 169 };
+    const sq = inExpo(prog(t, 5.0, 0.32));
+    let c = mix({ ...OFF, y: 468, h: 169 }, at8, sq);
+    if (after) { const b = 12 * Math.sin(Math.PI * prog(t, 5.32, 0.18)); c = { ...at8, lx: at8.lx + b, rx: at8.rx - b }; }
+    let s = seen(c);
+    const L0 = cLayout(0);
+    s = mix(s, { lx: L0.lx, rx: L0.rx, y: CY, h: C_H }, inOut(prog(t, 6.1, 0.5)));
+    const o8 = project(CX, 468);
+    const r = wipe(o8.x, o8.y, inOut(prog(t, 6.0, 0.5)), LIGHT);
+    const far = Math.hypot(Math.max(o8.x - (s.lx - s.h * 0.53), s.rx + s.h * 0.53 - o8.x), Math.abs(s.y - o8.y) + s.h / 2);
+    drawChev(s, r > far ? INK : "#fff", t >= 5.0 ? 1 : 0, after ? 0 : 26 * Math.sin(Math.PI * sq));
+    drawDia(0, 0, 0);
+    hud("02 / 09", r > 900);
+    return;
+  }
+
+  // ===== C: 6.5 – 10.5 =====
+  if (t < 10.5) {
+    show("C"); st.style.background = LIGHT;
+    const T = [6.65, 7.6, 8.6];
+    const step = t < T[1] ? 0 : t < T[2] ? 1 : 2;
+    hud("03 / 09", true, ["NLP", "TF-IDF", "AI Rewrite"][step]);
+    // the camera leans in on each swap, then eases back
+    const lean = [7.6, 8.6].reduce((a, s) => a + Math.exp(-Math.max(0, t - s) * 6) * (t >= s ? 1 : 0), 0);
+    setCam({ z: 40 * lean + lerp(0, 60, inOutSine(prog(t, 6.5, 3.5))), ry: lerp(4, -4, inOutSine(prog(t, 6.5, 3.5))) });
+    const open0 = outExpo(prog(t, T[0], 0.45));
+    let ww = M.words[0] * open0, shown = 0, scale = open0;
+    for (let s = 1; s < 3; s++) {
+      if (t >= T[s] - 0.18) {
+        const shut = inExpo(prog(t, T[s] - 0.18, 0.18)), reopen = outExpo(prog(t, T[s], 0.45));
+        if (t < T[s]) { ww = M.words[s - 1] * (1 - shut); shown = s - 1; scale = 1 - shut; }
+        else { ww = M.words[s] * reopen; shown = s; scale = reopen; }
+      }
+    }
+    const L = cLayout(ww);
+    const out = prog(t, 10.0, 0.5);
+    const lead = $("c-lead"), leadIn = outExpo(prog(t, 6.55, 0.6));
+    lead.style.transform = `translate(${L.leadX - (1 - leadIn) * 300 - 1400 * inExpo(out)}px, ${CY - 75}px)`;
+    lead.style.opacity = clamp(leadIn * 2);
+    lead.style.filter = `blur(${(1 - leadIn) * 14 + inExpo(out) * 30}px)`;
+    lead.style.color = INK;
+    [0, 1, 2].forEach((s) => {
+      const el = $("c-w" + s);
+      el.style.opacity = s === shown ? 1 - outExpo(out) : 0;
+      el.style.color = C_COLORS[s];
+      el.style.transform = `translate(${L.wordX}px, ${CY - 75}px) scale(${Math.max(scale, 0.001) * (1 + 0.6 * outExpo(out))}, 1)`;
+      el.style.filter = out > 0 ? `blur(${20 * outExpo(out)}px)` : "none";
+    });
+    const here = seen({ lx: L.lx, rx: L.rx, y: CY, h: C_H });
+    // on into NLP: the chevrons open round its prompt
+    const nCam = { z: -120, ry: -12, rx: 8 };
+    const saved = CAM; setCam(nCam);
+    const next = seen(bracket(M.n0.x0, M.n0.x1, M.n0.y, M.n0.h, 56));
+    setCam(saved);
+    drawChev(mix(here, next, inOut(prog(t, 10.05, 0.5))), INK);
+    drawDia(0, 0, 0);
+    return;
+  }
+
+  // ===== N 10.5 – 15.5, T 15.5 – 21.5, R 21.5 – 26.5, S 26.5 – 30.5: the three methods and the
+  // results, the camera moving through them =====
+  if (t < 30.5) {
+    $("e-num").style.opacity = 0;
+    const camN = (tt) => ({ z: lerp(-120, 80, inOutSine(prog(tt, 10.5, 4.6))), ry: lerp(-12, 4, inOutSine(prog(tt, 10.5, 4.6))), rx: lerp(8, 0, inOutSine(prog(tt, 10.5, 3))) });
+    const camT = (tt) => ({ z: lerp(-60, 90, inOutSine(prog(tt, 15.5, 6))), ry: lerp(-8, 6, inOutSine(prog(tt, 15.5, 6))), rx: 4 });
+    const camR = (tt) => ({ z: lerp(140, -80, outCubic(prog(tt, 21.5, 2))) + 170 * inOut(prog(tt, 24.35, 1.6)), ry: lerp(-6, 0, inOutSine(prog(tt, 21.5, 3))), rx: lerp(6, 2, prog(tt, 21.5, 3)) });
+    const camS = (tt) => ({ z: lerp(-120, 60, inOutSine(prog(tt, 26.5, 3.5))), ry: 0, rx: 0 });
+    const blendCam = (a, b, k) => ({ z: lerp(a.z, b.z, k), ry: lerp(a.ry, b.ry, k), rx: lerp(a.rx, b.rx, k) });
+    const stages = [
+      { id: "N", from: 10.5, draw: drawN, cam: camN, bg: LIGHT, light: true, hudR: "04 / 09", chev: INK },
+      { id: "T", from: 15.5, draw: drawT, cam: camT, bg: LIGHT, light: true, hudR: "05 / 09", chev: INK },
+      { id: "R", from: 21.5, draw: drawR, cam: camR, bg: "#000000", light: false, hudR: "06 / 09", chev: "#fff" },
+      { id: "S", from: 26.5, draw: drawS, cam: camS, bg: "#000000", light: false, hudR: "07 / 09", chev: "#fff" },
+    ];
+    const PAN = 0.5;
+    let k = stages.length - 1;
+    while (k > 0 && t < stages[k].from) k--;
+    const cur = stages[k], nxt = stages[k + 1];
+    const panK = nxt ? prog(t, nxt.from - PAN, PAN) : 0;
+    if (panK > 0) {
+      show(cur.id, nxt.id); pan(cur.id, nxt.id, panK);
+      const e = inOut(panK);
+      setCam(blendCam(cur.cam(t), nxt.cam(t), e));
+      const a = cur.draw(t), b = nxt.draw(t);
+      st.style.background = mixColor(cur.bg, nxt.bg, e);
+      hud(e < 0.5 ? cur.hudR : nxt.hudR, e < 0.5 ? cur.light : nxt.light);
+      drawChev(mix(a, b, e), cur.chev === nxt.chev ? cur.chev : mixColor(cur.chev === INK ? INK : "#ffffff", nxt.chev === INK ? INK : "#ffffff", e));
+    } else {
+      show(cur.id);
+      setCam(cur.cam(t));
+      st.style.background = cur.bg;
+      hud(cur.hudR, cur.light);
+      const c = cur.draw(t);
+      let chev = c;
+      // NLP comes in from C's bracket; S dives into the 69% at the end
+      if (cur.id === "S") {
+        const dive = inExpo(prog(t, 30.0, 0.5));
+        const r = $("sv2").getBoundingClientRect();
+        const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+        setCam({ ...cur.cam(t), x: (cx - CX) * dive, y: (cy - CY) * dive, z: cur.cam(t).z + 1100 * dive });
+        const r2 = wipe(cx - (cx - CX) * dive, cy - (cy - CY) * dive, inOut(prog(t, 30.15, 0.35)), DVIOLET);
+        chev = mix(around($("sv2"), 34, 1.15), bracket(CX - M.num / 2, CX + M.num / 2, 520, 330, 50), inOut(prog(t, 30.1, 0.4)));
+      }
+      drawChev(chev, cur.chev);
+    }
+    drawDia(0, 0, 0);
+    return;
+  }
+
+  // ===== E: 30.5 – 32 =====
+  if (t < 32) {
+    show("E"); st.style.background = DVIOLET;
+    hud("08 / 09", false);
+    setCam({ z: lerp(160, 0, outExpo(prog(t, 30.5, 0.8))) });
+    $("e-num").style.opacity = 1;
+    const inK = outExpo(prog(t, 30.55, 0.5));
+    $("e-upto").style.opacity = inK; $("e-upto").style.transform = `translateX(-50%) translateY(${(1 - inK) * 40}px)`;
+    $("e-num").style.transform = `translateX(-50%) scale(${lerp(1.15, 1, outExpo(prog(t, 30.5, 0.6)))})`;
+    const sub = outExpo(prog(t, 30.75, 0.5));
+    $("e-sub").style.opacity = sub; $("e-sub").style.transform = `translateX(-50%) translateY(${(1 - sub) * 50}px)`;
+    $("e-foot").style.opacity = outCubic(prog(t, 30.9, 0.4));
+    const c = bracket(CX - M.num / 2, CX + M.num / 2, 520, 330, 50);
+    const br = 6 * Math.sin((t - 30.5) * 6) * prog(t, 31.0, 0.3);
+    c.lx -= br; c.rx += br;
+    drawChev(seen(c), "#fff");
+    drawDia(0, 0, 0);
+    return;
+  }
+
+  // ===== cuts: 32 – 33.5 =====
+  if (t < 33.5) {
+    const k = t < 32.5 ? 0 : t < 33.0 ? 1 : 2;
+    const id = ["E1", "E2", "E3"][k];
+    show(id);
+    st.style.background = ["#000", LIGHT, ORANGE][k];
+    hud("08 / 09", k > 0);
+    const s = prog(t, 32 + k * 0.5, 0.3);
+    setCam({ z: lerp(220, 0, outExpo(s)), rz: 0 });
+    const el = $(id).firstElementChild;
+    el.style.filter = `blur(${lerp(12, 0, outExpo(s))}px)`;
+    const prev = k === 0 ? bracket(CX - M.num / 2, CX + M.num / 2, 520, 330, 50) : bracket(CX - M.cuts[k - 1] / 2, CX + M.cuts[k - 1] / 2, CY, 210, 50);
+    const now = bracket(CX - M.cuts[k] / 2, CX + M.cuts[k] / 2, CY, 210, 50);
+    drawChev(seen(mix(prev, now, outExpo(prog(t, 32 + k * 0.5, 0.22)))), ["#fff", INK, "#000"][k]);
+    drawDia(0, 0, 0);
+    return;
+  }
+
+  // ===== F: 33.5 – 37 =====
+  if (t < 37) {
+    show("F"); st.style.background = "#000";
+    hud("09 / 09", false);
+    const squeezeT = 34.15, openT = 34.55, closeT = 36.65;
+    setCam({ ry: lerp(-14, 0, inOut(prog(t, 33.5, 1.1))), rx: lerp(6, 0, inOut(prog(t, 33.5, 1.1))), z: lerp(-200, 0, outCubic(prog(t, 33.5, 1.0))) + 90 * inOutSine(prog(t, openT, 2.1)) });
+    const edges = { lx: 150, rx: W - 150, y: CY, h: 760 };
+    const inK = outExpo(prog(t, 33.5, 0.5));
+    const sq = inCubic(prog(t, squeezeT, 0.4));
+    const head = { lx: CX - M.head / 2 - 70, rx: CX + M.head / 2 + 70, y: CY - 10, h: 380 };
+    let c = mix(bracket(CX - M.cuts[2] / 2, CX + M.cuts[2] / 2, CY, 210, 50), edges, inK);
+    c = mix(c, { lx: CX - 46, rx: CX + 46, y: CY, h: 560 }, sq);
+    c = mix(c, head, outExpo(prog(t, openT, 0.5)));
+    const close = inExpo(prog(t, closeT, 0.35));
+    const bre = 5 * Math.sin((t - 35) * 5) * prog(t, openT + 0.5, 1.0) * (1 - close);
+    c.lx -= bre; c.rx += bre;
+    let s = seen(c);
+    // the very end lands on the mark at the middle of the screen, whatever the camera did
+    s = mix(s, markState(CX, CY, END_SIZE), close);
+    const wall = $("f-wall");
+    const gap = (c.rx - c.lx) / (edges.rx - edges.lx);
+    const crushed = t >= squeezeT ? clamp(gap, 0.01, 1) : 1;
+    const gone = t >= openT;
+    wall.style.opacity = gone ? 0 : inK;
+    wall.style.transform = `scale(${crushed}, ${lerp(1, 0.7, sq)})`;
+    wall.style.filter = sq > 0 ? `blur(${10 * sq}px) brightness(${1 + 6 * sq})` : "none";
+    F_ROWS.forEach((_, i) => {
+      const dir = i % 2 ? 1 : -1;
+      $("fr" + i).style.transform = `translate3d(${-900 + dir * (t - 33.5) * (420 + 60 * (i % 4)) + (1 - inK) * dir * -600}px, 0, ${((i * 37) % 5 - 2) * 90}px)`;
+    });
+    const hd = $("f-head"), op = outExpo(prog(t, openT, 0.5));
+    hd.style.opacity = gone ? 1 - close : 0;
+    hd.style.transform = `translate(-50%, -50%) scale(${Math.max(0.001, op * (1 - close))}, 1)`;
+    hd.style.filter = `blur(${(1 - op) * 18 + close * 16}px)`;
+    const tg = outExpo(prog(t, 35.0, 0.5));
+    $("f-tag").style.opacity = tg * (1 - inExpo(prog(t, closeT - 0.1, 0.25)));
+    $("f-tag").style.transform = `translateX(-50%) translateY(${(1 - tg) * 16}px)`;
+    drawChev(s, "#fff", 1, sq > 0 && !gone ? 12 * Math.sin(Math.PI * sq) : 0);
+    const pop = outBack(prog(t, 36.92, 0.3));
+    drawDia(CX, CY, 4.5 * END_SIZE / 64 * Math.max(0, pop), lerp(-90, 0, pop));
+    return;
+  }
+
+  // ===== G: 37 – 40 =====
+  show("G"); st.style.background = "#000";
+  hud("", false);
+  const word = $("g-word"), letters = word.querySelectorAll("span");
+  const ww = M.gword, size = END_SIZE, u = size / 64, gapPx = 44;
+  const markW = 2 * (7 + 19) * u, total = markW + gapPx + ww;
+  const markX = CX - total / 2 + markW / 2, wordX = CX - total / 2 + markW + gapPx;
+  const slide = outExpo(prog(t, 37.05, 0.6)), close = inOut(prog(t, 39.25, 0.75));
+  const x = lerp(lerp(CX, markX, slide), CX, close), sz = lerp(size, REST_SIZE, close);
+  drawChev(markState(x, CY, sz), "#fff");
+  drawDia(x, CY, 4.5 * sz / 64);
+  word.style.left = wordX + "px";
+  word.style.transform = `translateY(-52%)`;
+  letters.forEach((l, i) => {
+    const k = outExpo(prog(t, 37.18 + i * 0.045, 0.6));
+    const sqz = inExpo(prog(t, 39.25 + (5 - i) * 0.025, 0.42));
+    const toMark = (x - (wordX + i * (ww / 6))) * sqz;
+    l.style.transform = `translateY(${(1 - k) * 60}px) translateX(${toMark}px) scaleX(${1 - 0.7 * sqz})`;
+    l.style.opacity = clamp(k * 2) * (1 - sqz);
+    l.style.filter = `blur(${(1 - k) * 12 + sqz * 10}px)`;
+  });
+  const tag = $("g-tag");
+  const tk = outExpo(prog(t, 37.6, 0.6)), tq = inExpo(prog(t, 39.1, 0.3));
+  tag.style.transform = `translateX(-50%) translateY(${(1 - tk) * 20}px)`;
+  tag.style.opacity = tk * (1 - tq);
+  $("hud").style.opacity = 1 - close;
+}
+
+window.ready = (async () => {
+  await document.fonts.ready;
+  await document.fonts.load('800 100px "Inter"'); await document.fonts.load('700 100px "Inter"');
+  await document.fonts.load('600 100px "Inter"'); await document.fonts.load('500 20px "JetBrains Mono"');
+  build();
+  render(0);
+  return true;
+})();
+window.render = render;
+</script>
+</body>
+</html>
