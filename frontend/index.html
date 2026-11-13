@@ -123,6 +123,10 @@
           <p class="faq-answer">It shortens a prompt before you send it to an AI, taking out the words that don't change what you're asking. The model reads fewer tokens, and the request stays the same.</p>
         </details>
         <details class="faq-item">
+          <summary class="faq-question"><span>What is a token?</span><svg class="faq-chevron" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 9L12 15L18 9"/></svg></summary>
+          <p class="faq-answer">A token is a piece of a word: the unit AI models read, and charge by. Tokenz counts them with the same tokenizer GPT-4o uses, so a short common word is usually one token and a long or unusual one can be several.</p>
+        </details>
+        <details class="faq-item">
           <summary class="faq-question"><span>Which of the three methods should I use?</span><svg class="faq-chevron" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 9L12 15L18 9"/></svg></summary>
           <p class="faq-answer">NLP for any prompt: it tidies the wording, cutting polite openings and repeated sentences. TF-IDF for longer prompts with a lot of background, since it drops the sentences that are off-topic. AI Rewrite when you want the shortest version and don't mind your prompt being sent out to be rewritten.</p>
         </details>
@@ -132,31 +136,11 @@
         </details>
         <details class="faq-item">
           <summary class="faq-question"><span>Can a shorter prompt get a worse answer?</span><svg class="faq-chevron" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 9L12 15L18 9"/></svg></summary>
-          <p class="faq-answer">It can, so we check. AI Rewrite rejects any rewrite that drops a number, a limit, a “not”, quoted text or a name like JSON, or saves no tokens. It retries once, and keeps your original if the retry fails too. In our tests, every answer is scored 1 to 5 by raters who don't know which method wrote it.</p>
-        </details>
-        <details class="faq-item">
-          <summary class="faq-question"><span>Do the smarter methods really save money?</span><svg class="faq-chevron" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 9L12 15L18 9"/></svg></summary>
-          <p class="faq-answer">That's the question this project tests. AI Rewrite spends tokens of its own, so we count everything until the question is fully answered: every message, the resent history and every helper call, priced per 1,000 questions.</p>
-        </details>
-        <details class="faq-item">
-          <summary class="faq-question"><span>What is a token?</span><svg class="faq-chevron" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 9L12 15L18 9"/></svg></summary>
-          <p class="faq-answer">A token is a piece of a word: the unit AI models read, and charge by. Tokenz counts them with the same tokenizer GPT-4o uses, so a short common word is usually one token and a long or unusual one can be several.</p>
+          <p class="faq-answer">It can, so we check. AI Rewrite rejects any rewrite that drops a number, a limit, a “not”, quoted text or a name like JSON, or saves no tokens. It retries once, and keeps your original if the retry fails too. Still, read the result once before you send it: the checks can't prove the meaning is exactly the same.</p>
         </details>
         <details class="faq-item">
           <summary class="faq-question"><span>Why did I get my prompt back unchanged?</span><svg class="faq-chevron" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 9L12 15L18 9"/></svg></summary>
           <p class="faq-answer">Because nothing could be cut safely. “Original kept” means every shorter version would have lost something you asked for, or saved no tokens, so your prompt comes back as it was. That's a valid result, not an error.</p>
-        </details>
-        <details class="faq-item">
-          <summary class="faq-question"><span>What does “How much to keep” do in TF-IDF?</span><svg class="faq-chevron" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 9L12 15L18 9"/></svg></summary>
-          <p class="faq-answer">It sets the most tokens the shortened prompt may use. TF-IDF always keeps your main task and your instructions, then adds the sentences most related to the task until that limit is reached. The suggested amount keeps everything that's relevant.</p>
-        </details>
-        <details class="faq-item">
-          <summary class="faq-question"><span>Should I read the shortened prompt before I use it?</span><svg class="faq-chevron" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 9L12 15L18 9"/></svg></summary>
-          <p class="faq-answer">Yes. Every result is marked for review: the checks catch a lost number, limit or “not”, but they can't prove the meaning is exactly the same. A quick read before you send it is enough.</p>
-        </details>
-        <details class="faq-item">
-          <summary class="faq-question"><span>Are my prompts and results saved?</span><svg class="faq-chevron" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 9L12 15L18 9"/></svg></summary>
-          <p class="faq-answer">Only in this browser tab. Compare keeps your draft and Results keeps your runs until you close the tab, then both are gone.</p>
         </details>
       </div>
       <span class="faq-line" aria-hidden="true"></span>

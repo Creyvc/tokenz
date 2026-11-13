@@ -138,9 +138,21 @@
     return lines.map(function (line) { return line.words.join(" "); });
   }
 
-  // One mask per line, with the line inside it ready to rise; returns the risers
+  // The sentence as plain text, even while it's split into masked lines (the lines sit side by
+  // side with no space between them, so their text is joined back with one)
+  function plainText(block) {
+    var lines = block.querySelectorAll(".mask-line");
+    if (!lines.length) return block.textContent;
+    return Array.prototype.map.call(lines, function (line) { return line.textContent.trim(); }).join(" ");
+  }
+
+  // One mask per line, with the line inside it ready to rise; returns the risers. If the sentence
+  // is still split from an earlier rise (a fast scroll can start the exit before the entrance has
+  // finished), it goes back to plain text first, so the lines are measured on the real sentence
   function maskSentence(block) {
-    var original = block.textContent;
+    var original = plainText(block);
+    block.textContent = original;
+    block.classList.remove("is-masked");
     var lines = wrappedLines(block);
     block.textContent = "";
     block.classList.add("is-masked");
@@ -153,10 +165,15 @@
       block.append(mask);
       return inner;
     });
-    return { risers: risers, restore: function () {
+    // (a restore only undoes its own masks, not a newer split made since)
+    var restore = function () {
+      if (block.maskedBy !== restore) return;
+      block.maskedBy = null;
       block.textContent = original;
       block.classList.remove("is-masked");
-    } };
+    };
+    block.maskedBy = restore;
+    return { risers: risers, restore: restore };
   }
 
   // The headline's two lines are already one span each: give each a mask (or reuse its mask)
