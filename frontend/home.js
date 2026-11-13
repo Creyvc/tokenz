@@ -246,6 +246,15 @@
     var faqWord = endCover ? endCover.querySelector(".faq-scroll") : null;
     var faqLine = endCover ? endCover.querySelector(".faq-line") : null;
     var compareLink = endCover ? endCover.querySelector(".faq-word.is-compare") : null;
+    // The measures, one at a time (after nickho-motorsports.nl's story section): see styles.css
+    var measureItems = end ? Array.prototype.slice.call(end.querySelectorAll(".measure-item")) : [];
+    var measureNow = end ? end.querySelector(".measure-count-now") : null;
+    var MEASURE_STEP = 1.2;  // windows of scrolling from one measure to the next
+    var MEASURE_TAIL = 0.8;  // windows of scrolling with the last one shown, before the white comes
+    var MEASURE_WIPE = 1.2;  // windows of scrolling for the white half circle to fill the window
+    var measureWipe = end ? end.querySelector(".measure-wipe") : null;
+    var measureAt = null, measureAtTime = 0;  // which measure is in the middle (0 to 3), eased
+    var activeMeasure = -1, playedMeasure = -1;
     var BAR = 2, BAR_GAP = 7;  // px: each bar's width, and the space between them
     var barsFor = "", barsAt = -1;
     var lastBarsUp = -1, toCompare = 0;  // the bars last frame; the wait before going to Compare
@@ -593,6 +602,17 @@
         root.style.removeProperty("--dark");
         root.classList.remove("home-dark");
         if (end) end.style.removeProperty("top");
+        if (end) end.style.removeProperty("height");
+        if (measureWipe) measureWipe.style.removeProperty("--wipe");
+        root.classList.remove("home-wipe");
+        ["--wipe-r", "--wipe-x", "--wipe-y"].forEach(function (name) { root.style.removeProperty(name); });
+        measureItems.forEach(function (item) {
+          item.classList.remove("is-active");
+          item.style.removeProperty("--y");
+          item.style.removeProperty("--o");
+        });
+        measureAt = null;
+        activeMeasure = playedMeasure = -1;
         root.style.removeProperty("--bury");
         root.style.removeProperty("--outro");
         root.style.removeProperty("--outro-max");
@@ -762,6 +782,7 @@
         // bottom), and the next black page slides up over it; the measures dim and blur under it
         // (--bury 0 to 1, styles.css)
         if (end && endCover) {
+          if (measureItems.length) placeMeasures();
           end.style.top = Math.min(0, window.innerHeight - end.offsetHeight) + "px";
           var coverTop = endCover.getBoundingClientRect().top;
           root.style.setProperty("--bury", clamp(1 - coverTop / window.innerHeight).toFixed(4));
@@ -808,6 +829,65 @@
             lastBarsUp = barsUp;
           }
         }
+      }
+    }
+
+    // What We Measure is a window, then MEASURE_STEP windows per measure after the first, then a
+    // little more with the last one shown, all of it pinned in the window. The drawings stand in
+    // a column that moves up with the scroll (--y), the one in the middle bright and the rest
+    // dimmed (--o). The one nearest the middle is the current one (is-active): its name and
+    // description show, decrypting in as it takes over, and the counter shows its number
+    function placeMeasures() {
+      var H = window.innerHeight, count = measureItems.length;
+      end.style.height = Math.round(H * (1 + MEASURE_STEP * (count - 1) + MEASURE_TAIL + MEASURE_WIPE)) + "px";
+      var top = end.getBoundingClientRect().top;
+      // Then a white half circle rises from the middle of the bottom edge and grows until the
+      // whole window is white (--wipe 0 to 1 scales it to just past the farthest corner)
+      var W = window.innerWidth;
+      var wipe = clamp((-top - (MEASURE_STEP * (count - 1) + MEASURE_TAIL) * H) / (MEASURE_WIPE * H));
+      var wipeMax = 1.02 * Math.hypot(W / 2, H);
+      if (measureWipe) {
+        measureWipe.style.setProperty("--wipe-size", (2 * wipeMax).toFixed(0) + "px");
+        measureWipe.style.setProperty("--wipe", ease(wipe).toFixed(4));
+      }
+      // The sidebar stays where it is and changes colour exactly where the white touches it: dark
+      // inside the circle, white outside it (home-wipe, styles.css)
+      root.classList.toggle("home-wipe", wipe > 0);
+      root.style.setProperty("--wipe-r", (ease(wipe) * wipeMax).toFixed(1) + "px");
+      root.style.setProperty("--wipe-x", (W / 2).toFixed(1) + "px");
+      root.style.setProperty("--wipe-y", H + "px");
+      var target = Math.min(count - 1, Math.max(0, -top / (MEASURE_STEP * H)));
+      // (with the same short ease as the methods' row, so the steps of a mouse wheel blend)
+      var now = performance.now();
+      if (measureAt == null) measureAt = target;
+      else measureAt += (target - measureAt) * (1 - Math.exp(-Math.min(now - measureAtTime, 34) / GLIDE));
+      if (Math.abs(target - measureAt) < 0.001) measureAt = target;
+      measureAtTime = now;
+      if (measureAt !== target) soon();
+      // Square drawings, about 38% of the window tall, well apart: only the edge of the next
+      // one shows at the bottom of the window
+      var card = Math.min(0.38 * H, 0.24 * window.innerWidth);
+      end.style.setProperty("--card", card.toFixed(1) + "px");
+      measureItems.forEach(function (item, i) {
+        var off = i - measureAt;
+        item.style.setProperty("--y", (off * (card + 0.25 * H)).toFixed(1) + "px");
+        item.style.setProperty("--o", (1 - 0.8 * Math.min(1, Math.abs(off))).toFixed(3));
+      });
+      var active = Math.round(measureAt);
+      if (active !== activeMeasure) {
+        measureItems.forEach(function (item, i) { item.classList.toggle("is-active", i === active); });
+        if (measureNow) measureNow.textContent = active + 1;
+        activeMeasure = active;
+      }
+      // Its text decrypts in once the section is coming into the window (and again each time
+      // the current measure changes, or the section comes back into view)
+      var inView = top < 0.8 * H && top > -end.offsetHeight + 0.2 * H;
+      if (!inView) playedMeasure = -1;
+      else if (playedMeasure !== active && window.TokenzDecrypt) {
+        var item = measureItems[active];
+        window.TokenzDecrypt.play(item.querySelector(".measure-name"));
+        window.TokenzDecrypt.play(item.querySelector(".measure-text"));
+        playedMeasure = active;
       }
     }
 

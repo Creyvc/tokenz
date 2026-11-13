@@ -43,7 +43,9 @@
   // One span per letter, words kept whole for wrapping. Widths are measured on the real letters
   // and kept in em, so they still fit if the font size changes with the window
   function prepare(block) {
-    var text = block.textContent.trim();
+    // (kept from the first time, so a piece can play again even while it's still scrambled)
+    if (block.realText == null) block.realText = block.textContent.trim();
+    var text = block.realText;
     var shown = make("span", "decrypt-shown");
     shown.setAttribute("aria-hidden", "true");
     var letters = [];
@@ -117,13 +119,28 @@
   }
 
   function begin(piece) {
+    running = running.filter(function (other) { return other.block !== piece.block; });
     running.push(piece);
     if (!frame) frame = requestAnimationFrame(tick);
   }
 
+  // Home's measures section plays a measure's name and description each time it becomes the
+  // current one (home.js): window.TokenzDecrypt.play(block) decrypts it in from the start
+  window.TokenzDecrypt = {
+    play: function (block) {
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      begin(prepare(block));
+    }
+  };
+
   function setUp() {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     var blocks = document.querySelectorAll(".measure-title, .measure-num, .measure-name, .measure-text");
+    // With Home's scroll effect, each measure's own text plays when it becomes the current one
+    // (TokenzDecrypt.play, above), so only the section's title decrypts on arrival here
+    if (document.documentElement.classList.contains("home-scroll")) {
+      blocks = Array.prototype.filter.call(blocks, function (block) { return !block.closest(".measure-item"); });
+    }
     if (!blocks.length) return;
     pieces = Array.prototype.map.call(blocks, prepare);
     // A piece starts once its top is past the bottom fifth of the window, or if a fast scroll

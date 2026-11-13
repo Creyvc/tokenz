@@ -3274,13 +3274,14 @@ html.home-scroll .home-end {
   position: sticky;
 }
 
-html.home-scroll .measure {
+html.home-scroll .measure > :not(.measure-wipe) {
   opacity: calc(1 - 0.75 * var(--bury, 0));
   filter: blur(calc(10px * var(--bury, 0)));
 }
 
-/* The page after "What We Measure": the FAQ, on black, in the middle of the window (.faq fills
-   it, so it covers "What We Measure" completely as it comes up), then a little more black after */
+/* The page after "What We Measure": the FAQ, on black (on white with the scroll effect, below),
+   in the middle of the window (.faq fills it, so it covers "What We Measure" completely as it
+   comes up), then a little more of the page after */
 .home-cover {
   position: relative;
   z-index: 1;
@@ -3370,8 +3371,8 @@ html.home-compare .faq-word.is-compare {
   outline-offset: 6px;
 }
 
-/* The FAQ: laid out like "What We Measure", split at the middle of the window, with the title and
-   a short line on the left and the questions on the right. Each question opens to its answer */
+/* The FAQ: laid out like "What We Measure", split at the middle of the window, with the "FAQ"
+   label and its line on the left and the questions on the right. Each question opens to its answer */
 .faq {
   display: grid;
   grid-template-columns: minmax(0, calc(50vw - 218px)) minmax(0, 1fr);
@@ -3404,22 +3405,6 @@ html.home-compare .faq-word.is-compare {
   border-top: 1px dashed rgba(255, 255, 255, 0.2);
 }
 
-.faq-title {
-  margin-top: 28px;
-  font-size: clamp(30px, 3.4vw, 56px);
-  font-weight: 700;
-  line-height: 1.02;
-  letter-spacing: -0.045em;
-}
-
-.faq-lede {
-  margin-top: 28px;
-  max-width: 420px;
-  font-size: 15px;
-  line-height: 1.5;
-  color: #a3a3a3;
-}
-
 /* The questions, behind the same dashed line as the measures */
 .faq-list {
   padding-left: 40px;
@@ -3435,7 +3420,7 @@ html.home-compare .faq-word.is-compare {
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  padding: 22px 0;
+  padding: 18px 0;
   font-size: clamp(15px, 1.2vw, 18px);
   font-weight: 600;
   letter-spacing: -0.01em;
@@ -3531,10 +3516,6 @@ html.home-scroll .faq-line {
     margin-bottom: 32px;
   }
 
-  .faq-title {
-    font-size: 9vw;
-  }
-
   .faq-list {
     padding-left: 0;
     border-left: 0;
@@ -3576,9 +3557,226 @@ html.home-scroll .measure-text {
   color: #a3a3a3;
 }
 
-/* The bounce past the end of the page shows black too, not a white strip */
+/* What We Measure with the scroll effect, after nickho-motorsports.nl's story section. The section
+   is several windows tall and what's in it stays pinned in the window as it scrolls past
+   (home.js sets its height):
+   - in the middle, the four drawings stand in a column that moves up with the scroll (--y), the
+     one in the middle bright and the others dimmed (--o), each about 38% of the window (--card)
+   - the current measure's name, big, on the left, and its description on the right, both
+     decrypting in as it takes over (is-active, home.js; the others are hidden)
+   - "What We Measure" small in the top-left corner, and a counter in the bottom-right */
+html.home-scroll .measure {
+  position: sticky;
+  top: 0;
+  display: block;
+  height: 100vh;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* A technical label in JetBrains Mono, led by a small violet square like the counter's */
+html.home-scroll .measure-title {
+  position: absolute;
+  top: 44px;
+  left: 218px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #d4d4d4;
+}
+
+html.home-scroll .measure-title::before {
+  content: "";
+  flex: none;
+  width: 7px;
+  height: 7px;
+  background: #8B7FF2;
+}
+
+html.home-scroll .measure-list {
+  position: absolute;
+  inset: 0;
+  padding: 0;
+  border: 0;
+}
+
+/* Each measure fills the window as three columns: name | drawing | description. They're
+   stacked on top of each other; only the current one's text shows */
+html.home-scroll .measure-item,
+html.home-scroll .measure-item:nth-child(even) {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--card, 38vh) minmax(0, 1fr);
+  column-gap: 5vw;
+  align-items: center;
+  max-width: none;
+  margin: 0;
+  padding: 0 64px 0 218px;
+}
+
+html.home-scroll .measure-mark {
+  grid-area: 1 / 2;
+  width: var(--card, 38vh);
+  height: var(--card, 38vh);
+  transform: translateY(var(--y, 0px));
+  opacity: var(--o, 1);
+}
+
+/* The counter says which one it is instead */
+html.home-scroll .measure-num {
+  display: none;
+}
+
+/* Big and bold like "Three Methods" */
+/* Big, bold capitals */
+html.home-scroll .measure-name {
+  grid-area: 1 / 1;
+  margin: 0;
+  font-size: 4.6vw;
+  font-weight: 700;
+  line-height: 0.98;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+}
+
+html.home-scroll .measure-text {
+  grid-area: 1 / 3;
+  max-width: 32ch;
+  margin: 0;
+  font-size: clamp(15px, 1.2vw, 19px);
+}
+
+html.home-scroll .measure-item:not(.is-active) .measure-name,
+html.home-scroll .measure-item:not(.is-active) .measure-text {
+  visibility: hidden;
+}
+
+/* The counter only exists with the scroll effect */
+.measure-count {
+  display: none;
+}
+
+/* "1/4" with two small violet squares beside it */
+html.home-scroll .measure-count {
+  position: absolute;
+  right: 64px;
+  bottom: 40px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  color: #ffffff;
+}
+
+.measure-count svg {
+  fill: #8B7FF2;
+}
+
+/* After the last measure, a white half circle rises from the middle of the bottom edge and grows
+   until the whole window is white (--wipe 0 to 1, home.js; drawn at full size and scaled down) */
+.measure-wipe {
+  display: none;
+}
+
+html.home-scroll .measure-wipe {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  z-index: 2;
+  display: block;
+  width: var(--wipe-size, 200vmax);
+  height: var(--wipe-size, 200vmax);
+  border-radius: 50%;
+  background: #ffffff;
+  transform: translate(-50%, -50%) scale(var(--wipe, 0));
+  pointer-events: none;
+}
+
+/* The frame's fourth corner. In the plain list the number stands in its place; with the scroll
+   effect the number is hidden, so the frame is whole */
+.measure-mark .measure-corner.is-last {
+  display: none;
+}
+
+html.home-scroll .measure-mark .measure-corner.is-last {
+  display: inline;
+}
+
+/* One part of each drawing in violet, the part to look at: the token line being trimmed, the
+   dots typing a message, the top coin of the stack, and the highest quality bar */
+.measure-mark .is-key {
+  stroke: #5B4FD6;
+}
+
+.measure-mark .mark-dot {
+  fill: #5B4FD6;
+}
+
+html.home-scroll .measure-mark .is-key {
+  stroke: #8B7FF2;
+  /* a little heavier than the white lines, so it stands out on black */
+  stroke-width: 2.5;
+}
+
+html.home-scroll .measure-mark .mark-dot {
+  fill: #8B7FF2;
+}
+
+/* The bounce past the end of the page shows white too, like the FAQ above it */
 html.home-scroll.home-covered {
-  background: #000000;
+  background: #ffffff;
+}
+
+/* With the scroll effect the FAQ comes after the white half circle has filled the window, so it's
+   on white: the white carries straight on and the FAQ rises into view on it, in ink */
+html.home-scroll .home-cover {
+  background: #ffffff;
+  color: #16171A;
+  box-shadow: none;
+}
+
+html.home-scroll .faq-scroll {
+  color: #16171A;
+}
+
+html.home-scroll .faq-label {
+  color: #5B4FD6;
+}
+
+html.home-scroll .faq-label::after {
+  border-top-color: #E5E4DF;
+}
+
+html.home-scroll .faq-answer {
+  color: #5c5c5c;
+}
+
+html.home-scroll .faq-list {
+  border-left-color: #E5E4DF;
+}
+
+html.home-scroll .faq-item {
+  border-bottom-color: #E5E4DF;
+}
+
+html.home-scroll .faq-question:focus-visible,
+html.home-scroll .faq-word.is-compare:focus-visible {
+  outline-color: #5B4FD6;
+}
+
+html.home-scroll .faq-bar {
+  background: #16171A;
 }
 
 @media (max-width: 800px) {
@@ -3829,6 +4027,22 @@ html.home-dark .nav.nav-copy {
 
 @keyframes nav-white-in {
   from { opacity: 0; }
+}
+
+/* While the white half circle at the end of "What We Measure" grows (and after, over the white
+   FAQ), the sidebar stays put and changes colour exactly where the white touches it: the real,
+   dark one shows inside the circle, and the white copy outside it (--wipe-r, -x, -y, home.js) */
+html.home-wipe .nav:not(.nav-copy) {
+  opacity: 1;
+  -webkit-mask-image: radial-gradient(circle var(--wipe-r, 0px) at var(--wipe-x, 50%) var(--wipe-y, 100%), #000 100%, transparent 100%);
+  mask-image: radial-gradient(circle var(--wipe-r, 0px) at var(--wipe-x, 50%) var(--wipe-y, 100%), #000 100%, transparent 100%);
+}
+
+html.home-wipe .nav.nav-copy {
+  clip-path: none;
+  animation: none;
+  -webkit-mask-image: radial-gradient(circle var(--wipe-r, 0px) at var(--wipe-x, 50%) var(--wipe-y, 100%), transparent 100%, #000 100%);
+  mask-image: radial-gradient(circle var(--wipe-r, 0px) at var(--wipe-x, 50%) var(--wipe-y, 100%), transparent 100%, #000 100%);
 }
 
 /* Only the real dot slides between pages */
