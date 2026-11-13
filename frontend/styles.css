@@ -551,7 +551,6 @@ html.intro-play .intro.is-playing {
   overscroll-behavior: none;
   touch-action: none;
   padding: 40px 24px;
-  animation: intro-warning-in 0.5s ease;
 }
 
 /* Continue: all four corners of the window move in together towards its centre (the middle of
@@ -782,16 +781,27 @@ html.intro-play .intro.is-playing {
   cursor: not-allowed;
 }
 
-@keyframes intro-warning-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
+/* The notice window, then its outlined box, each word and Continue, blink on one after another, as
+   on bitkraft.vc's loading screen: each piece is hidden until its turn,
+   then 20% → 82% → 29% → fully on, jumping between steps rather than fading, in 0.12s.
+   intro.js wraps the words and sets each one's delay. */
+.intro-blink {
+  opacity: 0;
+  animation: intro-blink 0.12s step-end forwards;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .intro-warning {
-    animation: none;
+@keyframes intro-blink {
+  0% {
+    opacity: 0.2;
+  }
+  40% {
+    opacity: 0.82;
+  }
+  70% {
+    opacity: 0.29;
+  }
+  100% {
+    opacity: 1;
   }
 }
 
@@ -2789,8 +2799,8 @@ html.home-scroll .home-headline {
 }
 
 /* Its text mask, letter by letter like TOKENZ: with the scroll effect each letter waits below
-   the mask, and once the white page is most of the way up (home-methods-in, home.js) they rise
-   in one after another, 75ms apart; scrolling back up past that, they slide back down */
+   the mask and rises out of it one after another as the white page comes up, following the
+   scroll both ways (home.js sets each letter's transform) */
 .home-next-mask {
   display: block;
   overflow: hidden;
@@ -2800,12 +2810,6 @@ html.home-scroll .home-headline {
 
 .home-next-letter {
   display: inline-block;
-  transition: transform 0.75s cubic-bezier(0.33, 1, 0.68, 1);
-  transition-delay: calc(var(--i) * 75ms);
-}
-
-html.home-scroll:not(.home-methods-in) .home-next-letter {
-  transform: translateY(135%);
 }
 
 /* Its letters are split into spans (home.js) for the opacity sweep; words never break inside */
@@ -3697,7 +3701,8 @@ html.home-scroll .home-method-text {
 
 /* Once the slide is over, the last panel's text leaves like the first screen's: each piece (the
    top line's two parts, the name, each word of the description) drops out of sight below its own
-   edge, a line at a time, top to bottom (home.js adds the masks and .is-leaving, and the delays) */
+   edge, a line at a time, top to bottom, following the scroll (home.js adds the masks and sets
+   each piece's transform) */
 html.home-scroll .panel-mask {
   display: inline-block;
   overflow: hidden;
@@ -3717,11 +3722,6 @@ html.home-scroll .home-method-name .panel-mask {
 
 html.home-scroll .panel-rise {
   display: inline-block;
-  transition: transform 0.75s cubic-bezier(0.33, 1, 0.68, 1);
-}
-
-html.home-scroll .home-method.is-leaving .panel-rise {
-  transform: translateY(135%);
 }
 
 /* Once the white page fills the window, the gradient and the text behind it are hidden, so the

@@ -353,13 +353,20 @@
       window.scrollTo({ top: at, behavior: "instant" });
     }
 
-    // The same hold where the methods' row starts to slide: "Three Methods" finishes rising in and
-    // the paragraph lights up (SWEEP, timed rather than scrolled, so a fast scroll can't skip it)
-    // before the row moves. Scrolling back up, it holds while the paragraph dims again
-    var SWEEP = 1000;
-    var lastY = null, heldPanel = -1;  // the scroll last frame; the panel the page is waiting on
-    var slideBegun = null, titleReadyAt = 0, lit = 0, litAt = 0;
-    var titleLetters = document.querySelectorAll(".home-next-letter").length;
+    // All the Three Methods text follows the scroll: scrolling down plays it forward, scrolling
+    // up plays it backward, and stopping stops it. Nothing in it is timed, and the page never
+    // holds for it. "Three Methods" rises letter by letter, the paragraph and each panel's
+    // description light up letter by letter, and the last panel's text drops out line by line.
+    var titleLetters = Array.prototype.slice.call(document.querySelectorAll(".home-next-letter"));
+    var textY = null, textYAt = 0;  // the scroll, eased like the row's glide so wheel steps blend
+
+    // Where a staggered piece is, 0 to 1: the whole run takes `progress` 0 to 1, each piece
+    // starting `gap` (as a share of one piece's own time) after the one before
+    function staggered(progress, i, count, gap) {
+      var total = 1 + gap * (count - 1);
+      return clamp(progress * total - i * gap);
+    }
+    function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
 
     function stopWhileHolding(event) {
       if (holding()) event.preventDefault();
@@ -411,16 +418,16 @@
     // as the next grows in from the right.
     var boxes = row ? Array.prototype.slice.call(row.querySelectorAll(".home-method")) : [];
     // Each panel's description gets the same letter-by-letter lighting as the paragraph under
-    // "Three Methods": it lights up once its panel fills the window, and dims again as the panel
-    // shrinks away, over SWEEP ms either way
+    // "Three Methods": it lights up as its panel comes to fill the window, and dims again as the
+    // panel shrinks away, following the scroll
     var panelTexts = boxes.map(function (box) {
-      return { letters: splitLetters(box.querySelector(".home-method-text")), lit: 0 };
+      return { letters: splitLetters(box.querySelector(".home-method-text")) };
     });
     // The last panel's text leaves once the slide is over, the way the first screen's text does:
-    // each line drops out of sight behind a mask, top to bottom (.is-leaving, styles.css)
+    // each line drops out of sight behind a mask, top to bottom, following the scroll
     var lastBox = boxes[boxes.length - 1];
     var exits = lastBox ? maskPanel(lastBox) : [];
-    var panelGone = null, exitMs = RISE;
+    var exitLines = -1;  // how many lines the exits fall into; worked out again after a resize
     // The FAQ: when it locks in the middle of the window, the page holds for a moment
     // (FAQ_HOLD ms) before "SCROLL" starts to grow
     var FAQ_HOLD = 1250;
@@ -451,15 +458,33 @@
       return risers;
     }
 
-    // One line after another, as the browser wrapped them. Returns how long they take, in ms
-    function staggerExits() {
-      var line = -1, lineTop = null;
+    // Which line each exit is on, as the browser wrapped them (offsetTop ignores transforms,
+    // so this works whatever size the panel is drawn at)
+    function lineExits() {
+      var line = -1, lineTop = null, lineBlock = null;
       exits.forEach(function (inner) {
-        var top = inner.getBoundingClientRect().top;
-        if (lineTop === null || Math.abs(top - lineTop) > 4) { line++; lineTop = top; }
-        inner.style.transitionDelay = (line * STEP) + "ms";
+        var mask = inner.parentNode;
+        var block = mask.closest(".home-method-top, .home-method-body");
+        var top = mask.offsetTop;
+        if (block !== lineBlock || Math.abs(top - lineTop) > 4) { line++; lineTop = top; lineBlock = block; }
+        inner.line = line;
       });
-      return Math.max(0, line) * STEP + RISE;
+      exitLines = line + 1;
+    }
+
+    function dropExits(progress) {
+      if (exitLines < 0) lineExits();
+      exits.forEach(function (inner) {
+        var value = progress == null ? "" : "translateY(" + (135 * easeOutCubic(staggered(progress, inner.line, exitLines, 0.12))).toFixed(2) + "%)";
+        if (inner.drop !== value) inner.style.transform = inner.drop = value;
+      });
+    }
+
+    function riseTitle(progress) {
+      titleLetters.forEach(function (letter, i) {
+        var value = progress == null ? "" : "translateY(" + (135 * (1 - easeOutCubic(staggered(progress, i, titleLetters.length, 0.1)))).toFixed(2) + "%)";
+        if (letter.risen !== value) letter.style.transform = letter.risen = value;
+      });
     }
 
     // After the last panel the page stays put for one more stretch (TAIL): its text leaves
@@ -515,6 +540,7 @@
       slide.tail = 2.2 * window.innerHeight;
       travel = slide.start + Math.max(0, boxes.length - 1) * (slide.hold + slide.move) + slide.hold;
       next.style.height = (window.innerHeight + travel + slide.tail) + "px";
+      exitLines = -1;  // the text may have rewrapped
     }
 
     // Where the row is and how big each panel is, after scrolling `at` px into the slide
@@ -551,14 +577,11 @@
         holdUntil = 0;
         textGone = null;
         growShown = null;
-        slideBegun = null;
-        lastY = null;
-        heldPanel = -1;
-        lit = 0;
-        panelGone = null;
+        textY = null;
         faqLocked = null;
-        if (lastBox) lastBox.classList.remove("is-leaving");
-        root.classList.remove("home-tokenz-out", "home-text-out", "home-covered", "home-methods-in");
+        dropExits(null);
+        riseTitle(null);
+        root.classList.remove("home-tokenz-out", "home-text-out", "home-covered");
         if (heroBackground) heroBackground.hold(false);
         ["--grow", "--pull", "--edge", "--shift-x", "--shift-y", "--cover", "--sheet"].forEach(function (name) { root.style.removeProperty(name); });
         if (copy) copy.remove();
@@ -582,10 +605,7 @@
         travel = -1;
         jump = true;
         light(null);
-        panelTexts.forEach(function (text) {
-          lightLetters(text.letters, null);
-          text.lit = 0;
-        });
+        panelTexts.forEach(function (text) { lightLetters(text.letters, null); });
         copy = navCopy = null;
         return;
       }
@@ -635,45 +655,6 @@
       textGone = gone;
       if (next) {
         var slideStart = next.offsetTop;
-        var begun = holding() ? slideBegun : y > slideStart;
-        if (slideBegun !== null && begun !== slideBegun) {
-          hold(begun ? slideStart + 1 : slideStart - 1, begun ? Math.max(SWEEP, titleReadyAt - Date.now()) : SWEEP);
-          y = holdAt;
-        }
-        slideBegun = begun;
-        // And at each panel: arriving at the point where it fills the window (from either side),
-        // the page holds there until its description has lit up, then lets the scroll carry on
-        if (row && boxes.length && !holding() && lastY != null) {
-          if (travel < 0) measureSlide();
-          var was = lastY - slideStart, now = y - slideStart, each = slide.hold + slide.move;
-          for (var p = 0; p < boxes.length; p++) {
-            var full = slide.start + p * each;
-            var till = p === boxes.length - 1 ? travel : full + slide.hold;
-            var stopAt = now > was && was < full && now >= full ? full + 1
-              : now < was && was > till && now <= till ? till - 1 : null;
-            if (stopAt != null && panelTexts[p].lit < 1) {
-              hold(slideStart + stopAt, 3000);  // released as soon as the text is lit, below
-              heldPanel = p;
-              y = holdAt;
-              break;
-            }
-          }
-        }
-        // A little way into the tail, the last panel's text masks out, and the page holds while
-        // it does (and while it comes back, scrolling up)
-        if (lastBox && travel >= 0) {
-          var exitAt = slideStart + travel + 0.1 * window.innerHeight;
-          var away = holding() ? panelGone : y > exitAt;
-          if (away !== panelGone) {
-            if (away) exitMs = staggerExits();
-            if (panelGone !== null) {
-              hold(away ? exitAt + 1 : exitAt - 1, exitMs);
-              y = holdAt;
-            }
-            lastBox.classList.toggle("is-leaving", away);
-          }
-          panelGone = away;
-        }
         // Arriving at the FAQ's lock on the way down, the page holds with "SCROLL" still small
         if (end && endCover) {
           var lockAt = endCover.offsetTop;
@@ -684,7 +665,6 @@
           }
           faqLocked = locked;
         }
-        lastY = y;
       }
       root.classList.toggle("home-tokenz-out", y > 4);
       // The box starts growing once TOKENZ is on its way out
@@ -712,10 +692,22 @@
         root.classList.toggle("home-covered", cover < 1);
         // and the big gradient stops drawing while it can't be seen
         if (heroBackground) heroBackground.hold(cover < 1);
-        // "Three Methods" rises in from its mask once the white page is most of the way up
-        var titleIn = cover < 0.4 * window.innerHeight;
-        if (titleIn && !root.classList.contains("home-methods-in")) titleReadyAt = Date.now() + (titleLetters - 1) * STEP + RISE;
-        root.classList.toggle("home-methods-in", titleIn);
+        // The scroll, eased the same way as the row below, for the text that plays before the
+        // row moves
+        var H0 = window.innerHeight;
+        var nowText = performance.now();
+        if (textY == null || jump) textY = y;
+        else textY += (y - textY) * (1 - Math.exp(-Math.min(nowText - textYAt, 34) / GLIDE));
+        if (Math.abs(y - textY) < 0.5) textY = y;
+        textYAt = nowText;
+        if (textY !== y) soon();
+        var intoNext = textY - next.offsetTop;  // 0 once the white page has reached the top
+        // "Three Methods" rises out of its mask, letter by letter, while the white page comes up
+        // the last 60% of the window
+        riseTitle(clamp((intoNext + 0.6 * H0) / (0.45 * H0)));
+        // Then the paragraph under it lights up, letter by letter, from when the white page is a
+        // fifth of a window from the top until the row has slid a third of a window
+        light(clamp((intoNext + 0.2 * H0) / (0.55 * H0)));
         // Once it's at the top, the row of methods slides left as the page scrolls on, bringing
         // each panel to the middle in turn (place, above)
         if (row && track && boxes.length) {
@@ -754,26 +746,17 @@
           root.style.setProperty("--dark", black);
           root.classList.toggle("home-dark", black > 0.5);
           if (methodBackgrounds["is-ai"]) methodBackgrounds["is-ai"].hold(black >= 1);
-          // The paragraph sweeps to lit once the slide has begun, and back to dim before it,
-          // over SWEEP ms whatever the scroll does
-          var nowMs = performance.now();
-          var goal = slideBegun ? 1 : 0;
-          var stepBy = Math.min(nowMs - litAt, 34) / SWEEP;
-          lit = goal > lit ? Math.min(goal, lit + stepBy) : Math.max(goal, lit - stepBy);
-          litAt = nowMs;
-          if (lit !== goal) soon();
-          light(lit);
+          // Each panel's description lights up over the last part of its panel growing in and the
+          // stretch it fills the window, and dims again as it shrinks away
+          var each = slide.hold + slide.move, lead = 0.4 * slide.move;
           panelTexts.forEach(function (text, i) {
-            // Lights up only once the panel fills the window; dims as soon as it starts to shrink
-            var want = spot.sizes[i] > 0.995 ? 1 : 0;
-            text.lit = want > text.lit ? Math.min(want, text.lit + stepBy) : Math.max(want, text.lit - stepBy);
-            if (text.lit !== want) soon();
-            if (heldPanel === i && text.lit >= 1) {
-              holdUntil = 0;
-              heldPanel = -1;
-            }
-            lightLetters(text.letters, text.lit);
+            var full = slide.start + i * each;
+            var lighting = clamp((shown - (full - lead)) / (lead + slide.hold));
+            var dimming = i === boxes.length - 1 ? 0 : clamp((shown - full - slide.hold) / lead);
+            lightLetters(text.letters, lighting * (1 - dimming));
           });
+          // Just past the last panel, its text drops out line by line, over a third of a window
+          dropExits(clamp((shown - travel - 0.02 * H) / (0.3 * H)));
         }
         // "What We Measure" locks in place once its end is in the window (sticky, pinned by its
         // bottom), and the next black page slides up over it; the measures dim and blur under it

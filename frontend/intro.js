@@ -67,7 +67,7 @@
       '</div>';
     cover.removeAttribute("aria-hidden");
     cover.appendChild(notice);
-    if (!reduceMotion) scrambleIn(notice);
+    if (!reduceMotion) blinkIn(notice);
 
     // Keep keyboard focus on the notice, not on the page hidden behind it
     var page = [].filter.call(document.body.children, function (el) { return el !== cover; });
@@ -77,72 +77,101 @@
     // Ready for the keyboard, but without scrolling a phone down past the title to reach it
     tick.focus({ preventScroll: true });
 
-    // Continue only works once they've ticked that they've read the notice
+    // Continue only works once they've ticked that they've read the notice. Ticking (or
+    // unticking) blinks the box, its sentence and Continue again, one after another.
     tick.addEventListener("change", function () {
       button.disabled = !tick.checked;
+      if (!reduceMotion) {
+        reblink([tick].concat([].slice.call(notice.querySelectorAll(".intro-warning-agree span span")), [button]));
+      }
     });
 
+    var leaving = false;
     button.addEventListener("click", function () {
+      if (leaving) return;
+      leaving = true;
       page.forEach(function (el) { el.inert = false; });
       cover.setAttribute("aria-hidden", "true");
       if (reduceMotion) {
         finish(cover);
         return;
       }
-      // The window's corners close in to its centre (see intro-warning-close), then the
-      // animation starts from that point
-      notice.classList.add("is-leaving");
+      // The whole window blinks once, then its corners close in to its centre (see
+      // intro-warning-close), and the animation starts from that point
+      var card = notice.querySelector(".intro-warning-card");
+      reblink([card]);
       setTimeout(function () {
-        notice.remove();
-        run();
-      }, 1000);
+        // Done blinking: drop the class so the closing animation starts from fully shown
+        card.classList.remove("intro-blink");
+        notice.classList.add("is-leaving");
+        setTimeout(function () {
+          notice.remove();
+          run();
+        }, 1000);
+      }, BLINK_TIME);
     });
   }
 
-  // On arrival, every piece of text on the notice flickers through random letters, numbers and
-  // symbols, then settles into the real words from left to right, one piece after another
-  function scrambleIn(notice) {
-    var GLYPHS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#$%&*+=/<>?!@[]{}";
-    var SHUFFLE_EVERY = 45; // ms between new random characters
+  var BLINK_TIME = 120; // ms, the length of intro-blink in styles.css
 
-    var pieces = [];
+  // Plays the blink again on these elements, each one 10ms after the one before
+  function reblink(els) {
+    els.forEach(function (el, i) {
+      el.classList.remove("intro-blink");
+      void el.offsetWidth; // let the browser see the class gone, so the animation restarts
+      el.style.animationDelay = i * 10 + "ms";
+      el.classList.add("intro-blink");
+    });
+  }
+
+  // On arrival, the notice blinks on like bitkraft.vc's loading screen: the window, then one
+  // word at a time. Each piece flickers dim, bright, dim, then stays on (intro-blink in
+  // styles.css), starting 10ms after the one before it.
+  function blinkIn(notice) {
+    var STAGGER = 10;  // ms between one word starting and the next
+    var START = 150;   // ms before the first word, just after the window has blinked on
+
+    var words = [];
     var walker = document.createTreeWalker(notice, NodeFilter.SHOW_TEXT);
-    while (walker.nextNode()) {
-      var text = walker.currentNode.nodeValue;
-      if (!text.trim()) continue;
-      pieces.push({
-        node: walker.currentNode,
-        text: text,
-        delay: pieces.length * 70,
-        duration: Math.min(600 + text.length * 3, 1200) // longer text takes a little longer
+    var nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+
+    // The whole window blinks on first, then everything inside it in reading order. The logo,
+    // the outlined box, the tick box and Continue's outline each take their turn just before
+    // the first text that follows them.
+    var card = notice.querySelector(".intro-warning-card");
+    card.classList.add("intro-blink");
+    var extras = [].slice.call(notice.querySelectorAll(
+      ".intro-warning-brand svg, .intro-warning-box, .intro-warning-agree input, .intro-warning-continue"));
+
+    nodes.forEach(function (node) {
+      extras = extras.filter(function (el) {
+        if (el.compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING) {
+          words.push(el);
+          return false;
+        }
+        return true;
       });
-    }
-
-    function noise(text, settled) {
-      var out = text.slice(0, settled);
-      for (var i = settled; i < text.length; i++) {
-        out += text[i] === " " ? " " : GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
-      }
-      return out;
-    }
-
-    var start = performance.now();
-    var lastShuffle = -Infinity;
-    requestAnimationFrame(function frame(now) {
-      var t = now - start;
-      if (t - lastShuffle < SHUFFLE_EVERY) {
-        requestAnimationFrame(frame);
-        return;
-      }
-      lastShuffle = t;
-
-      var done = true;
-      pieces.forEach(function (piece) {
-        var p = progress(t, piece.delay, piece.duration);
-        piece.node.nodeValue = noise(piece.text, Math.floor(p * piece.text.length));
-        if (p < 1) done = false;
+      if (!node.nodeValue.trim()) return;
+      // Split the text into words and spaces, and wrap each word in its own span
+      var fragment = document.createDocumentFragment();
+      node.nodeValue.split(/(\s+)/).forEach(function (part) {
+        if (!part) return;
+        if (!part.trim()) {
+          fragment.appendChild(document.createTextNode(part));
+          return;
+        }
+        var span = document.createElement("span");
+        span.textContent = part;
+        fragment.appendChild(span);
+        words.push(span);
       });
-      if (!done) requestAnimationFrame(frame);
+      node.parentNode.replaceChild(fragment, node);
+    });
+
+    words.forEach(function (el, i) {
+      el.classList.add("intro-blink");
+      el.style.animationDelay = START + i * STAGGER + "ms";
     });
   }
 
@@ -300,7 +329,8 @@
   var TO_LETTERS = 750;  // boxes become T O K E N Z with square corners, from the middle outwards
   var LETTER_STAGGER = 80;
   var MORPH_TIME = 650;
-  var ROUND = TO_LETTERS + 2 * LETTER_STAGGER + MORPH_TIME + BEAT; // all the letters soften into a rounded font together
+  var WORD_HOLD = 700;   // TOKENZ holds still this long once spelt out (350ms on screen at SPEED 2)
+  var ROUND = TO_LETTERS + 2 * LETTER_STAGGER + MORPH_TIME + WORD_HOLD; // then all the letters soften into a rounded font together
   var ROUND_TIME = 1000;
   var TO_OS = ROUND + ROUND_TIME + BEAT; // T and Z become wide O's
   var MERGE = TO_OS + MORPH_TIME;        // Venom-style merge: tendrils shoot out from every letter to the middle...
@@ -310,7 +340,7 @@
   var SETTLE = PULL + 150 + MERGE_TIME;  // the O wobbles like jelly as it settles
   var GROW = SETTLE + 150;               // the O grows until its hole uncovers the page, while still wobbling
   var GROW_TIME = 1200;
-  var SPEED = 1.8;   // plays the whole timeline above this much faster (1 = as written)
+  var SPEED = 2;     // plays the whole timeline above this much faster (1 = as written)
 
   function run() {
     var cover = document.querySelector(".intro");
