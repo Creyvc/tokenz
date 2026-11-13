@@ -18,12 +18,23 @@
   #wipe { position: absolute; left: 0; top: 0; border-radius: 50%; z-index: 1; }
   .bt { display: inline-block; will-change: transform; }
 
-  #a-word { position: absolute; left: 50%; top: 50%; font-weight: 800; font-size: 300px; color: #fff; white-space: nowrap; letter-spacing: -0.05em; line-height: 1; }
-
-  #b-label { position: absolute; left: 50%; top: 250px; transform: translateX(-50%); color: #8a8a8a; font-size: 20px; }
-  #b-num { position: absolute; left: 50%; top: 468px; font-weight: 800; font-size: 420px; color: #fff; line-height: 1; letter-spacing: -0.06em; white-space: nowrap; }
-  #b-line { position: absolute; left: 0; right: 0; top: 760px; text-align: center; font-weight: 700; font-size: 84px; letter-spacing: -0.04em; color: #fff; white-space: nowrap; }
-  #b-pill { position: absolute; left: 50%; top: 760px; font-size: 22px; background: #8B7FF2; color: #000; padding: 10px 16px 9px; letter-spacing: 0.12em; }
+  /* the intro: big clean type, one phrase per beat */
+  .big { position: absolute; left: 0; right: 0; text-align: center; font-weight: 700; font-size: 128px; letter-spacing: -0.05em; line-height: 1; color: #fff; white-space: nowrap; }
+  #in-1 { top: 380px; } #in-2 { top: 540px; }
+  /* the prompt field */
+  #pf { position: absolute; left: 330px; top: 380px; width: 1260px; height: 320px; padding: 40px 50px; background: #111; border: 1px solid #262626; border-radius: 28px; transform-origin: 50% 50%; }
+  #pf-label { font-size: 15px; color: #6b6b6b; }
+  #pf-text { margin-top: 18px; font-weight: 500; font-size: 52px; line-height: 1.26; letter-spacing: -0.025em; color: #f2f2f2; }
+  #pf-text span { border-radius: 8px; padding: 0 2px; }
+  #pf-caret { display: inline-block; width: 4px; height: 54px; margin-left: 4px; vertical-align: -8px; background: #8B7FF2; }
+  #pf-short { position: absolute; left: 50px; right: 50px; top: 120px; text-align: center; font-weight: 700; font-size: 66px; letter-spacing: -0.035em; color: #fff; }
+  #pf-count { position: absolute; right: 42px; bottom: 28px; display: flex; align-items: baseline; gap: 12px; font-size: 17px; color: #8a8a8a; }
+  #pf-count b { display: inline-block; font-family: "Inter", sans-serif; font-weight: 800; font-size: 44px; letter-spacing: -0.04em; color: #fff; font-variant-numeric: tabular-nums; }
+  #pf-pill { position: absolute; left: 50%; top: 740px; font-size: 24px; background: #8B7FF2; color: #000; padding: 10px 16px 9px; letter-spacing: 0.12em; }
+  #pf-big { position: absolute; left: 0; right: 0; top: 300px; text-align: center; font-weight: 800; font-size: 300px; letter-spacing: -0.06em; line-height: 1; color: #8B7FF2; white-space: nowrap; }
+  #pf-big2 { position: absolute; left: 0; right: 0; top: 660px; text-align: center; font-weight: 700; font-size: 96px; letter-spacing: -0.045em; line-height: 1; color: #fff; white-space: nowrap; }
+  #caret { position: absolute; left: 955px; top: 480px; width: 10px; height: 120px; background: #8B7FF2; z-index: 41; opacity: 0; }
+  #brk { position: absolute; left: 0; right: 0; top: 480px; text-align: center; font-weight: 600; font-size: 80px; letter-spacing: -0.04em; color: #fff; }
 
   /* a method: its name, a short line, then the numbers */
   .m-head { position: absolute; left: 0; top: 0; width: 1920px; text-align: center; transform-origin: 960px 0; }
@@ -44,12 +55,19 @@
   .m-checks { position: absolute; left: 0; right: 0; top: 520px; display: flex; justify-content: center; gap: 70px; font-weight: 700; font-size: 92px; letter-spacing: -0.04em; white-space: nowrap; }
   .m-checks .ck { color: #8B7FF2; margin-right: 18px; }
 
-  /* results */
-  #s-upto { position: absolute; left: 0; right: 0; top: 150px; text-align: center; font-weight: 600; font-size: 72px; letter-spacing: -0.04em; color: #16171A; }
-  #s-num { position: absolute; left: 0; right: 0; top: 250px; text-align: center; font-weight: 800; font-size: 400px; letter-spacing: -0.065em; line-height: 1; color: #5B4FD6; }
-  #s-sub { position: absolute; left: 0; right: 0; top: 660px; text-align: center; font-weight: 700; font-size: 84px; letter-spacing: -0.04em; color: #16171A; white-space: nowrap; }
-  #s-row { position: absolute; left: 0; right: 0; top: 850px; display: flex; justify-content: center; gap: 80px; font-size: 24px; color: #5c5c5c; white-space: nowrap; }
-  #s-row b { color: #16171A; font-family: "Inter", sans-serif; font-weight: 800; font-size: 40px; letter-spacing: -0.03em; margin-left: 14px; }
+  /* the graph: tokens saved, on average, per method */
+  #gr-k { position: absolute; left: 300px; top: 170px; font-size: 18px; color: #5B4FD6; }
+  #gr-h { position: absolute; left: 300px; top: 210px; font-weight: 700; font-size: 84px; letter-spacing: -0.045em; color: #16171A; white-space: nowrap; }
+  .gr-row { position: absolute; left: 300px; width: 1320px; height: 120px; }
+  .gr-name { position: absolute; left: 0; top: 34px; font-weight: 700; font-size: 44px; letter-spacing: -0.03em; color: #16171A; }
+  .gr-track { position: absolute; left: 300px; top: 30px; width: 1000px; height: 60px; border-radius: 14px; background: #E5E4DF; }
+  .gr-fill { position: absolute; left: 0; top: 0; height: 60px; border-radius: 14px; }
+  .gr-val { position: absolute; top: 2px; font-weight: 800; font-size: 52px; letter-spacing: -0.04em; color: #fff; white-space: nowrap; }
+  .gr-best { position: absolute; top: -14px; width: 3px; height: 88px; background: #16171A; border-radius: 2px; }
+  .gr-best span { position: absolute; left: 12px; top: -12px; font-size: 19px; color: #16171A; white-space: nowrap; }
+  #gr-call { position: absolute; left: 300px; top: 830px; font-weight: 700; font-size: 60px; letter-spacing: -0.035em; color: #16171A; white-space: nowrap; }
+  #gr-call b { color: #F07A28; }
+  #gr-foot { position: absolute; left: 300px; top: 940px; font-size: 17px; color: #8a8a8a; }
 
   /* the line */
   #f-l1, #f-l2 { position: absolute; left: 0; right: 0; text-align: center; font-weight: 800; font-size: 170px; letter-spacing: -0.055em; line-height: 1; white-space: nowrap; color: #fff; }
@@ -59,6 +77,8 @@
   #g-word span { display: inline-block; }
   #g-tag { position: absolute; left: 50%; top: 680px; color: #8a8a8a; font-size: 20px; white-space: nowrap; }
   #g-tag b { color: #8B7FF2; font-weight: 500; }
+  #g-line { position: absolute; left: 0; right: 0; top: 690px; text-align: center; font-weight: 600; font-size: 54px; letter-spacing: -0.03em; color: #fff; white-space: nowrap; }
+  #g-line b { color: #8B7FF2; font-weight: 600; }
 </style>
 </head>
 <body>
@@ -66,25 +86,31 @@
  <div id="cam">
   <div id="wipe"></div>
 
-  <div class="scene" id="A"><div id="a-word"></div></div>
-
-  <div class="scene" id="B">
-    <div id="b-label" class="mono">Tokens</div>
-    <div id="b-num">28</div>
-    <div id="b-line"><span class="bt" id="bw0">Every</span> <span class="bt" id="bw1">word</span> <span class="bt" id="bw2" style="color:#8B7FF2">costs.</span></div>
-    <div id="b-pill" class="mono">−71%</div>
+  <div class="scene" id="IN">
+    <div class="big" id="in-1"><span class="bt" id="iw0">Every word</span> <span class="bt" id="iw1">you send</span></div>
+    <div class="big" id="in-2"><span class="bt" id="iw2">costs</span> <span class="bt" id="iw3" style="color:#8B7FF2">tokens.</span></div>
   </div>
+
+  <div class="scene" id="PF">
+    <div id="pf"><div id="pf-label" class="mono">Prompt</div><div id="pf-text"></div><div id="pf-short">Write a short poem about the ocean.</div><div id="pf-count" class="mono"><b id="pf-n">0</b>Tokens</div></div>
+    <div id="pf-pill" class="mono">−71%</div>
+    <div id="pf-big"><span class="bt" id="pb0">−71%</span></div>
+    <div id="pf-big2"><span class="bt" id="pb1">Fewer</span> <span class="bt" id="pb2">tokens.</span></div>
+  </div>
+
+  <div class="scene" id="BRK"><div id="brk"><span class="bt" id="bk0">Three ways</span> <span class="bt" id="bk1">to trim a prompt.</span></div></div>
 
   <div class="scene" id="NLP"></div>
   <div class="scene" id="TF"></div>
 
   <div class="scene" id="AI"></div>
 
-  <div class="scene" id="RES">
-    <div id="s-upto"><span class="bt" id="s-w0">Up to</span></div>
-    <div id="s-num"><span class="bt" id="s-w1">69%</span></div>
-    <div id="s-sub"><span class="bt" id="s-w2">fewer</span> <span class="bt" id="s-w3">tokens.</span></div>
-    <div id="s-row" class="mono"><span class="bt" id="s-r0">NLP<b>52%</b></span><span class="bt" id="s-r1">TF‑IDF<b>48%</b></span><span class="bt" id="s-r2">AI Rewrite<b>69%</b></span></div>
+  <div class="scene" id="GR">
+    <div id="gr-k" class="mono">In our tests</div>
+    <div id="gr-h"><span class="bt" id="gr-hw">Tokens saved, on average.</span></div>
+    <div id="gr-rows"></div>
+    <div id="gr-call"><span class="bt" id="gr-cw">Up to <b>69%</b> fewer tokens.</span></div>
+    <div id="gr-foot" class="mono">Average over the prompts we tested: NLP 5 · TF‑IDF 2 · AI Rewrite 6. Marks: best result.</div>
   </div>
 
   <div class="scene" id="LINE">
@@ -95,18 +121,20 @@
   <div class="scene" id="G">
     <div id="g-word"></div>
     <div id="g-tag" class="mono">Token saver <b>·</b> tokenz</div>
+    <div id="g-line">Shorter prompts. <b>Same request.</b></div>
   </div>
 
   <svg class="chev" id="chev-l" viewBox="0 0 19 36" width="19" height="36"><path d="M0 0 H9 L19 18 L9 36 H0 L10 18 Z"/></svg>
   <svg class="chev" id="chev-r" viewBox="0 0 19 36" width="19" height="36"><path d="M19 0 H10 L0 18 L10 36 H19 L9 18 Z"/></svg>
   <svg id="dia" viewBox="-1 -1 2 2" width="2" height="2"><path d="M0 -1 L1 0 L0 1 L-1 0 Z"/></svg>
+  <div id="caret"></div>
  </div>
 </div>
 
 <script>
 // The film, drawn from the time t alone, every change on a hit of the music. The hit times
 // were measured from the edited track itself (film seconds).
-const DUR = 37.0;
+const DUR = 42.56;
 const $ = (id) => document.getElementById(id);
 const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
 const prog = (t, a, d) => clamp((t - a) / d);
@@ -119,55 +147,39 @@ const outBack = (k) => { const c = 1.7; return 1 + (c + 1) * Math.pow(k - 1, 3) 
 const W = 1920, H = 1080, CX = 960, CY = 540;
 const INK = "#16171A", VIOLET = "#8B7FF2", DVIOLET = "#5B4FD6", LIGHT = "#F4F4F1";
 
-// ---------- the music (film seconds), measured from the edited track ----------
-// Before the silence the song runs at 127.0 BPM; after it, at 125.0 BPM, with three accents in each
-// bar: on its 1st, 4th and 6th eighth notes. Every step of the film lands on one of these.
-const P = (k) => 0.2503 + k * 0.47252;                                  // quarter beats before the silence
-const P8 = (k) => 0.2503 + k * 0.23626;                                 // eighths before the silence
-const PULSES = [P(0), P(1), P(2), P(3), P(4), P(5), P8(11)];            // the build
-const Q = (k) => P(6 + k);                                              // Q(0) = the drop
-const ROLL = [6.997, 7.351, 7.707, 8.061, 8.533, 8.756, 8.993];         // the fill before the silence
-const SLAM = P(19);                                                     // its last hit, on the beat
-const E8 = (k) => 10.615 + k * 0.24008;                                 // eighths after the silence
-const BAR = (m) => E8(8 * m);
-const ACC = (m, j) => BAR(m) + [0, 3, 5][j] * 0.24008;                  // the bar's three accents
-// the step times, in order: re-entry, NLP ×8, TF-IDF ×8, AI ×6, results ×9, the line ×9, the final hit
-const HITS = [BAR(0) - 0.25,
-  ACC(0, 0), ACC(0, 1), ACC(0, 2), ACC(1, 0), ACC(1, 1), ACC(1, 2), ACC(2, 0), ACC(2, 1),
-  ACC(3, 0), ACC(3, 1), ACC(3, 2), ACC(4, 0), ACC(4, 1), ACC(4, 2), ACC(5, 0), ACC(5, 1),
-  ACC(6, 0), ACC(6, 1), ACC(6, 2), ACC(7, 0), ACC(7, 1), ACC(7, 2),
-  ACC(8, 0), ACC(8, 1), ACC(8, 2), ACC(9, 0), ACC(9, 0) + 0.48, ACC(9, 1), ACC(9, 2), ACC(9, 2) + 0.24, ACC(9, 2) + 0.48,
-  ACC(10, 0), ACC(10, 1), ACC(10, 1) + 0.24, ACC(10, 2), ACC(11, 0), ACC(11, 1), ACC(11, 2), ACC(11, 2) + 0.24, ACC(11, 2) + 0.48,
-  33.981];
+// ---------- the music: our own score (score.py), 125 BPM, so the grid is exact ----------
+const BEAT = 0.48, E8L = 0.24, T0 = 0.96;
+const bar = (n) => T0 + n * 1.92;                                       // bar 0 = the intro's first downbeat
+const q = (n, k) => bar(n) + k * BEAT;                                   // beat k of bar n
+const e8 = (n, k) => bar(n) + k * E8L;                                   // eighth k of bar n
+const ACC = (m, j) => bar(m) + [0, 3, 5][j] * E8L;                       // the groove's three accents
+const DROP = bar(4), BREAK = bar(6), GROOVE = bar(7), GRAPH = bar(16), LAST = bar(19);
+const STOP = q(19, 3), HIT = bar(20);
+// the method steps (as before: name, line, tokens, cut, out, join, saving, glow)
+const HITS = [GROOVE - 0.24,
+  ACC(7, 0), ACC(7, 1), ACC(7, 2), ACC(8, 0), ACC(8, 1), ACC(8, 2), ACC(9, 0), ACC(9, 1),
+  ACC(10, 0), ACC(10, 1), ACC(10, 2), ACC(11, 0), ACC(11, 1), ACC(11, 2), ACC(12, 0), ACC(12, 1),
+  ACC(13, 0), ACC(13, 2), ACC(14, 0), ACC(14, 2), ACC(15, 0), ACC(15, 1)];
 const h = (i) => HITS[i];
-const STOP = 33.635, HIT = 33.981;                                    // the music stops; the final hit
 
-// ---------- the camera: a punch and a little shake on every beat, a slow breath in between ----------
-const BIG = [P(0), Q(0), Q(4), SLAM, BAR(0), BAR(3), BAR(6), BAR(8), ACC(8, 1), BAR(10), HIT];
+// ---------- the camera: still most of the time (the words land on the beat by themselves); one soft
+// punch only on the big moments: the drop, its number, each new section, the final hit ----------
 let BEATS = null;
 function beats() {
-  const list = [];
-  for (let k = 0; P(k) < SLAM + 0.01; k++) list.push({ t: P(k), a: 0.5 });
-  ROLL.forEach((t) => list.push({ t, a: 0.35 }));
-  for (let k = 0; E8(k) < STOP - 0.05; k++) {
-    const pos = k % 8;
-    if ([0, 3, 5].includes(pos)) list.push({ t: E8(k), a: 0.7 });
-    else if (pos % 2 === 0) list.push({ t: E8(k), a: 0.3 });
-  }
-  BIG.forEach((t) => list.push({ t, a: 1.15 }));
-  return list.sort((x, y) => x.t - y.t);
+  const L = [{ t: DROP, a: 1.0 }, { t: bar(5), a: 0.6 }, { t: HIT, a: 0.9 }];
+  [GROOVE, bar(10), bar(13), GRAPH].forEach((t) => L.push({ t, a: 0.55 }));
+  return L.sort((x, y) => x.t - y.t);
 }
 function camera(t) {
   if (!BEATS) BEATS = beats();
   let s = 0, y = 0, r = 0;
-  BEATS.forEach((b, i) => {
+  BEATS.forEach((b) => {
     const d = t - b.t;
     if (d < 0 || d > 0.7) return;
-    // a punch in that settles with one soft rebound, and a small dip, like a bounce
+    // a punch in that settles with one soft rebound
     const e = Math.exp(-d * 9) * b.a;
     s += 0.024 * e * Math.cos(d * 13) * (1 - Math.exp(-d * 60));
-    y += 9 * e * Math.sin(d * 13);
-    if (b.a > 1) r += 0.22 * Math.exp(-d * 10) * Math.sin(d * 16) * (i % 2 ? 1 : -1);
+    y += 5 * e * Math.sin(d * 13);
   });
   // a slow breath so nothing ever sits dead still (zero at the start and the end, for the loop)
   const breath = 0.01 * Math.sin(2 * Math.PI * t / DUR * 7);
@@ -236,7 +248,7 @@ function spring(c, b) { return { ...c, lx: c.lx - b, rx: c.rx + b }; }
 
 const REST_SIZE = 150, END_SIZE = 200;
 const OFF = { lx: -320, rx: W + 320, y: CY, h: 300 };
-const sceneIds = ["A", "B", "NLP", "TF", "AI", "RES", "LINE", "G"];
+const sceneIds = ["IN", "PF", "BRK", "NLP", "TF", "AI", "GR", "LINE", "G"];
 function show(id) { sceneIds.forEach((s) => ($(s).style.visibility = s === id ? "visible" : "hidden")); }
 
 // a word or number landing on its hit: in from a little bigger and blurred, settled in 0.2 s
@@ -422,26 +434,40 @@ function drawMethod(id, t) {
   return spring(c, kick(t, [h(i), h(i + 1), h(i + 2), h(i + 3), h(i + 4), h(i + 5), h(i + 6), h(i + 7)]));
 }
 
+// ---------- the intro's prompt: typed a chunk per eighth note, its real token count after each ----------
+// role: 1, 2, 3 = filler (lit up one per beat), 0 = what's kept
+const PF_CHUNKS = [["Hey!", 1], [" Hope you are", 1], [" doing well.", 1], [" Could you", 2], [" please kindly", 2], [" help me", 2],
+  [" write a short poem", 0], [" about the ocean?", 0], [" Thanks so much in advance!", 3]];
+const PF_COUNTS = [2, 5, 8, 10, 12, 14, 18, 22, 28];
+const pfAt = (k) => (k < 8 ? e8(2, k) : e8(2, 7) + 0.12);
+const GRAPH_ROWS = [
+  { name: "NLP", avg: 34, best: 52, c: INK },
+  { name: "TF‑IDF", avg: 43, best: 48, c: DVIOLET },
+  { name: "AI Rewrite", avg: 60, best: 69, c: "#F07A28" },
+];
+const SCALE = 1000 / 80;   // px per percentage point on the graph
+
 function build() {
+  $("pf-text").innerHTML = PF_CHUNKS.map((_, k) => `<span id="pc${k}"></span>`).join("") + '<span id="pf-caret"></span>';
+  const fr = restRect($("pf"));
+  window.PF_BOX = { lx: fr.left - 34, rx: fr.right + 34, y: fr.top + fr.height / 2, h: fr.height };
   buildMethod("NLP"); buildMethod("TF"); buildMethod("AI");
   ["NLP", "TF", "AI"].forEach((id) => {
     const m = METHODS[id], head = $(id + "-head");
     head.style.top = "300px"; head.style.transform = "none";
     const tr = restRect($(id + "-title"));
-    const R = (q) => ({ left: q.x, right: q.x + q.w, top: q.y, bottom: q.y + q.h });
+    const R = (q2) => ({ left: q2.x, right: q2.x + q2.w, top: q2.y, bottom: q2.y + q2.h });
     const src = m.chips.filter((c) => !c.born), kept = m.chips.filter((c) => (id === "AI" ? c.born : c.keep));
-    m.boxes = {
-      title: { lx: tr.left - 50, rx: tr.right + 50, y: tr.top + tr.height / 2, h: tr.height * 1.1 },
-      full: boxOf(src.map((c) => R(c.from)), 36, 1, 130, 250),
-      kept: boxOf(kept.map((c) => R(c.to || c.from)), 36, 1, 130, 250),
-      center: { lx: CX - 30, rx: CX + 30, y: 500, h: 130 },
-    };
-    m.boxes.full.h = clamp(m.boxes.full.h + 50, 130, 250); m.boxes.kept.h = clamp(m.boxes.kept.h + 50, 130, 250);
+    m.boxes = { title: { lx: tr.left - 50, rx: tr.right + 50, y: tr.top + tr.height / 2, h: tr.height * 1.1 },
+      full: boxOf(src.map((c) => R(c.from)), 36, 1, 130, 250), kept: boxOf(kept.map((c) => R(c.to || c.from)), 36, 1, 130, 250),
+      center: { lx: CX - 30, rx: CX + 30, y: 500, h: 130 } };
   });
-  // the results and the line: where each step's words sit
-  const RB = (els, pad, hs) => boxOf(els.map((e) => restRect($(e))), pad, hs);
-  window.RES_BOX = [RB(["s-w0"], 40, 1.6), RB(["s-w1"], 46, 0.9)];
-  window.LINE_BOX = [RB(["f-w0"], 50, 1.05), RB(["f-w0", "f-w1"], 50, 1.05), RB(["f-w0", "f-w1", "f-w2"], 50, 1.0), RB(["f-w0", "f-w1", "f-w2", "f-w3"], 50, 1.0)];
+  $("gr-rows").innerHTML = GRAPH_ROWS.map((r, i) => `
+    <div class="gr-row" id="gr${i}" style="top:${400 + i * 140}px">
+      <div class="gr-name bt" id="grn${i}">${r.name}</div>
+      <div class="gr-track"><div class="gr-fill" id="grf${i}" style="background:${r.c}"><div class="gr-val" id="grv${i}">0%</div></div>
+        <div class="gr-best" id="grb${i}" style="left:${r.best * SCALE}px"><span class="mono">Best ${r.best}%</span></div></div>
+    </div>`).join("");
   $("g-word").innerHTML = "Tokenz".split("").map((c) => `<span>${c}</span>`).join("");
   const m = document.createElement("span");
   m.style.cssText = "position:absolute;visibility:hidden;white-space:nowrap;font-family:Inter;font-weight:700;font-size:190px;letter-spacing:-0.05em";
@@ -451,14 +477,12 @@ function build() {
 // ---------- the timeline ----------
 function render(tIn) {
   const t = clamp(tIn, 0, DUR - 1e-6);
-  // everything is laid out and measured with the camera still, then the camera moves it all
   $("cam").style.transform = "none";
   sceneIds.forEach((id) => ($(id).style.opacity = 1));
   draw(t);
   $("cam").style.transform = camera(t);
 }
 
-// one scene grows out of the last: a circle of the next scene's colour opens from an element
 function growInto(t, at, el, color, fade) {
   const k = inOut(prog(t, at - 0.24, 0.24));
   if (k <= 0) return 0;
@@ -467,171 +491,197 @@ function growInto(t, at, el, color, fade) {
   if (fade) $(fade).style.opacity = 1 - k;
   return k;
 }
+function noLogo() { drawChev({ lx: CX, rx: CX, y: CY, h: 10 }, "#fff", 0); drawDia(0, 0, 0); }
+
+// the text cursor the film opens on (and the mark folds into at the very end, for the loop)
+function caret(k) { const c = $("caret"); c.style.opacity = k; c.style.transform = `scaleY(${Math.max(0.001, k)})`; }
+
+// the end card, the only place the logo is: the mark slides left and "Tokenz" slides out from behind
+// it (masked at the mark's edge, so the two never overlap); later the word slides back in, and the
+// mark folds into the cursor the film starts on
+function drawLockup(t, at) {
+  show("G");
+  const word = $("g-word");
+  const ww = GW, size = END_SIZE, u = size / 64, gapPx = 44;
+  const markW = 2 * (7 + 19) * u, total = markW + gapPx + ww;
+  const markX = CX - total / 2 + markW / 2, wordX = CX - total / 2 + markW + gapPx;
+  const open = outExpo(prog(t, at + 0.04, 0.75));
+  const shut = inOut(prog(t, DUR - 1.2, 0.6));
+  const k = open * (1 - shut);
+  const x = lerp(CX, markX, k);
+  const fold = inOut(prog(t, DUR - 0.52, 0.38));
+  drawChev(markState(x, CY, size * lerp(1, 0.6, fold), -7 * fold), "#fff", 1 - fold);
+  drawDia(x, CY, 4.5 * size / 64 * (1 - fold));
+  caret(fold);
+  const tx = -(1 - k) * ww * 0.7;
+  // a soft edge just right of the mark: the word fades up out of it rather than being sliced
+  const soft = 110, edge = x + markW / 2 + 6 - (wordX + tx) - soft * k;   // fully clear once settled
+  word.style.left = wordX + "px";
+  word.style.transform = `translate(${tx.toFixed(1)}px, -52%)`;
+  const m = `linear-gradient(to right, transparent ${edge.toFixed(1)}px, #000 ${(edge + soft).toFixed(1)}px)`;
+  word.style.webkitMaskImage = m; word.style.maskImage = m;
+  word.style.opacity = edge < ww ? 1 : 0;
+  const tag = $("g-tag"), line = $("g-line");
+  const tk = outExpo(prog(t, at + 0.5, 0.6)), tq = inOut(prog(t, DUR - 1.35, 0.3));
+  tag.style.transform = `translateX(-50%) translateY(${(1 - tk) * 20}px)`; tag.style.opacity = tk * (1 - tq);
+  line.style.opacity = 0;
+}
 
 function draw(t) {
   const st = $("stage");
-  wipe(0, 0, 0);
+  wipe(0, 0, 0); caret(0);
 
-  // ===== the build: the logo opens on the first pulse; a filler word on every pulse =====
-  if (t < Q(0)) {
-    show("A"); st.style.background = "#000";
-    const b0 = PULSES[0] - 0.1;
-    const burst = prog(t, b0, 0.36);
-    drawChev(mix(markState(CX, CY, REST_SIZE), OFF, inExpo(burst)), "#fff", 1, 24 * Math.sin(Math.PI * burst));
-    drawDia(CX, CY, 10.55 * (1 - outCubic(prog(t, b0, 0.22))), 180 * outCubic(prog(t, b0, 0.3)));
-    const words = ["Hey!", "Hope", "you're", "doing", "well.", "Could you", "please…"];
-    let i = -1; PULSES.forEach((p, k) => { if (t >= p) i = k; });
-    const w = $("a-word");
-    if (i >= 0) {
-      const k = prog(t, PULSES[i], 0.16);
-      w.textContent = words[i];
-      w.style.opacity = clamp(k * 4);
-      w.style.color = i >= 5 ? "#fff" : "#d8d8d8";
-      let tr = `translate(-50%, -52%) scale(${lerp(1.3, 1, outExpo(k))})`;
-      w.style.filter = `blur(${lerp(10, 0, outExpo(k))}px)`;
-      if (i === words.length - 1) { const c = inExpo(prog(t, Q(0) - 0.14, 0.14)); tr = `translate(-50%, -52%) scale(${lerp(1, 0.02, c)}, ${lerp(1, 0.06, c)})`; }
-      w.style.transform = tr;
-    } else w.style.opacity = 0;
+  // ===== lead-in: a text cursor blinking (the loop point), then the first words =====
+  if (t < bar(0)) {
+    show("IN"); st.style.background = "#000"; noLogo();
+    ["iw0", "iw1", "iw2", "iw3"].forEach((id) => ($(id).style.opacity = 0));
+    caret(t % 0.48 < 0.24 ? 1 : 0);
     return;
   }
 
-  // ===== the drop: 28. "Every" "word" "costs." one per beat. Then the chevrons squeeze it a
-  // notch on every beat, faster through the fill, and crush it to 8 on the last hit =====
-  if (t < HITS[0] + 0.2) {
-    show("B"); st.style.background = "#000";
-    const n = $("b-num");
-    const after = t >= SLAM;
-    // every squeeze: the chevrons step in, and the number gets narrower
-    const steps = [Q(4), Q(5), Q(6), Q(7), ...ROLL];
-    let done = 0;
-    steps.forEach((s) => { if (t >= s) done += outExpo(prog(t, s, 0.14)); });
-    const squeeze = done / (steps.length + 1);
-    const grow = outExpo(prog(t, Q(0), 0.2));
-    const hit = prog(t, SLAM, 0.45);
-    n.textContent = after ? "8" : "28";
-    n.style.color = after ? VIOLET : "#fff";
-    let sx = lerp(1, 0.62, squeeze), sy = lerp(1, 1.06, squeeze);
-    if (after) { const push = 1 + 0.08 * inOut(prog(t, SLAM + 0.3, HITS[0] - SLAM - 0.3)); sx = lerp(0.6, 1, outBack(hit)) * push; sy = lerp(1.15, 1, outBack(hit)) * push; }
-    // a little punch on each beat while it waits for the squeeze
-    const pulse = kick(t, [Q(1), Q(2), Q(3)], 0.035);
-    const leave = prog(t, HITS[0], 0.25);
-    n.style.transform = `translate(-50%, -50%) scale(${lerp(1.3, 1, grow) * sx * (1 + pulse) * (1 - 0.8 * leave)}, ${lerp(1.3, 1, grow) * sy * (1 + pulse) * (1 - 0.8 * leave)})`;
-    n.style.filter = t < Q(0) + 0.2 ? `blur(${(1 - grow) * 12}px)` : "none";
-    n.style.opacity = 1 - leave;
-    $("b-label").style.opacity = after ? 0 : grow;
-    // "Every word costs." one word per beat, gone when the squeezing starts
-    ["bw0", "bw1", "bw2"].forEach((id, k) => {
-      rise($(id), t, Q(1 + k));
-      if (t > Q(4)) { const o = prog(t, Q(4), 0.2); $(id).style.opacity = 1 - o; $(id).style.transform = `translateY(${o * 40}px)`; }
+  // ===== intro: "Every word you send / costs tokens." a phrase on every other beat =====
+  if (t < bar(2)) {
+    show("IN"); st.style.background = "#000"; noLogo();
+    const at = [q(0, 0), q(0, 2), q(1, 0), q(1, 2)];
+    ["iw0", "iw1", "iw2", "iw3"].forEach((id, k) => rise($(id), t, at[k]));
+    const out = inOut(prog(t, bar(2) - 0.22, 0.22));
+    ["in-1", "in-2"].forEach((id) => { $(id).style.transform = `translateY(${-70 * out}px)`; $(id).style.opacity = 1 - out; });
+    return;
+  }
+
+  // ===== the prompt: typed in an eighth at a time, its token count racing; then its filler lights up,
+  // a phrase per beat; on the drop the box squeezes it to 8 tokens; then the saving, big =====
+  if (t < BREAK) {
+    show("PF"); st.style.background = "#000"; noLogo();
+    const box = $("pf");
+    const inK = outExpo(prog(t, bar(2) - 0.1, 0.4));
+    const sq = outExpo(prog(t, DROP, 0.3));                     // the squeeze, on the drop
+    const punch = kick(t, [DROP], 1);                           // the box gives a little as it's hit
+    const leave = inOut(prog(t, bar(5) - 0.24, 0.24));          // up and away, for the number
+    box.style.opacity = clamp(inK * 1.5) * (1 - leave);
+    box.style.transform = `translateY(${((1 - inK) * 40 - 140 * leave).toFixed(1)}px) scale(${(lerp(1, 0.86, sq) * (1 + 0.05 * punch) * lerp(1, 0.7, leave)).toFixed(4)}, ${(lerp(1, 0.9, sq) * (1 - 0.04 * punch) * lerp(1, 0.7, leave)).toFixed(4)})`;
+    box.style.filter = leave > 0.01 ? `blur(${(leave * 12).toFixed(1)}px)` : "none";
+    // the saving: the number slams in on the bar, the words on its 3rd and 4th beats, all gone by the break
+    slam($("pb0"), t, bar(5), 1.4); rise($("pb1"), t, q(5, 2)); rise($("pb2"), t, q(5, 3));
+    const out = inOut(prog(t, BREAK - 0.26, 0.26));
+    ["pf-big", "pf-big2"].forEach((id) => {
+      const el = $(id); el.style.opacity = 1 - out;
+      el.style.transform = `translateY(${(-50 * out).toFixed(1)}px)`; el.style.filter = out > 0.01 ? `blur(${(out * 10).toFixed(1)}px)` : "none";
     });
-    const pk = prog(t, SLAM + 0.15, 0.35);
-    $("b-pill").style.opacity = clamp(pk * 3) * (1 - leave);
-    $("b-pill").style.transform = `translate(-50%, ${lerp(30, 0, outExpo(pk))}px) scale(1.6)`;
-    // the chevrons
-    const wide = { lx: CX - 360, rx: CX + 360, y: 468, h: 169 };
-    const tight = { lx: CX - 155, rx: CX + 155, y: 468, h: 169 };
-    let c = mix({ ...OFF, y: 468, h: 169 }, wide, outExpo(prog(t, Q(4) - 0.06, 0.2)));
-    c = mix(c, { lx: CX - 210, rx: CX + 210, y: 468, h: 169 }, squeeze);
-    if (t >= SLAM - 0.06) c = mix(c, tight, outExpo(prog(t, SLAM - 0.06, 0.1)));
-    if (after) { const bb = 12 * Math.sin(Math.PI * prog(t, SLAM, 0.18)); c = { ...tight, lx: tight.lx + bb, rx: tight.rx - bb }; }
-    // after the silence: light floods out of the 8, the chevrons go round "NLP"
-    const r = wipe(CX, 468, outExpo(prog(t, HITS[0], 0.25)), LIGHT);
-    if (t >= HITS[0]) {
-      const nameBox = { lx: CX - 330, rx: CX + 330, y: 425, h: 300 };
-      c = mix(c, nameBox, outExpo(prog(t, HITS[0], 0.3)));
-    }
-    drawChev(c, r > 260 ? INK : "#fff", t >= Q(4) - 0.1 ? 1 : 0, t < Q(4) + 0.15 ? 14 * Math.sin(Math.PI * prog(t, Q(4) - 0.06, 0.2)) : 0);
-    drawDia(0, 0, 0);
+    let typed = -1;
+    PF_CHUNKS.forEach(([text, role], k) => {
+      const el = $("pc" + k), at = pfAt(k);
+      if (t < at) { el.textContent = ""; return; }
+      const n = Math.max(1, Math.floor(clamp((t - at) / 0.16) * text.length));
+      el.textContent = text.slice(0, n); typed = k;
+      // filler lights up orange on its beat in bar 3; the kept words go violet on the 4th
+      const litAt = role ? q(3, role - 1) : q(3, 3);
+      const lit = outExpo(prog(t, litAt, 0.18));
+      if (role) { el.style.background = `rgba(240,122,40,${0.95 * lit})`; el.style.color = lit > 0.5 ? "#fff" : "#f2f2f2"; }
+      else { el.style.background = "transparent"; el.style.color = lit > 0.5 ? VIOLET : "#f2f2f2"; }
+    });
+    const text = $("pf-text");
+    text.style.opacity = 1 - sq;
+    text.style.transform = `scaleX(${lerp(1, 0.35, sq)})`; text.style.transformOrigin = "50% 50%";
+    text.style.filter = sq > 0.02 && sq < 0.98 ? `blur(${sq * 8}px)` : sq >= 0.98 ? "blur(8px)" : "none";
+    slam($("pf-short"), t, DROP + 0.02, 1.3);
+    $("pf-caret").style.opacity = t >= DROP ? 0 : (t - (typed >= 0 ? pfAt(typed) : bar(2))) % 0.48 < 0.24 ? 1 : 0.2;
+    const n = $("pf-n");
+    let count = typed >= 0 ? PF_COUNTS[typed] : 0;
+    const roll = outCubic(prog(t, DROP, 0.35));
+    if (t >= DROP) count = Math.round(lerp(28, 8, roll));
+    n.textContent = count;
+    n.style.color = t >= DROP ? VIOLET : typed === PF_CHUNKS.length - 1 ? "#F07A28" : "#fff";
+    const pop = typed >= 0 ? Math.exp(-(t - pfAt(typed)) * 14) * (1 - Math.exp(-(t - pfAt(typed)) * 80)) : 0;
+    n.style.transform = `scale(${1 + 0.22 * pop})`;
+    const pk = prog(t, q(4, 1), 0.35);
+    $("pf-pill").style.opacity = clamp(pk * 3) * (1 - leave);
+    $("pf-pill").style.transform = `translate(-50%, ${lerp(30, 0, outExpo(pk))}px) scale(1.5)`;
     return;
   }
 
-  // ===== NLP, then TF-IDF (the cut lands on its hit) =====
+  // ===== the break: almost silence. "Three ways to trim a prompt." Light grows out of it =====
+  if (t < GROOVE) {
+    show("BRK"); st.style.background = "#000"; noLogo();
+    drawBreak(t);
+    growInto(t, GROOVE, $("brk"), LIGHT, "BRK");
+    return;
+  }
+
+  // ===== NLP, TF-IDF, AI Rewrite (no logo here) =====
   if (t < h(17)) {
     const id = t < h(9) ? "NLP" : "TF";
     show(id); st.style.background = METHODS[id].bg;
-    let c = drawMethod(id, t);
-    // the glide from one to the next
-    if (id === "TF" && t < h(9) + 0.3) { show("NLP"); const prev = drawMethod("NLP", h(9) - 0.001); show("TF"); drawMethod("TF", t); c = mix(prev, c, inOut(prog(t, h(9), 0.32))); }
-    if (id === "NLP" && t < h(1) + 0.3) c = mix({ lx: CX - 330, rx: CX + 330, y: 425, h: 300 }, t < h(1) ? { lx: CX - 330, rx: CX + 330, y: 425, h: 300 } : c, inOut(prog(t, h(1), 0.32)));
-    const g = id === "NLP" ? growInto(t, h(9), $("NLP-n"), DVIOLET, "NLP") : growInto(t, h(17), $("TF-p"), "#000", "TF");
-    drawChev(c, id === "NLP" && g > 0.5 ? "#fff" : METHODS[id].fg);
-    drawDia(0, 0, 0);
+    drawMethod(id, t);
+    if (id === "NLP") growInto(t, h(9), $("NLP-n"), DVIOLET, "NLP"); else growInto(t, h(17), $("TF-p"), "#000", "TF");
+    noLogo();
     return;
   }
-
-  // ===== AI Rewrite: the bloated prompt collapses, the short one bursts out, checked =====
-  if (t < h(23)) {
+  if (t < GRAPH) {
     show("AI"); st.style.background = "#000";
-    let c = drawMethod("AI", t);
-    if (t < h(17) + 0.3) { show("TF"); const prev = drawMethod("TF", h(17) - 0.001); show("AI"); drawMethod("AI", t); c = mix(prev, c, inOut(prog(t, h(17), 0.32))); }
-    const g = growInto(t, h(23), $("ai-c2").querySelector(".ck"), LIGHT, "AI");
-    drawChev(c, g > 0.5 ? INK : "#fff");
-    drawDia(0, 0, 0);
+    drawMethod("AI", t);
+    growInto(t, GRAPH, $("ai-c2").querySelector(".ck"), LIGHT, "AI");
+    noLogo();
     return;
   }
 
-  // ===== results: "Up to" 69% "fewer" "tokens." then the three methods, one per hit =====
-  if (t < h(32)) {
-    show("RES"); st.style.background = LIGHT;
-    rise($("s-w0"), t, h(23));
-    slam($("s-w1"), t, h(24), 1.5);
-    rise($("s-w2"), t, h(25));
-    rise($("s-w3"), t, h(26));
-    [0, 1, 2].forEach((k) => rise($("s-r" + k), t, h(28 + k)));
-    let c = glide(t, [{ at: h(23), box: RES_BOX[0] }, { at: h(24), box: RES_BOX[1], d: 0.32 }]);
-    if (t < h(23) + 0.32) { show("AI"); const prev = drawMethod("AI", h(23) - 0.001); show("RES"); c = mix(prev, c, inOut(prog(t, h(23), 0.32))); }
-    c = spring(c, kick(t, [h(23), h(24), h(25), h(26), h(27), h(28), h(29), h(30), h(31)]));
-    const g = growInto(t, h(32), $("s-w1"), "#000", "RES");
-    drawChev(c, g > 0.5 ? "#fff" : INK);
-    drawDia(0, 0, 0);
+  // ===== the graph: tokens saved on average, a bar per accent; the best results marked; AI Rewrite =====
+  if (t < LAST) {
+    show("GR"); st.style.background = LIGHT; noLogo();
+    rise($("gr-hw"), t, ACC(16, 0));
+    $("gr-k").style.opacity = outExpo(prog(t, ACC(16, 0), 0.4));
+    const grows = [ACC(16, 1), ACC(16, 2), ACC(17, 0)];
+    const bests = [ACC(17, 1), ACC(17, 1) + 0.24, ACC(17, 2)];
+    const focus = inOut(prog(t, ACC(18, 0), 0.35));
+    GRAPH_ROWS.forEach((r, i) => {
+      const g = outExpo(prog(t, grows[i], 0.55));
+      $("grf" + i).style.width = Math.max(0.001, r.avg * SCALE * g) + "px";
+      $("grf" + i).style.opacity = t < grows[i] ? 0 : 1;
+      const v = $("grv" + i); v.textContent = Math.round(r.avg * g) + "%";
+      v.style.left = Math.max(16, r.avg * SCALE * g - 150) + "px"; v.style.opacity = clamp((g - 0.2) * 3);
+      rise($("grn" + i), t, grows[i] - 0.06);
+      const b = $("grb" + i), bk = outBack(prog(t, bests[i], 0.35));
+      b.style.opacity = t < bests[i] ? 0 : clamp(bk * 2); b.style.transform = `scaleY(${Math.max(0.001, bk)})`; b.style.transformOrigin = "50% 100%";
+      $("gr" + i).style.opacity = i === 2 ? 1 : 1 - 0.65 * focus;
+    });
+    rise($("gr-cw"), t, ACC(18, 0));
+    $("gr-foot").style.opacity = outExpo(prog(t, ACC(18, 1), 0.4));
+    growInto(t, LAST, $("gr-cw"), "#000", "GR");
     return;
   }
 
-  // ===== the line, a word per hit; then it squeezes into the logo as the music stops =====
+  // ===== the line; on the last accent the logo comes back and squeezes it shut as the music stops =====
   if (t < HIT) {
     show("LINE"); st.style.background = "#000";
-    const at = [h(32), h(33), h(35), h(36)];
-    ["f-w0", "f-w1", "f-w2", "f-w3"].forEach((id, k) => slam($(id), t, at[k], 1.3));
-    const close = inExpo(prog(t, STOP - 0.32, 0.32));
+    slam($("f-w0"), t, e8(19, 0), 1.25); slam($("f-w1"), t, e8(19, 0) + 0.06, 1.25);
+    slam($("f-w2"), t, e8(19, 3), 1.25); slam($("f-w3"), t, e8(19, 3) + 0.06, 1.25);
+    const close = inExpo(prog(t, e8(19, 5), STOP - e8(19, 5)));
     ["f-l1", "f-l2"].forEach((id) => {
       const el = $(id);
+      // squeezed shut and faded out completely, so no sliver is left between the chevrons
       el.style.transform = `scale(${Math.max(0.001, 1 - close)}, 1)`;
       el.style.filter = close > 0 ? `blur(${close * 14}px)` : "none";
+      el.style.opacity = 1 - clamp((close - 0.4) / 0.5);
+      el.style.visibility = close >= 0.999 ? "hidden" : "";
     });
-    let c = glide(t, [{ at: h(32), box: LINE_BOX[0] }, { at: h(33), box: LINE_BOX[1] }, { at: h(35), box: LINE_BOX[2] }, { at: h(36), box: LINE_BOX[3] }]);
-    if (t < h(32) + 0.32) c = mix(RES_BOX[1], c, inOut(prog(t, h(32), 0.32)));
-    c = spring(c, kick(t, [h(32), h(33), h(34), h(35), h(36), h(37), h(38), h(39)]));
+    const box = boxOf([restRect($("f-l1")), restRect($("f-l2"))], 50, 1.0);
+    const inL = inExpo(prog(t, e8(19, 5) - 0.1, 0.12));
+    let c = mix({ ...OFF, y: box.y, h: box.h }, box, inL);
     c = mix(c, markState(CX, CY, END_SIZE), close);
-    drawChev(c, "#fff");
+    drawChev(c, "#fff", t >= e8(19, 5) - 0.1 ? 1 : 0);
     const pop = outBack(prog(t, STOP - 0.03, 0.28));
     drawDia(CX, CY, 4.5 * END_SIZE / 64 * Math.max(0, pop), lerp(-90, 0, pop));
     return;
   }
 
-  // ===== the final hit: the end card, then back into the mark =====
-  show("G"); st.style.background = "#000";
-  const word = $("g-word"), letters = word.querySelectorAll("span");
-  const ww = GW, size = END_SIZE, u = size / 64, gapPx = 44;
-  const markW = 2 * (7 + 19) * u, total = markW + gapPx + ww;
-  const markX = CX - total / 2 + markW / 2, wordX = CX - total / 2 + markW + gapPx;
-  const slide = outExpo(prog(t, HIT, 0.5)), close = inOut(prog(t, DUR - 0.65, 0.6));
-  const x = lerp(lerp(CX, markX, slide), CX, close), sz = lerp(size, REST_SIZE, close);
-  drawChev(markState(x, CY, sz), "#fff");
-  drawDia(x, CY, 4.5 * sz / 64);
-  word.style.left = wordX + "px";
-  word.style.transform = `translateY(-52%)`;
-  letters.forEach((l, i) => {
-    const k = outExpo(prog(t, HIT + 0.04 + i * 0.035, 0.5));
-    const sqz = inExpo(prog(t, DUR - 0.65 + (5 - i) * 0.02, 0.4));
-    const toMark = (x - (wordX + i * (ww / 6))) * sqz;
-    l.style.transform = `translateY(${(1 - k) * 60}px) translateX(${toMark}px) scaleX(${1 - 0.7 * sqz})`;
-    l.style.opacity = clamp(k * 2) * (1 - sqz);
-    l.style.filter = `blur(${(1 - k) * 12 + sqz * 10}px)`;
-  });
-  const tag = $("g-tag");
-  const tk = outExpo(prog(t, HIT + 0.45, 0.6)), tq = inExpo(prog(t, DUR - 0.8, 0.3));
-  tag.style.transform = `translateX(-50%) translateY(${(1 - tk) * 20}px)`;
-  tag.style.opacity = tk * (1 - tq);
+  // ===== the final hit: the end card, then back into the mark (the loop point) =====
+  st.style.background = "#000";
+  drawLockup(t, HIT);
+}
+
+function drawBreak(t) {
+  rise($("bk0"), t, q(6, 1));
+  rise($("bk1"), t, q(6, 2));
 }
 
 window.ready = (async () => {
