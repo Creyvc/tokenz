@@ -490,7 +490,8 @@ html.modal-open {
   font-weight: 500;
   padding: 9px 18px;
   border: none;
-  border-radius: 999px;
+  /* Square, to match the banner */
+  border-radius: 0;
   cursor: pointer;
 }
 
