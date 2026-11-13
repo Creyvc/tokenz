@@ -232,6 +232,43 @@
     return solid(p.map(function (pt) { return [x + pt[0], y + pt[1]]; }), x + w / 2, y + h / 2);
   }
 
+  // The same letter in a rounded font: every corner, outside and inside, becomes an arc of
+  // radius r. Where an edge is too short for two full arcs (the end of a stroke), each gets half
+  // of it, so stroke ends become round caps. Holes are left as they are.
+  function rounded(shape, r) {
+    var poly = shape.outer;
+    var n = poly.length;
+    var out = [];
+    poly.forEach(function (p, k) {
+      var a = poly[(k + n - 1) % n];
+      var b = poly[(k + 1) % n];
+      var la = Math.hypot(a[0] - p[0], a[1] - p[1]);
+      var lb = Math.hypot(b[0] - p[0], b[1] - p[1]);
+      var u = [(a[0] - p[0]) / la, (a[1] - p[1]) / la];
+      var v = [(b[0] - p[0]) / lb, (b[1] - p[1]) / lb];
+      var angle = Math.acos(Math.max(-1, Math.min(1, u[0] * v[0] + u[1] * v[1])));
+      if (angle > Math.PI - 0.01) { out.push(p); return; } // straight through: no corner
+      var half = angle / 2;
+      // How far back along each edge the arc starts, kept to half of either edge
+      var d = Math.min(r / Math.tan(half), la / 2, lb / 2);
+      var radius = d * Math.tan(half);
+      var bis = [u[0] + v[0], u[1] + v[1]];
+      var bl = Math.hypot(bis[0], bis[1]);
+      var c = [p[0] + (bis[0] / bl) * (radius / Math.sin(half)), p[1] + (bis[1] / bl) * (radius / Math.sin(half))];
+      var from = Math.atan2(p[1] + u[1] * d - c[1], p[0] + u[0] * d - c[0]);
+      var to = Math.atan2(p[1] + v[1] * d - c[1], p[0] + v[0] * d - c[0]);
+      var turn = to - from;
+      if (turn > Math.PI) turn -= 2 * Math.PI;
+      if (turn < -Math.PI) turn += 2 * Math.PI;
+      for (var j = 0; j <= ARC_POINTS; j++) {
+        var t = from + (turn * j) / ARC_POINTS;
+        out.push([c[0] + radius * Math.cos(t), c[1] + radius * Math.sin(t)]);
+      }
+    });
+    return { outer: out, inner: shape.inner };
+  }
+  var ARC_POINTS = 8; // points along each rounded corner (letters have at most 12 corners)
+
   // ---- Making two shapes blendable ----
 
   // Spread exactly N points along an outline, keeping every original corner sharp
@@ -332,7 +369,10 @@
   var WORD_HOLD = 700;   // TOKENZ holds still this long once spelt out (350ms on screen at SPEED 2)
   var ROUND = TO_LETTERS + 2 * LETTER_STAGGER + MORPH_TIME + WORD_HOLD; // then all the letters soften into a rounded font together
   var ROUND_TIME = 1000;
-  var TO_OS = ROUND + ROUND_TIME + BEAT; // T and Z become wide O's
+  var ROUNDED = 0.75;    // how round they get: each corner's radius, as a share of the stroke thickness
+                         // (0.5 or more makes every stroke end a full round cap)
+  var ROUND_HOLD = 300;  // the rounded word holds still this long (150ms on screen at SPEED 2)
+  var TO_OS = ROUND + ROUND_TIME + ROUND_HOLD; // then the T and Z become wide O's
   var MERGE = TO_OS + MORPH_TIME;        // Venom-style merge: tendrils shoot out from every letter to the middle...
   var REACH_TIME = 350;
   var PULL = MERGE + 250;                // ...then drag the letters in, from the outside first, and they melt into one O
@@ -375,11 +415,14 @@
     var items = "TOKENZ".split("").map(function (ch, i) {
       var x = x0 + i * (w + gap);
       var boxShape = prepare(box(x, y0, w, h));
-      var letterShape = prepare(letter(ch, x, y0, w, h, s), boxShape);
-      var beforeMerge = letterShape;
+      var sharp = letter(ch, x, y0, w, h, s);
+      var letterShape = prepare(sharp, boxShape);
+      // The O is round already
+      var roundShape = ch === "O" ? letterShape : prepare(rounded(sharp, ROUNDED * s), letterShape);
+      var beforeMerge = roundShape;
       // Only the T and Z turn into wide O's before the merge
       if (ch === "T" || ch === "Z") {
-        beforeMerge = prepare(ring(x + w / 2, cy, bigRx, bigRy, bigThick), letterShape);
+        beforeMerge = prepare(ring(x + w / 2, cy, bigRx, bigRy, bigThick), roundShape);
       }
       return {
         index: i,
@@ -387,6 +430,7 @@
         becomesO: ch === "T" || ch === "Z",
         box: boxShape,
         letter: letterShape,
+        round: roundShape,
         beforeMerge: beforeMerge,
         merged: prepare(centerO, beforeMerge)
       };
@@ -581,8 +625,11 @@
         // Middle letters first, carrying on the outward motion of the row opening
         var lettering = progress(now, TO_LETTERS + (Math.abs(i - 2.5) - 0.5) * LETTER_STAGGER, MORPH_TIME);
         if (lettering > 0) shape = blend(item.box, item.letter, easeInOut(lettering));
+        // Then every corner rounds off, the sharp letters turning into a rounded font
+        var rounding = progress(now, ROUND, ROUND_TIME);
+        if (rounding > 0) shape = blend(item.letter, item.round, easeInOut(rounding));
         var toO = item.becomesO ? progress(now, TO_OS, MORPH_TIME) : 0;
-        if (toO > 0) shape = blend(item.letter, item.beforeMerge, easeInOut(toO));
+        if (toO > 0) shape = blend(item.round, item.beforeMerge, easeInOut(toO));
         // The outside letters get dragged first, so the row folds in towards the middle
         var merging = progress(now, PULL + Math.abs(2.5 - i) * 60, MERGE_TIME);
         if (merging > 0) shape = squirm(blend(item.beforeMerge, item.merged, easeInOut(merging)), merging, i, now);
@@ -611,13 +658,11 @@
           item.el.removeAttribute("transform");
         }
 
-        // Square boxes become square-cornered letters, then all the letters round off together
-        // and stay round. The T and Z melt a little extra while turning into O's so they flow.
-        // It all fades out just before the zoom, when only the smooth O is left.
+        // The T and Z melt a little while turning into O's, so they flow (the goo filter).
         // From the merge on, the shared filter on the blob takes over.
-        var rounding = easeInOut(progress(now, ROUND, ROUND_TIME)) + Math.sin(Math.PI * toO);
-        if (rounding > 0.02 && now < MERGE) {
-          item.blur.setAttribute("stdDeviation", (rounding * 0.05 * h).toFixed(2));
+        var melting = 0.05 * Math.sin(Math.PI * toO);
+        if (melting > 0.001 && now < MERGE) {
+          item.blur.setAttribute("stdDeviation", (melting * h).toFixed(2));
           item.el.setAttribute("filter", "url(#intro-goo-" + i + ")");
         } else {
           item.el.removeAttribute("filter");

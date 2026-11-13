@@ -331,9 +331,9 @@ html.modal-open {
 }
 
 .modal::backdrop {
-  background: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(5px);
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   animation: modal-backdrop-in 0.3s ease;
 }
 
@@ -441,13 +441,35 @@ html.modal-open {
   z-index: 20;
   max-width: 400px;
   padding: 20px 22px;
-  background: #ffffff;
-  border: 1px solid #E5E4DF;
-  border-radius: 16px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
   font-size: 14px;
   line-height: 1.55;
   color: #262626;
+  /* Square corners, with the bottom-right one cut off at 45°. A clipped box can't have a
+     border or box-shadow of its own, so the shadow is a filter and the box is drawn in two
+     layers below: the light grey border shape, and the white shape 1px inside it. */
+  --cut: 14px;
+  filter: drop-shadow(0 8px 15px rgba(0, 0, 0, 0.08));
+}
+
+.consent::before,
+.consent::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%);
+}
+
+.consent::before {
+  --c: var(--cut);
+  inset: 0;
+  background: #E5E4DF;
+}
+
+/* (0.4px less cut keeps the border 1px thick along the diagonal too) */
+.consent::after {
+  --c: calc(var(--cut) - 0.4px);
+  inset: 1px;
+  background: #ffffff;
 }
 
 .consent a {
