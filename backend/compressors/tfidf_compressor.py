@@ -5,6 +5,7 @@ import re
 import spacy
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+from compressors.nlp_compressor import get_nlp
 from token_utils import count_tokens
 from models import make_result
 from validation import extract_protected_constraints, validate_candidate, contains_span, is_pleasantry
@@ -23,14 +24,27 @@ REQUEST_START = re.compile(r"^(?:[-*•]|\d+[.)])?\s*(?:(?:and|also|then|now|fin
                            + REQUEST_VERBS + r")\b", re.I)
 REQUEST_ANYWHERE = re.compile(r"\b(?:please|kindly|(?:could|can|would|will) you|i(?:'d| would) like (?:you )?to|"
                               r"i (?:want|need) (?:you )?to|it would (?:also )?be (?:useful|helpful|great|nice|good) if|"
-                              r"you (?:should|must|need to)|make sure|remember to|target audience|tone|word count)\b", re.I)
+                              r"you (?:should|must|need to)|make sure|remember to|target audience|tone|word count)\b"
+                              # A requirement stated about the result: "The review should focus on …"
+                              r"|(?<!\bI )(?<!\bwe )\b(?:should|must|needs to|has to)\b", re.I)
 
 
 # A task that works on text given with it ("rewrite this email", "proofread the following"). The
-# text itself is often in the sentences right after the task and shares few words with it.
-TRANSFORM_TASK = re.compile(r"\b(?:rewrite|rephrase|reword|paraphrase|translate|proofread|edit|correct|"
-                            r"polish|shorten|simplify|summari[sz]e|improve|fix|check)\b.*"
-                            r"\b(?:this|these|the following|below|my)\b", re.I)
+# text itself is often in the sentences right after the task and shares few words with it. "Fix a
+# bug in my script" is followed by a description, not the script, so fixing and checking only
+# count when they point at what follows.
+TRANSFORM_TASK = re.compile(r"\b(?:rewrite|rephrase|reword|paraphrase|translate|proofread|edit|polish|shorten|"
+                            r"simplify|summari[sz]e)\b.*\b(?:this|these|the following|below|my)\b"
+                            r"|\b(?:correct|improve|fix|check)\b.*\b(?:this|these|the following|below)\b", re.I)
+
+
+# A sentence that opens by pointing back ("It must be in JSON.", "This is for a beginner.") means
+# nothing without the sentence before it, so the two are kept together
+REFERS_BACK = re.compile(r"^(?:[-*•]|\d+[.)])?\s*(?:it|its|this|that|these|those|they|them|their|he|she|his|her|such)\b", re.I)
+# A sentence at least this close to the task or to a kept requirement counts as relevant context
+RELEVANT = 0.1
+# Two sentences this alike say the same thing; only the first one chosen is kept
+NEAR_REPEAT = 0.8
 
 
 def is_request(sentence):
@@ -41,6 +55,68 @@ def is_request(sentence):
     """
     parts = [sentence] + sentence.splitlines() + [piece for piece in sentence.split(":")[1:]]
     return any(REQUEST_START.search(part.strip()) or REQUEST_ANYWHERE.search(part) for part in parts)
+
+
+def stems(texts):
+    """Each text as content-word stems and stem pairs, so "analyse", "analysis" and "analysing" match.
+
+    Words are lemmatised, then cut to their first five letters: a light stem that also joins forms
+    a lemma keeps apart ("analysis" and "analyze").
+    """
+    docs = []
+    for doc in get_nlp().pipe(texts):
+        words = [t.lemma_.lower()[:5] for t in doc if (t.is_alpha or t.like_num) and not t.is_stop]
+        docs.append(words + [a + " " + b for a, b in zip(words, words[1:])])
+    return docs
+
+
+def score_rows(plan, main_question):
+    """How relevant each sentence is: its likeness to the main task, or (a little less) to a
+    sentence that is kept anyway, and for a sentence that points back, to the one before it.
+
+    Returns the scores and the sentence-to-sentence likeness, or None without a usable vocabulary.
+    """
+    rows = plan["rows"]
+    try:
+        matrix = TfidfVectorizer(analyzer=lambda words: words, sublinear_tf=True).fit_transform(
+            stems([main_question] + [row["text"] for row in rows]))
+    except ValueError:
+        return None
+    likeness = cosine_similarity(matrix[1:])
+    scores = cosine_similarity(matrix[1:], matrix[0]).ravel()
+    for i in range(len(rows)):
+        support = [likeness[i][j] for j in plan["mandatory"] if j != i]
+        if support:
+            scores[i] = max(scores[i], 0.7 * max(support))
+        if i and REFERS_BACK.match(rows[i]["text"]):
+            scores[i] = max(scores[i], 0.8 * scores[i - 1])
+    return scores, likeness
+
+
+def select_rows(text, plan, scores, likeness, token_budget, encoding, minimum_score=None):
+    """The mandatory sentences, then the most relevant others while they fit the budget: never a
+    repeat, a pleasantry or a near-repeat of one already chosen, and never a sentence that points
+    back without the sentence it points to."""
+    rows, spans = plan["rows"], plan["spans"]
+    selected = set(plan["mandatory"])
+
+    def repeats_one(i):
+        return any(likeness[i][j] >= NEAR_REPEAT or normalized(rows[i]["text"]) == normalized(rows[j]["text"])
+                   for j in selected)
+
+    for i in sorted(range(len(rows)), key=lambda i: (-scores[i], i)):
+        if i in selected or (minimum_score is not None and scores[i] < minimum_score):
+            continue
+        if i in plan["repeats"] or is_pleasantry(rows[i]["text"]) or repeats_one(i):
+            continue
+        group = {i}
+        # The sentence pointed back to comes too, unless one already chosen says the same
+        if i and REFERS_BACK.match(rows[i]["text"]) and i - 1 not in selected and \
+                i - 1 not in plan["repeats"] and not repeats_one(i - 1):
+            group.add(i - 1)
+        if count_tokens(assemble_sentences(text, spans, selected | group), encoding) <= token_budget:
+            selected |= group
+    return selected
 
 
 def normalized(sentence):
@@ -172,9 +248,16 @@ def inspect_tfidf_input(text, main_question, locked_sentences=None,
             rows[index]["mandatory_reasons"] = []
     mandatory = {row["index"] for row in rows if row["mandatory_reasons"]}
     required_tokens = count_tokens(assemble_sentences(text, spans, mandatory), encoding) if task_range else None
-    return dict(spans=spans, rows=rows, protected=protected, mandatory=mandatory, repeats=repeats,
+    plan = dict(spans=spans, rows=rows, protected=protected, mandatory=mandatory, repeats=repeats,
                 problems=problems, main_task_valid=task_range is not None,
-                original_tokens=count_tokens(text, encoding), minimum_required_tokens=required_tokens)
+                original_tokens=count_tokens(text, encoding), minimum_required_tokens=required_tokens,
+                suggested_budget=None)
+    # The suggested budget keeps the mandatory sentences and every relevant one, and no more
+    scored = score_rows(plan, main_question) if task_range and len(spans) >= 3 else None
+    if scored:
+        relevant = select_rows(text, plan, *scored, count_tokens(text, encoding), encoding, RELEVANT)
+        plan["suggested_budget"] = count_tokens(assemble_sentences(text, spans, relevant), encoding)
+    return plan
 
 
 def compress_with_tfidf(text, main_question, token_budget, locked_sentences=None,
@@ -198,11 +281,10 @@ def compress_with_tfidf(text, main_question, token_budget, locked_sentences=None
         return finish(warnings=plan["problems"], reason="input_not_ready")
     if type(token_budget) is not int or token_budget <= 0:
         return finish(warnings=["The token budget must be a positive integer."], reason="invalid_budget")
-    try:
-        matrix = TfidfVectorizer(stop_words="english").fit_transform([main_question] + [row["text"] for row in rows])
-        scores = cosine_similarity(matrix[1:], matrix[0]).ravel()
-    except ValueError:
+    scored = score_rows(plan, main_question)
+    if scored is None:
         return finish(warnings=["No usable TF-IDF vocabulary; original retained."], reason="empty_vocabulary")
+    scores, likeness = scored
     for row, score in zip(rows, scores):
         row["score"] = float(score)
     if plan["minimum_required_tokens"] > token_budget:
@@ -210,11 +292,7 @@ def compress_with_tfidf(text, main_question, token_budget, locked_sentences=None
             f"Budget is {token_budget} tokens, but the main task and mandatory sentences need "
             f"{plan['minimum_required_tokens']} tokens. Increase the budget or review your sentence/phrase locks. "
             "The original was retained; no locked requirement was removed."], reason="budget_too_small")
-    selected = set(plan["mandatory"])
-    for i in sorted(range(len(rows)), key=lambda i: (-scores[i], i)):
-        repeat = any(normalized(rows[i]["text"]) == normalized(rows[j]["text"]) for j in selected)
-        if i not in selected and not repeat and not is_pleasantry(rows[i]["text"]) and count_tokens(assemble_sentences(text, plan["spans"], selected | {i}), encoding) <= token_budget:
-            selected.add(i)
+    selected = select_rows(text, plan, scores, likeness, token_budget, encoding)
     if len(selected) == len(rows):
         return finish(warnings=["All sentences fit the budget or are mandatory, so none were removed. "
                                "Use a smaller feasible budget to filter context."], reason="all_sentences_retained")

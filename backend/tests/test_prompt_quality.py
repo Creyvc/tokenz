@@ -152,3 +152,55 @@ def test_both_methods_drop_greetings_and_small_talk():
     assert "5 common questions" in tfidf.candidate_text
     # A greeting that carries a request is not small talk
     assert "Hello" in compress_with_nlp("Hello, explain gravity to me. Use 2 examples.").candidate_text
+
+
+def suggested_by_engine(text, task):
+    return inspect_tfidf_input(text, task)["suggested_budget"]
+
+
+def test_tfidf_fix_my_script_is_followed_by_a_description_not_the_script():
+    text = ("Can you help me fix a bug in my Python script that parses CSV files? "
+            "The script reads each row and converts the date column into a datetime object. "
+            "It crashes when a row has an empty date. I started learning to code six months ago through online videos. "
+            "The parser should skip rows with empty dates and log a warning. My cat keeps walking on my keyboard while I work.")
+    task = "Can you help me fix a bug in my Python script that parses CSV files?"
+    result = compress_with_tfidf(text, task, suggested_by_engine(text, task))
+    assert result.status == "review_required"
+    for kept in ("converts the date column", "crashes when a row has an empty date", "should skip rows with empty dates"):
+        assert kept in result.candidate_text
+    assert "six months" not in result.candidate_text and "cat" not in result.candidate_text
+
+
+def test_tfidf_requirement_stated_about_the_result_is_kept():
+    text = ("Write a literature review on sleep and memory in teenagers. The review should focus on memory consolidation. "
+            "My dorm is noisy at night. Coffee shops near campus are crowded on weekends.")
+    plan = inspect_tfidf_input(text, "Write a literature review on sleep and memory in teenagers.")
+    assert "Request or instruction" in plan["rows"][1]["mandatory_reasons"]
+    assert not plan["rows"][2]["mandatory_reasons"]
+
+
+def test_tfidf_suggested_budget_keeps_relevant_context_and_drops_the_rest():
+    text = ("Write a literature review on the effects of sleep deprivation on memory in teenagers. "
+            "I am a psychology student and my professor is really strict. "
+            "Sleep deprivation is known to impair memory consolidation, especially in adolescents whose brains are still developing. "
+            "I drink a lot of coffee while I study. Coffee shops near campus are always crowded on weekends.")
+    task = "Write a literature review on the effects of sleep deprivation on memory in teenagers."
+    budget = suggested_by_engine(text, task)
+    assert budget < count_tokens(text)
+    result = compress_with_tfidf(text, task, budget)
+    assert "impair memory consolidation" in result.candidate_text
+    for gone in ("professor", "coffee", "Coffee"):
+        assert gone not in result.candidate_text
+
+
+def test_tfidf_skips_a_near_repeat_and_keeps_a_pointing_sentence_with_its_subject():
+    text = ("Explain how vaccines train the immune system. "
+            "Vaccines show the immune system a harmless piece of a virus. "
+            "Vaccines show the immune system a harmless piece of the virus. "
+            "That is why a later infection is fought off faster. "
+            "My neighbour's dog barks every morning.")
+    task = "Explain how vaccines train the immune system."
+    result = compress_with_tfidf(text, task, suggested_by_engine(text, task))
+    assert result.candidate_text == ("Explain how vaccines train the immune system. "
+                                     "Vaccines show the immune system a harmless piece of a virus. "
+                                     "That is why a later infection is fought off faster.")

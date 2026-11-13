@@ -124,8 +124,9 @@ def inspect(body):
                         mandatory_reasons=row["mandatory_reasons"]) for row in plan["rows"]],
         problems=plan["problems"], main_task_valid=plan["main_task_valid"],
         original_tokens=plan["original_tokens"], minimum_required_tokens=minimum,
-        # The Streamlit workbench's rule: start at 65% of the original, never below the minimum.
-        suggested_budget=min(MAX_BUDGET, max(minimum or 1, int(plan["original_tokens"] * .65))))
+        # Enough for the mandatory sentences and every relevant one; without a confirmed task, the
+        # Streamlit workbench's rule: 65% of the original, never below the minimum.
+        suggested_budget=min(MAX_BUDGET, max(minimum or 1, plan["suggested_budget"] or int(plan["original_tokens"] * .65))))
 
 
 def compress(body):
@@ -150,7 +151,8 @@ def compress(body):
 
 def optimize(body):
     """The AI rewrite: each chosen model (Qwen or GPT-OSS on Groq, Gemini on Google) rewrites the prompt. A rewrite that
-    loses a number, saves nothing or comes back incomplete is rejected and the original is kept."""
+    loses a number, a limit, a negation, quoted text or an acronym, saves nothing or comes back incomplete gets one
+    retry with the reasons; if that fails too it is rejected and the original is kept."""
     text = text_field(body, "text")
     if not text.strip():
         raise BadRequest("Paste a prompt first.")

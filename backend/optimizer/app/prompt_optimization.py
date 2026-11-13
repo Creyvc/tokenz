@@ -16,6 +16,71 @@ from app.tokens import TokenCounter
 
 WORKFLOW = 'prompt_optimization_v1'
 
+RETRY = ('Your rewrite was rejected:\n{problems}\nRewrite the original prompt again, fixing these problems. '
+         'Return only the rewritten prompt.')
+
+# A number's limit: "under 500 words" must not become "500 words" or "at least 500 words"
+LIMITS = (('at most', r'(?:under|below|less than|fewer than|at most|no more than|up to|not more than|max(?:imum)?|within|<|≤)'),
+          ('at least', r'(?:at least|over|above|(?<!no )(?<!not )more than|no less than|no fewer than|min(?:imum)?|>|≥)'),
+          ('exactly', r'(?:exactly|precisely)'))
+NUMBER = r'\d+(?:[.,]\d+)*'
+# "No more than 200" is a limit, not a prohibition: the limit check covers it
+NEGATION = re.compile(r"\b(?:not|no)\b(?! (?:more|less|fewer|longer) than)|\b(?:never|none|nor|without|avoid|"
+                      r"exclude|excluding|except)\b|n't\b", re.I)
+# Capitalised words that carry no requirement of their own, for the acronym check
+SHOUTED = {'PLEASE', 'HELP', 'THANKS', 'THANK', 'HI', 'HELLO', 'HEY', 'URGENT', 'VERY', 'REALLY', 'NOT', 'DO',
+           'DONT', 'NO', 'AND', 'OR', 'THE', 'YOU', 'ME', 'MY', 'IT', 'IS', 'ALL', 'OK', 'IMPORTANT', 'NOTE'}
+
+
+def numbers(text):
+    """The numbers in a text, with thousands separators removed ("12,000" and "12000" match)."""
+    return [re.sub(r'(?<=\d),(?=\d{3}\b)', '', value) for value in re.findall(r'(?<![\w.])' + NUMBER, text)]
+
+
+# The same limits written after the number and its unit: "500 words max", "3 or more"
+LIMITS_AFTER = (('at most', r'(?:max(?:imum)?|or less|or fewer|at most|tops)'),
+                ('at least', r'(?:min(?:imum)?|or more|at least|\+)'))
+
+
+def limits(text):
+    """Each number with the limit on it, when it has one."""
+    found = {}
+    for name, words in LIMITS:
+        for match in re.finditer(words + r'\s*(' + NUMBER + r')', text, re.I):
+            found[numbers(match.group(1))[0]] = name
+    for name, words in LIMITS_AFTER:
+        for match in re.finditer(r'(?<![\w.])(' + NUMBER + r')(?:\s*[a-z]+)?\s*' + words + r'(?!\w)', text, re.I):
+            found[numbers(match.group(1))[0]] = name
+    return found
+
+
+def rewrite_checks(prompt, completion, counter, original_count):
+    """Why a rewrite can't be used, as sentences; empty when it can."""
+    candidate = completion.text.strip()
+    checks = []
+    if not candidate or completion.finish_reason != 'stop':
+        checks.append('The rewrite was empty or incomplete.')
+    if candidate.startswith('```') or candidate.lower().startswith(('here is the answer', 'the answer is', 'import ')):
+        checks.append('The output did not look like a plain rewritten prompt.')
+    if set(numbers(prompt)) - set(numbers(candidate)):
+        checks.append('An original number was not preserved literally.')
+    after = limits(candidate)
+    changed = [number for number, limit in limits(prompt).items() if number in numbers(candidate) and after.get(number) != limit]
+    if changed:
+        checks.append('The limit on ' + ', '.join(changed) + ' changed (for example "under" or "at least" was lost).')
+    if NEGATION.search(prompt) and not NEGATION.search(candidate):
+        checks.append('A "not", "no" or "without" from the original was lost.')
+    quoted = re.findall(r'"[^"\n]+"|“[^”\n]+”|`[^`\n]+`', prompt)
+    if any(quote.strip('"“”') not in candidate for quote in quoted):
+        checks.append('Quoted text or code was not kept word for word.')
+    acronyms = {word for word in re.findall(r'\b[A-Z][A-Z0-9]{1,}\b', prompt) if word not in SHOUTED}
+    lost = sorted(word for word in acronyms if not re.search(r'\b' + re.escape(word) + r'\b', candidate, re.I))
+    if lost:
+        checks.append('A name or acronym was dropped: ' + ', '.join(lost) + '.')
+    if candidate and counter.count(candidate) >= original_count:
+        checks.append('The rewrite did not save prompt tokens.')
+    return checks
+
 
 def optimize_prompts(settings, repo, prompt, *, integration=None, provider_factory=None,
                      on_update=None, on_event=None, progress=None, keys=KEYS):
@@ -81,26 +146,28 @@ def optimize_prompts(settings, repo, prompt, *, integration=None, provider_facto
         try:
             if not registry[key]['available']:
                 raise ProviderError('CONFIGURATION', registry[key]['reason'])
-            completion = make(config).complete([
-                {'role': 'system', 'content': template},
-                {'role': 'user', 'content': json.dumps({'prompt_to_compress': prompt}, ensure_ascii=False)}],
-                maximum, integration.temperature)
+            provider = make(config)
+            messages = [{'role': 'system', 'content': template},
+                        {'role': 'user', 'content': json.dumps({'prompt_to_compress': prompt}, ensure_ascii=False)}]
+            completion = provider.complete(messages, maximum, integration.temperature)
+            checks = rewrite_checks(prompt, completion, counter, original_count)
+            # One second try with the reasons, when the first rewrite came back but broke a check
+            if checks and completion.text.strip():
+                if completion.provider_cost_usd not in (None, 0):
+                    raise ProviderError('UNEXPECTED_COST', 'Provider reported a charge. Stopped under the free-only policy.')
+                row['first_attempt'] = {'candidate_prompt': completion.text.strip(), 'checks': checks,
+                                        'usage': completion.to_dict()}
+                completion = provider.complete(messages + [
+                    {'role': 'assistant', 'content': completion.text},
+                    {'role': 'user', 'content': RETRY.format(problems='\n'.join('- ' + check for check in checks))}],
+                    maximum, integration.temperature)
+                checks = rewrite_checks(prompt, completion, counter, original_count)
             row['usage'] = completion.to_dict()
             if completion.provider_cost_usd not in (None, 0):
                 raise ProviderError('UNEXPECTED_COST', 'Provider reported a charge. Stopped under the free-only policy.')
             candidate = completion.text.strip()
             row['candidate_prompt'] = candidate
             row['candidate_tokens'] = counter.count(candidate)
-            checks = []
-            if not candidate or completion.finish_reason != 'stop':
-                checks.append('The rewrite was empty or incomplete.')
-            if candidate.startswith('```') or candidate.lower().startswith(('here is the answer', 'the answer is', 'import ')):
-                checks.append('The output did not look like a plain rewritten prompt.')
-            numbers = set(re.findall(r'\b\d+(?:\.\d+)?\b', prompt))
-            if numbers - set(re.findall(r'\b\d+(?:\.\d+)?\b', candidate)):
-                checks.append('An original number was not preserved literally.')
-            if row['candidate_tokens'] >= original_count:
-                checks.append('The rewrite did not save prompt tokens.')
             row['status'] = 'rejected' if checks else 'accepted'
             row['checks'] = checks
             chosen = prompt if checks else candidate

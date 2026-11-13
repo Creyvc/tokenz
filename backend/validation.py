@@ -35,12 +35,20 @@ def extract_protected_constraints(text: str, locked_spans=None) -> list[str]:
             spans.extend(m.group() for m in re.finditer(r"<[^<>\n]{1,80}>", line))
     return list(dict.fromkeys(s for s in spans if s.strip()))
 
-# A whole sentence that is only a greeting or small talk: safe to drop, it asks for nothing
+# A whole sentence that is only a greeting, small talk or a sign-off: safe to drop, it asks for nothing
 PLEASANTRY = re.compile(
-    r"(?:(?:hi|hello|hey|good (?:morning|afternoon|evening))(?: there| everyone| all)?"
-    r"|i hope (?:you are|you're|this finds you) (?:doing )?(?:well|good|great|fine)(?: today)?"
-    r"|(?:many )?thanks?(?: you)?(?: (?:so|very) much)?(?: in advance)?(?: for (?:your|the) help)?)"
-    r"\s*[.!,]*", re.I)
+    r"(?:(?:hi|hello|hey|greetings|good (?:morning|afternoon|evening))(?: there| everyone| all)?"
+    r"|i hope (?:you are|you're|this finds you|this message finds you|all is) (?:doing )?(?:well|good|great|fine)(?: today)?"
+    r"|i hope (?:you are|you're) having an? (?:good|great|nice|lovely|wonderful) (?:day|week|weekend)"
+    r"|(?:many |big )?thanks?(?: you)?(?: again)?(?: (?:so|very) much| a lot| a million)?(?: in advance)?"
+    r"(?: for (?:your|the|any|all (?:your|the)) (?:help|time|patience|assistance|support))?"
+    r"|i (?:really |truly |greatly |would )?appreciate (?:it|your help|any help|the help|your time|any (?:advice|assistance))"
+    r"|any (?:help|advice|assistance|guidance|tips) (?:would be|will be|is) (?:greatly |much |really |very much |highly )?appreciated"
+    r"|i look forward to (?:your (?:response|reply|answer|help)|hearing (?:back )?from you)"
+    r"|i hope (?:this|that|it|my question) makes sense"
+    r"|have an? (?:nice|great|good|lovely) (?:day|week|weekend)"
+    r"|(?:best|kind|warm) regards|cheers)"
+    r"\s*[.!,:)]*", re.I)
 
 
 def is_pleasantry(sentence: str) -> bool:

@@ -11,10 +11,10 @@
     "My teacher said this topic will be in the exam next week. " +
     "Yesterday the bus to school was late and it was raining.";
   var LEVEL_HELP = {
-    conservative: "Removes polite openings like “Could you please” and exact repeated sentences.",
-    balanced: "Also shortens common request openings, while keeping every content word.",
-    aggressive: "Applies more wording edits and removes sentences those edits made identical.",
-    maximum: "Aims for 20% or more by trimming framing and personal reasons. Some words from that framing can go, so check the result closely. Concise prompts may not reach 20%."
+    conservative: "Removes polite openings like “Could you please”, greetings, sign-offs and exact repeated sentences.",
+    balanced: "Also shortens request openings and wordy phrases like “in order to”, while keeping every content word.",
+    aggressive: "Also removes filler words, offers of help and sentences that only repeat an earlier request.",
+    maximum: "Aims for 20% or more by also trimming framing, hedges and personal reasons, and repeats spread across the prompt. Some words from that framing can go, so check the result closely. Concise prompts may not reach 20%."
   };
   var LEVEL_NAMES = { conservative: "1 · Conservative", balanced: "2 · Balanced", aggressive: "3 · Aggressive", maximum: "4 · Maximum" };
   var NAMES = { nlp: "NLP", tfidf: "TF-IDF", ai: "AI rewrite" };

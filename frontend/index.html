@@ -72,7 +72,7 @@
           <p class="home-method-top"><span>03</span><span>Sends your prompt to Groq and Google</span></p>
           <div class="home-method-body">
             <h3 class="home-method-name">AI Rewrite</h3>
-            <p class="home-method-text">AI models each rewrite the whole prompt shorter. A rewrite that drops a number or saves no tokens is rejected, and the original is kept.</p>
+            <p class="home-method-text">AI models each rewrite the whole prompt shorter. A rewrite that drops a number, a limit or a “not”, or saves no tokens, gets one retry; if that fails too, the original is kept.</p>
           </div>
         </article>
       </div>
@@ -132,7 +132,7 @@
         </details>
         <details class="faq-item">
           <summary class="faq-question"><span>Can a shorter prompt get a worse answer?</span><svg class="faq-chevron" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 9L12 15L18 9"/></svg></summary>
-          <p class="faq-answer">It can, so we check. AI Rewrite rejects any rewrite that drops a number or saves no tokens, and keeps your original instead. In our tests, every answer is scored 1 to 5 by raters who don't know which method wrote it.</p>
+          <p class="faq-answer">It can, so we check. AI Rewrite rejects any rewrite that drops a number, a limit, a “not”, quoted text or a name like JSON, or saves no tokens. It retries once, and keeps your original if the retry fails too. In our tests, every answer is scored 1 to 5 by raters who don't know which method wrote it.</p>
         </details>
         <details class="faq-item">
           <summary class="faq-question"><span>Do the smarter methods really save money?</span><svg class="faq-chevron" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 9L12 15L18 9"/></svg></summary>
