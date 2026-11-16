@@ -1,6 +1,6 @@
 /* Inter: a clean, slightly tight sans-serif close to the reference screenshot.
    JetBrains Mono: used only on the academic-project notice before the intro */
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Bodoni+Moda:ital,opsz,wght@1,6..96,400;1,6..96,500&family=Henny+Penny&family=UnifrakturMaguntia&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Bodoni+Moda:ital,opsz,wght@1,6..96,400;1,6..96,500&family=Bagel+Fat+One&family=UnifrakturMaguntia&display=swap");
 
 * {
   margin: 0;
@@ -2442,22 +2442,38 @@ html.home-box-waiting .home-panel {
 
 /* Four words, four voices, each word in its own typeface, sized against its line so the two
    lines still end up about the same width:
-   "Shorter" in Henny Penny, a bouncy wizard's-book face (the nearest free match to the Harry
-   Potter lettering); "prompts," in UnifrakturMaguntia, Old English blackletter; "Same" a thin,
-   high-contrast italic serif filled with a dark-to-violet gradient; "request." in Fixedsys
-   Excelsior, the old Windows pixel font (public domain, kept in assets/fonts). The second line
-   is pushed in a little */
+   "Shorter" in Bagel Fat One, packed so tight its letters touch, and melted together by the
+   hl-melt filter in index.html (after the caer typeface); "prompts," in UnifrakturMaguntia, Old
+   English blackletter; "Same" a thin, high-contrast italic serif filled with a dark-to-violet
+   gradient; "request." in Fixedsys Excelsior, the old Windows pixel font (public domain, kept in
+   assets/fonts). The second line is pushed in a little */
 @font-face {
   font-family: "Fixedsys Excelsior";
   src: url("assets/fonts/fixedsys-excelsior.woff") format("woff");
   font-display: swap;
 }
 
-.home-headline .hl-wizard {
-  font-family: "Henny Penny", "Inter", serif;
+.home-headline .hl-melt {
+  display: inline-block;
+  /* Room round the word, so the melt isn't cut off at its edges (taken back by the margins, so
+     the line doesn't move) */
+  padding: 0.18em 0.06em;
+  margin: -0.18em -0.06em;
+  line-height: 1;
+  vertical-align: baseline;
+  font-family: "Bagel Fat One", "Inter", sans-serif;
   font-weight: 400;
-  font-size: 0.92em;
-  letter-spacing: -0.02em;
+  font-size: 1.06em;
+  letter-spacing: -0.08em;
+  filter: url(#hl-melt);
+}
+
+/* The filter's definitions only: takes no room on the page */
+.svg-defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
 }
 
 .home-headline .hl-gothic {

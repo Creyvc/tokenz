@@ -17,6 +17,15 @@
 </head>
 <body>
   <div class="intro" aria-hidden="true"></div>
+  <!-- The melt on the headline's first word (styles.css, .hl-melt): blurs the letters into each other,
+       then sharpens the blur back to an edge, so where letters touch they fuse like ink. Sized
+       against the word itself, so it looks the same at any screen width -->
+  <svg class="svg-defs" width="0" height="0" aria-hidden="true" focusable="false">
+    <filter id="hl-melt" primitiveUnits="objectBoundingBox" x="-5%" y="-10%" width="110%" height="120%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="0.002 0.008" result="blur"/>
+      <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 10 -4"/>
+    </filter>
+  </svg>
   <header class="nav">
     <a href="index.html" class="logo" aria-label="Tokenz home">
       <img src="assets/logo-mark.svg" alt="" width="48" height="48">
@@ -41,7 +50,7 @@
   <main class="content home">
     <div class="home-intro">
       <p class="home-lede">Tokenz trims the extra words out of a prompt before you send it to an AI, so it uses fewer tokens.</p>
-      <p class="home-headline"><span><span class="hl-wizard">Shorter</span> <span class="hl-gothic">prompts,</span></span> <span><span class="hl-serif">Same</span> <span class="hl-pixel">request.</span></span></p>
+      <p class="home-headline"><span><span class="hl-melt">Shorter</span> <span class="hl-gothic">prompts,</span></span> <span><span class="hl-serif">Same</span> <span class="hl-pixel">request.</span></span></p>
     </div>
     <div class="home-panel">
       <h1 class="home-title" aria-label="Tokenz"><span class="home-title-mask" aria-hidden="true"><span class="home-title-word"><span class="home-title-letter" style="--i: 0">T</span><span class="home-title-letter" style="--i: 1">o</span><span class="home-title-letter" style="--i: 2">k</span><span class="home-title-letter" style="--i: 3">e</span><span class="home-title-letter" style="--i: 4">n</span><span class="home-title-letter" style="--i: 5">z</span></span></span></h1>
