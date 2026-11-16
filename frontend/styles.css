@@ -1,6 +1,6 @@
 /* Inter: a clean, slightly tight sans-serif close to the reference screenshot.
    JetBrains Mono: used only on the academic-project notice before the intro */
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Bodoni+Moda:ital,opsz,wght@1,6..96,400;1,6..96,500&family=Bagel+Fat+One&family=UnifrakturMaguntia&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Bodoni+Moda:ital,opsz,wght@1,6..96,400;1,6..96,500&family=UnifrakturMaguntia&display=swap");
 
 * {
   margin: 0;
@@ -2424,9 +2424,10 @@ html.home-box-waiting .home-panel {
 }
 
 /* The headline: very big, heavy and packed tight, on two lines ("Shorter prompts," then
-   "Same request."), each starting with a capital, near the bottom */
+   "Same request."), all in capitals, near the bottom */
 .home-headline {
   font-weight: 700;
+  text-transform: uppercase;
   /* Tight, but enough room that a tail (the p in "prompts") clears the line below */
   line-height: 0.98;
   letter-spacing: -0.055em;
@@ -2437,43 +2438,28 @@ html.home-box-waiting .home-panel {
 
 .home-headline > span {
   display: block;
-  font-size: 12cqi;
+  /* Capitals run wide, so a little smaller than lowercase would be, to keep it to two lines */
+  font-size: 8.6cqi;
 }
 
 /* Four words, four voices, each word in its own typeface, sized against its line so the two
    lines still end up about the same width:
-   "Shorter" in Bagel Fat One, packed so tight its letters touch, and melted together by the
-   hl-melt filter in index.html (after the caer typeface); "prompts," in UnifrakturMaguntia, Old
-   English blackletter; "Same" a thin, high-contrast italic serif filled with a dark-to-violet
-   gradient; "request." in Fixedsys Excelsior, the old Windows pixel font (public domain, kept in
-   assets/fonts). The second line is pushed in a little */
+   "Shorter" in Times New Roman, the classic newspaper serif (built into every computer, so
+   nothing to download); "prompts," in UnifrakturMaguntia, Old English blackletter; "Same" a
+   thin, high-contrast italic serif filled with a dark-to-violet gradient; "request." in Fixedsys
+   Excelsior, the old Windows pixel font (public domain, kept in assets/fonts). The second line
+   is pushed in a little */
 @font-face {
   font-family: "Fixedsys Excelsior";
   src: url("assets/fonts/fixedsys-excelsior.woff") format("woff");
   font-display: swap;
 }
 
-.home-headline .hl-melt {
-  display: inline-block;
-  /* Room round the word, so the melt isn't cut off at its edges (taken back by the margins, so
-     the line doesn't move) */
-  padding: 0.18em 0.06em;
-  margin: -0.18em -0.06em;
-  line-height: 1;
-  vertical-align: baseline;
-  font-family: "Bagel Fat One", "Inter", sans-serif;
+.home-headline .hl-times {
+  font-family: "Times New Roman", Times, "Liberation Serif", serif;
   font-weight: 400;
   font-size: 1.06em;
-  letter-spacing: -0.08em;
-  filter: url(#hl-melt);
-}
-
-/* The filter's definitions only: takes no room on the page */
-.svg-defs {
-  position: absolute;
-  width: 0;
-  height: 0;
-  overflow: hidden;
+  letter-spacing: -0.035em;
 }
 
 .home-headline .hl-gothic {
