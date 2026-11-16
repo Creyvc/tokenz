@@ -180,10 +180,12 @@
   function maskHeadline(block) {
     block.classList.add("is-masked");
     return Array.prototype.map.call(block.children, function (line) {
-      if (line.firstElementChild) return line.firstElementChild;
+      // Already masked (the copy's exit masks it again): reuse its riser
+      if (line.classList.contains("mask-line")) return line.firstElementChild;
       line.classList.add("mask-line");
-      var inner = make("span", "mask-rise", line.textContent);
-      line.textContent = "";
+      // The line's words (each in its own font) move into the riser as they are
+      var inner = make("span", "mask-rise");
+      while (line.firstChild) inner.append(line.firstChild);
       line.append(inner);
       return inner;
     });
