@@ -37,7 +37,7 @@
 
   function find(name) { return document.querySelector("[data-" + name + "]"); }
   var el = {
-    prompt: find("prompt"), promptTokens: find("prompt-tokens"), clear: find("clear"),
+    prompt: find("prompt"), composer: find("composer"), promptTokens: find("prompt-tokens"), clear: find("clear"),
     least: find("budget-least"), share: find("budget-share"), shortcut: find("shortcut"),
         nlp: document.querySelector('[data-for="nlp"]'), tfidf: document.querySelector('[data-for="tfidf"]'),
     ai: document.querySelector('[data-for="ai"]'), aiStatus: find("ai-status"),
@@ -487,6 +487,7 @@
     el.run.title = runName;
     el.run.disabled = running || reason !== "";
     el.run.classList.toggle("is-running", running);
+    el.composer.classList.toggle("is-running", running);
     el.runHelp.textContent = running ? (state.method === "ai" ? "Groq's models usually answer in seconds; Gemini can take up to 30." : "") :
       (reason === NO_PROMPT ? "" : reason) || runError;
     el.clear.hidden = !state.text;

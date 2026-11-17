@@ -53,10 +53,11 @@
             <label><input type="radio" name="method" value="ai"><span>AI rewrite</span></label>
           </div>
         </div>
-        <!-- The prompt goes in like a chat message: a sparkle, the text, and a round send button,
-             which runs the chosen method -->
-        <div class="wb-composer">
-          <svg class="wb-sparkle" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M12 1.5c.6 5.6 4.9 9.9 10.5 10.5-5.6.6-9.9 4.9-10.5 10.5C11.4 16.9 7.1 12.6 1.5 12 7.1 11.4 11.4 7.1 12 1.5Z"/></svg>
+        <!-- The prompt goes in like a chat message: the squeeze mark (assets/logo-mark.svg's own
+             paths, inline so its parts can move while a run is going), the text, and a round send
+             button, which runs the chosen method -->
+        <div class="wb-composer" data-composer>
+          <svg class="wb-mark" viewBox="0 0 64 64" width="28" height="28" aria-hidden="true"><path class="wb-mark-l" d="M6 14 H15 L25 32 L15 50 H6 L16 32 Z"/><path class="wb-mark-r" d="M58 14 H49 L39 32 L49 50 H58 L48 32 Z"/><path class="wb-mark-d" d="M32 27.5 L36.5 32 L32 36.5 L27.5 32 Z"/></svg>
           <label class="wb-hidden-label" for="wb-prompt">Your prompt</label>
           <textarea id="wb-prompt" class="wb-prompt" rows="6" maxlength="40000" placeholder="Enter the prompt you want to optimize." data-prompt></textarea>
           <button type="submit" class="wb-send" data-run disabled aria-label="Run NLP" title="Run NLP">

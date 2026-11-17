@@ -1128,11 +1128,87 @@ html.intro-play .intro.is-playing {
   border-color: #16171A;
 }
 
-.wb-sparkle {
+/* The squeeze mark at the start of the input. While a run is going it plays what it stands for,
+   on a loop: the chevrons pull back a touch, snap in onto the diamond (which shrinks and turns
+   violet), then spring back out past rest and settle, while the diamond pops and the whole mark
+   spins half a turn. The mark looks the same upside down, so each loop picks up where the last
+   one ended */
+.wb-mark {
   flex: none;
   align-self: flex-start;
-  margin-top: 13px;
+  margin-top: 11px;
+  overflow: visible;
   fill: #16171A;
+  transform-origin: 50% 50%;
+}
+
+.wb-mark path {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.wb-composer.is-running .wb-mark {
+  animation: wb-mark-spin 1.4s infinite;
+}
+
+.wb-composer.is-running .wb-mark-l {
+  animation: wb-mark-left 1.4s infinite;
+}
+
+.wb-composer.is-running .wb-mark-r {
+  animation: wb-mark-right 1.4s infinite;
+}
+
+.wb-composer.is-running .wb-mark-d {
+  animation: wb-mark-core 1.4s infinite;
+}
+
+/* Still while it squeezes, then half a turn on the release */
+@keyframes wb-mark-spin {
+  0%, 46% { transform: rotate(0deg); animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1); }
+  76%, 100% { transform: rotate(180deg); }
+}
+
+/* Pull back, snap in, hold, spring out past rest, settle */
+@keyframes wb-mark-left {
+  0% { transform: translateX(0); animation-timing-function: ease-out; }
+  16% { transform: translateX(-1.5px); animation-timing-function: cubic-bezier(0.7, 0, 0.84, 0); }
+  36%, 46% { transform: translateX(5px); animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  60% { transform: translateX(-2.5px); animation-timing-function: ease-in-out; }
+  72% { transform: translateX(0.8px); animation-timing-function: ease-in-out; }
+  82%, 100% { transform: translateX(0); }
+}
+
+@keyframes wb-mark-right {
+  0% { transform: translateX(0); animation-timing-function: ease-out; }
+  16% { transform: translateX(1.5px); animation-timing-function: cubic-bezier(0.7, 0, 0.84, 0); }
+  36%, 46% { transform: translateX(-5px); animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  60% { transform: translateX(2.5px); animation-timing-function: ease-in-out; }
+  72% { transform: translateX(-0.8px); animation-timing-function: ease-in-out; }
+  82%, 100% { transform: translateX(0); }
+}
+
+/* Squeezed small and violet, then a pop as it's let go, fading back to the mark's black */
+@keyframes wb-mark-core {
+  0%, 16% { transform: scale(1); fill: #16171A; animation-timing-function: cubic-bezier(0.7, 0, 0.84, 0); }
+  36%, 46% { transform: scale(0.45); fill: #8467DD; animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1); }
+  60% { transform: scale(1.5); fill: #8467DD; animation-timing-function: ease-in-out; }
+  82%, 100% { transform: scale(1); fill: #16171A; }
+}
+
+/* With reduced motion the mark only fades gently while it runs */
+@media (prefers-reduced-motion: reduce) {
+  .wb-composer.is-running .wb-mark {
+    animation: none;
+  }
+
+  .wb-composer.is-running .wb-mark path {
+    animation: wb-mark-fade 1.2s ease-in-out infinite;
+  }
+
+  @keyframes wb-mark-fade {
+    50% { opacity: 0.35; }
+  }
 }
 
 .wb-send {
