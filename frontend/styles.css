@@ -1102,11 +1102,10 @@ html.intro-play .intro.is-playing {
   white-space: nowrap;
 }
 
-/* The boxes on Compare and Results: white panels shaped like a chat window, with a thin light
-   border and rounded corners */
+/* The boxes on Compare and Results: plain white squares, no outline */
 .wb-card {
-  border: 1px solid #E5E4DF;
-  border-radius: 16px;
+  border: none;
+  border-radius: 0;
   background: #ffffff;
   color: #16171A;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
@@ -2299,8 +2298,8 @@ textarea.wb-input {
 .rs-notice.is-warning,
 .rs-empty {
   padding: 16px 18px;
-  border: 1px solid #E5E4DF;
-  border-radius: 16px;
+  border: none;
+  border-radius: 0;
   /* White, like the other panels, over the page's gradient */
   background: #ffffff;
 }
@@ -2919,8 +2918,8 @@ body:has(.page-bg) .tz-bar {
 .content.results-page .rs-verdict,
 .content.results-page .wb-details {
   padding: 20px 22px;
-  border: 1px solid #E5E4DF;
-  border-radius: 16px;
+  border: none;
+  border-radius: 0;
   background: #ffffff;
 }
 
@@ -2953,6 +2952,46 @@ body:has(.page-bg) .tz-bar {
 
 .content.workbench .wb-actions:not(:has(> p:not(:empty))) {
   display: none;
+}
+
+/* Every panel on Compare and on Results joins the next: one white column, no gaps, a thin
+   light line between sections */
+.content.workbench .wb-settings,
+.content.workbench .wb-actions,
+.content.workbench .wb-result,
+.content.results-page [data-results] > * + * {
+  margin-top: 0;
+  border-top: 1px solid #E5E4DF;
+}
+
+.content.workbench .wb-actions {
+  padding: 12px 22px;
+  border-radius: 0;
+  background: #ffffff;
+}
+
+/* Results: the bare note and the verdict get the same white, and the method cards sit edge to
+   edge, the line between them showing through a 1px gap */
+.content.results-page [data-results] > .wb-help,
+.content.results-page .rs-verdict {
+  margin: 0;
+  padding: 20px 22px;
+  background: #ffffff;
+}
+
+.content.results-page .rs-cards {
+  gap: 1px;
+  background: #E5E4DF;
+}
+
+/* The white box is the same width on both pages, so the switch between them (html.pt-box)
+   doesn't jump sideways: Results' empty message no longer narrows its column */
+.content.results-page:has(.rs-empty) {
+  --column: 1000px;
+}
+
+.content.results-page .rs-empty {
+  max-width: none;
 }
 
 /* The Grainient background (grainient.js) fills whatever holds it */
@@ -4782,6 +4821,61 @@ html.pt-switch::view-transition-new(root) {
   84%, 100% { opacity: 1; }
 }
 
+/* Compare to Results and back (html.pt-box): the page swaps at once and only the white box
+   blinks, sharp, in the same steps: each blink turns the box to its negative (black with white
+   text), so it's a hard flash, not a tint:
+     old box · negative · old box · new box, negative · new box
+   The whole column (main) is the picture; its see-through margins stay see-through */
+html.pt-box .content.workbench,
+html.pt-box .content.results-page {
+  view-transition-name: pt-box;
+}
+
+html.pt-switch.pt-box::view-transition {
+  background: none;
+}
+
+html.pt-switch.pt-box::view-transition-old(root) {
+  display: none;
+}
+
+html.pt-switch.pt-box::view-transition-new(root) {
+  animation: none;
+}
+
+html.pt-box::view-transition-group(pt-box) {
+  animation: none;
+}
+
+/* Each box at its own size, from the top left, so a shorter one isn't stretched */
+html.pt-box::view-transition-old(pt-box),
+html.pt-box::view-transition-new(pt-box) {
+  inline-size: auto;
+  block-size: auto;
+  mix-blend-mode: normal;
+}
+
+html.pt-box::view-transition-old(pt-box) {
+  animation: pt-box-old 0.4s step-end both;
+}
+
+html.pt-box::view-transition-new(pt-box) {
+  animation: pt-box-new 0.4s step-end both;
+}
+
+@keyframes pt-box-old {
+  0%        { opacity: 1; filter: none; }
+  12%       { opacity: 1; filter: invert(1) hue-rotate(180deg); }
+  36%       { opacity: 1; filter: none; }
+  60%, 100% { opacity: 0; filter: none; }
+}
+
+@keyframes pt-box-new {
+  0%        { opacity: 0; filter: invert(1) hue-rotate(180deg); }
+  60%       { opacity: 1; filter: invert(1) hue-rotate(180deg); }
+  84%, 100% { opacity: 1; filter: none; }
+}
+
 /* How it works: the jump (how.js). The scene stays pinned for a long stretch of scrolling while
    the camera dives into the funnel and the hole opens; --hw-open (0 to 1) is how far the hole has
    opened, and the stage's white margin and rounded corners go as it fills the window, so it runs
@@ -5127,4 +5221,15 @@ html.hw-still .hw-land {
 
 .team-sound[aria-pressed="false"] {
   color: #8a8a8a;
+}
+
+/* Compare and Results: every corner square and sharp, from the panels down to the buttons,
+   bubbles, pills, tabs, slider and History panel */
+.content.workbench *,
+.content.workbench *::before,
+.content.workbench *::after,
+.content.results-page *,
+.content.results-page *::before,
+.content.results-page *::after {
+  border-radius: 0;
 }

@@ -1,6 +1,7 @@
 // The page switch, three soft blinks: the pages stay in view and a blink is a light tint of the
 // opposite of the page you're leaving washing over it (old page, old tinted, old page, new
-// tinted, new page) (pt-soft-* in styles.css).
+// tinted, new page) (pt-soft-* in styles.css). Between Compare and Results only the white box
+// blinks, sharper: the box turns to its negative and back (html.pt-box, pt-box-* in styles.css).
 // - It's the browser's own page-switch animation (@view-transition in styles.css), restyled while
 //   it runs (html.pt-switch; html.pt-flash-white for a white flash).
 // - The old page decides the colour (its background at the middle of the window) and tells the
@@ -18,8 +19,16 @@
   window.addEventListener("pageswap", function (event) {
     if (still || !event.viewTransition) return;
     root.classList.add("pt-switch");
-    try { sessionStorage.setItem(FLASH, looksDark() ? "white" : "black"); } catch (e) {}
+    // Compare to Results or back: only the white box in the middle blinks (html.pt-box)
+    var to = event.activation && event.activation.entry && event.activation.entry.url;
+    var box = isBoxPage(location.href) && to && isBoxPage(to);
+    if (box) root.classList.add("pt-box");
+    try { sessionStorage.setItem(FLASH, box ? "box" : looksDark() ? "white" : "black"); } catch (e) {}
   });
+
+  function isBoxPage(url) {
+    return /\/(compare|results)\.html$/.test(new URL(url, location.href).pathname);
+  }
 
   // The background under the middle of the window: going down through everything drawn there,
   // the first solid colour. A picture or the moving gradient (a canvas) counts as dark
@@ -70,7 +79,7 @@
     });
   }, true);
   window.addEventListener("pageshow", function (event) {
-    if (event.persisted && !revealing) root.classList.remove("pt-switch");
+    if (event.persisted && !revealing) root.classList.remove("pt-switch", "pt-box");
   });
 
   // Arriving: the blink, in the colour the old page chose
@@ -80,11 +89,13 @@
     running = event.viewTransition;
     root.classList.add("pt-switch");
     try {
-      if (sessionStorage.getItem(FLASH) === "white") root.classList.add("pt-flash-white");
+      var flash = sessionStorage.getItem(FLASH);
+      if (flash === "white") root.classList.add("pt-flash-white");
+      if (flash === "box") root.classList.add("pt-box");
       sessionStorage.removeItem(FLASH);
     } catch (e) {}
     event.viewTransition.finished.finally(function () {
-      root.classList.remove("pt-switch", "pt-flash-white");
+      root.classList.remove("pt-switch", "pt-flash-white", "pt-box");
       revealing = false;
       running = null;
     });
