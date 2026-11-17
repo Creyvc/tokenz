@@ -3716,6 +3716,39 @@ html.home-scroll .home-end {
   color: #16171A;
 }
 
+/* As a measure takes over, its name rises in from behind masks, a letter at a time (home.js),
+   the motion of Home's headline: 1s each, 0.045s apart. A word's letters stay together */
+.measure-word {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.measure-mask {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+  padding-bottom: 0.08em;
+  margin-bottom: -0.08em;
+}
+
+.measure-rise {
+  display: inline-block;
+}
+
+.measure-name.is-rising .measure-rise {
+  animation: measure-rise 1s cubic-bezier(0.33, 1, 0.68, 1) both;
+}
+
+@keyframes measure-rise {
+  from { transform: translateY(110%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .measure-name.is-rising .measure-rise {
+    animation: none;
+  }
+}
+
 .measure-text {
   margin-top: 10px;
   font-size: 15px;
@@ -4569,23 +4602,21 @@ html.home-wipe .nav.nav-copy {
   background: #c8c8c8;
 }
 
-/* The page switch (page-transition.js), three blinks: solid colours in crisp steps, between the
-   page you're leaving and the new one. First the opposite of the old page's colour, then its own,
-   then the opposite again (from a light page: black, white, black; from a dark one, html.pt-flash-
-   white: white, near-black, white), then the new page. 0.3s. The colours are the switch's own
-   backdrop, shown while both pages are hidden. The sidebar's dot slides over it as usual */
+/* The page switch (page-transition.js), three soft blinks, 0.4s in crisp steps. The pages stay
+   in view; a blink is a page let half through over the opposite of the old page's colour (dark
+   from a light page, light from a dark one, html.pt-flash-white), so it's a tint, not a flash:
+     old page · old, tinted · old page · new, tinted · new page
+   While it runs (html.pt-switch) both pages are pictures; the sidebar's dot slides over them */
 html.pt-switch {
   --pt-other: #16171A;
-  --pt-own: #ffffff;
 }
 
 html.pt-switch.pt-flash-white {
   --pt-other: #ffffff;
-  --pt-own: #16171A;
 }
 
 html.pt-switch::view-transition {
-  animation: pt-blinks 0.3s step-end both;
+  background: var(--pt-other);
 }
 
 html.pt-switch::view-transition-group(root) {
@@ -4594,31 +4625,26 @@ html.pt-switch::view-transition-group(root) {
 
 html.pt-switch::view-transition-old(root) {
   mix-blend-mode: normal;
-  animation: pt-old-off 0.3s step-end both;
+  animation: pt-soft-old 0.4s step-end both;
 }
 
 html.pt-switch::view-transition-new(root) {
   mix-blend-mode: normal;
-  animation: pt-new-on 0.3s step-end both;
+  animation: pt-soft-new 0.4s step-end both;
 }
 
-/* Old page 0 to 0.03s; blinks at 0.03, 0.1 and 0.17s; new page from 0.25s */
-@keyframes pt-blinks {
-  0%   { background: transparent; }
-  10%  { background: var(--pt-other); }
-  34%  { background: var(--pt-own); }
-  58%  { background: var(--pt-other); }
-  82%, 100% { background: transparent; }
-}
-
-@keyframes pt-old-off {
+/* How much of a page shows over the colour during a blink */
+@keyframes pt-soft-old {
   0%        { opacity: 1; }
-  10%, 100% { opacity: 0; }
+  12%       { opacity: 0.6; }
+  36%       { opacity: 1; }
+  60%, 100% { opacity: 0; }
 }
 
-@keyframes pt-new-on {
+@keyframes pt-soft-new {
   0%        { opacity: 0; }
-  82%, 100% { opacity: 1; }
+  60%       { opacity: 0.6; }
+  84%, 100% { opacity: 1; }
 }
 
 /* How it works: the jump (how.js). The scene stays pinned for a long stretch of scrolling while

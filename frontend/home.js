@@ -855,7 +855,8 @@
     // little more with the last one shown, all of it pinned in the window. The drawings stand in
     // a column that moves up with the scroll (--y), the one in the middle bright and the rest
     // dimmed (--o). The one nearest the middle is the current one (is-active): its name and
-    // description show, decrypting in as it takes over, and the counter shows its number
+    // description show as it takes over, the name rising from behind masks and the description
+    // decrypting in, and the counter shows its number
     function placeMeasures() {
       var H = window.innerHeight, count = measureItems.length;
       end.style.height = Math.round(H * (1 + MEASURE_STEP * (count - 1) + MEASURE_TAIL + MEASURE_WIPE)) + "px";
@@ -898,16 +899,50 @@
         if (measureNow) measureNow.textContent = active + 1;
         activeMeasure = active;
       }
-      // Its text decrypts in once the section is coming into the window (and again each time
-      // the current measure changes, or the section comes back into view)
+      // Its text plays in once its name is wholly in the window (the first one arrives at the
+      // bottom edge as the section slides up, so it waits until it's all there), and again each
+      // time the current measure changes, or the section comes back into view
+      var item = measureItems[active];
+      var nameBox = item.querySelector(".measure-name").getBoundingClientRect();
       var inView = top < 0.8 * H && top > -end.offsetHeight + 0.2 * H;
+      var nameShows = nameBox.top >= 0 && nameBox.bottom <= 0.92 * H;
       if (!inView) playedMeasure = -1;
-      else if (playedMeasure !== active && window.TokenzDecrypt) {
-        var item = measureItems[active];
-        window.TokenzDecrypt.play(item.querySelector(".measure-name"));
-        window.TokenzDecrypt.play(item.querySelector(".measure-text"));
+      else if (playedMeasure !== active && nameShows) {
+        riseName(item.querySelector(".measure-name"));
+        if (window.TokenzDecrypt) window.TokenzDecrypt.play(item.querySelector(".measure-text"));
         playedMeasure = active;
       }
+    }
+
+    // A measure's name rises in from behind masks, a letter at a time (the motion of Home's
+    // headline). Its letters are put in masks once, each word's kept together so a word never
+    // breaks across lines; each play restarts the rise
+    function riseName(name) {
+      if (!name) return;
+      if (!name.dataset.masked) {
+        var text = name.textContent.trim();
+        var words = text.split(/\s+/);
+        var n = 0;
+        name.setAttribute("aria-label", text);
+        name.textContent = "";
+        words.forEach(function (word, w) {
+          var group = make("span", "measure-word");
+          group.setAttribute("aria-hidden", "true");
+          Array.prototype.forEach.call(word, function (letter) {
+            var mask = make("span", "measure-mask");
+            var rise = make("span", "measure-rise", letter);
+            rise.style.animationDelay = (n++ * 45) + "ms";
+            mask.append(rise);
+            group.append(mask);
+          });
+          name.append(group);
+          if (w < words.length - 1) { name.append(" "); n++; }
+        });
+        name.dataset.masked = "1";
+      }
+      name.classList.remove("is-rising");
+      void name.offsetWidth;   // let the browser see the class gone, so the rise starts again
+      name.classList.add("is-rising");
     }
 
     function soon() {
