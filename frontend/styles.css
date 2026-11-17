@@ -5338,8 +5338,14 @@ html.hw-still .hw-land {
   white-space: nowrap;
 }
 
+/* Their LinkedIn and GitHub, side by side under each name */
+.team-links {
+  display: flex;
+  gap: 12px;
+}
+
 /* Just the sound switch, on the right */
-/* Their LinkedIn, under each name */
+/* Each link under a name */
 .team-in {
   display: block;
   line-height: 0;
@@ -5822,4 +5828,15 @@ html.hw-still .hw-land {
 
 @keyframes nav-pull {
   to { transform: translateX(-100%); }
+}
+
+/* About opens straight on the team (no dive first): the title, then the three faces, in a column
+   as wide as Compare's so they have room */
+.content.about:has(.team-toy) {
+  --column: 1000px;
+}
+
+/* With no visible title, the faces start level with the top of the sidebar's links */
+.content.about:has(.team-toy) {
+  padding-top: 72px;
 }
