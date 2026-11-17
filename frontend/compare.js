@@ -454,6 +454,11 @@
         }
         var share = state.budget ? Math.round(100 * state.budget / plan.original_tokens) : null;
         el.share.textContent = share == null ? "" : state.budget + " of " + plan.original_tokens + " tokens · keeps about " + share + "%";
+      } else if (!state.text.trim()) {
+        // No prompt (after Clear, or before one is typed): the bars sit empty, at 0
+        slider.set({ min: 0, max: 1, value: 0, disabled: true, floor: null });
+        el.least.hidden = true;
+        el.share.textContent = "";
       } else {
         slider.set({ disabled: true, floor: null });
         el.least.hidden = true;
@@ -550,6 +555,7 @@
     hideResult();
     try { sessionStorage.removeItem(RUNS_KEY); } catch (e) {}
     state.text = "";
+    state.budget = null;
     resetForNewText();
     save();
     render();

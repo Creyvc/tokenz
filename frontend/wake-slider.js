@@ -114,7 +114,8 @@
       var flat = !force && amp < FLAT && lastAmp < FLAT;
       for (var i = 0; i < o.bars; i++) {
         var el = bars[i];
-        var on = i <= lit ? "true" : "false";
+        // Switched off and at the very start (no prompt yet), nothing is lit, not even the first bar
+        var on = i <= lit && (h > 0 || !o.disabled) ? "true" : "false";
         if (el.dataset.on !== on) el.dataset.on = on;
         // Bars under the least that can work, lighter while empty
         var below = i < floorBar ? "true" : "false";
