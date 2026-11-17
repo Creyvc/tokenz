@@ -10,9 +10,13 @@
   <link rel="stylesheet" href="styles.css">
   <script src="consent.js" defer></script>
   <script src="modal.js" defer></script>
+  <script src="grainient.js" defer></script>
+  <script src="page-bg.js" defer></script>
   <script src="results.js" defer></script>
 </head>
 <body>
+  <!-- The page's moving gradient: method 2's (TF-IDF) from its panel on Home, slower (page-bg.js) -->
+  <div class="page-bg" data-page-bg data-tone="dark" data-colors="#071b1c,#0f3a3b,#1f5f5b,#4fa596,#c8eadf" data-angle="35" style="--bg-a: #0f3a3b; --bg-b: #4fa596; --bg-angle: 35deg" aria-hidden="true"></div>
   <header class="nav">
     <a href="index.html" class="logo" aria-label="Tokenz home">
       <img src="assets/logo-mark.svg" alt="" width="48" height="48">
