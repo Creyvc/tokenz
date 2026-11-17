@@ -4438,110 +4438,100 @@ html.home-wipe .nav.nav-copy {
   background: #c8c8c8;
 }
 
-/* The page switch (page-transition.js), after zajno.com: the new page is laid on top of the old
-   one, which stays still underneath. While it runs (html.pt-switch):
-   - the new page is cut down to a box that starts as a thin line near the bottom of the window
-     and grows up and out until it fills the window (pt-box)
-   - a black cover (.pt-cover, page-transition.js) on the new page itself, so the box cuts it
-     to the same edges: first all of the box, as the line and then the bar; then its bottom edge
-     rises and the new page shows under it; once the box fills the window it slides up off the
-     top (pt-cover)
-   - the page's title rises in behind a mask as the cover leaves
-   Before any of that, the old page dims a little (pt-dim), and the rest waits for it (0.25s).
-   The sidebar's dot stays part of each page here, rather than sliding over the box */
+/* The page switch (page-transition.js), a curtain. One ease throughout (--pt-ease), 1.2s:
+   - 0 to 0.7s, the rise: the new page, with a near-black panel on top of it (.pt-curtain), is
+     uncovered from the bottom of the window up, over the old page, which drifts up a touch and
+     dims (the browser's own page-switch animation, restyled while html.pt-switch is on)
+   - the new page's name slides up into the middle of the panel in big white letters
+   - 0.7s on, the lift: the panel's bottom edge rises off the top of the window, the name drifts
+     up and fades, and the page's content rises into place under it (html.pt-arrive)
+   The sidebar's dot doesn't slide here: it's on the new link when the page shows */
+:root {
+  --pt-ease: cubic-bezier(0.76, 0, 0.24, 1);
+}
+
 html.pt-switch .nav-dot {
   view-transition-name: none;
-}
-
-.pt-cover {
-  position: fixed;
-  inset: 0;
-  z-index: 2147483000;
-  background: #16171A;
-  pointer-events: none;
-  /* Only there while the switch runs, inside the box, so it's never seen on the page itself
-     (page-transition.js removes it when the switch ends) */
-  animation: pt-cover 1.8s linear 0.25s both;
-}
-
-/* Coming from a dark page (the end of Home), the cover is light, so the line and the bar show */
-.pt-cover.is-light {
-  background: #E5E4DF;
 }
 
 html.pt-switch::view-transition-group(root) {
   animation: none;
 }
 
-/* The old page, still, underneath: it dims a little first, and stays so */
 html.pt-switch::view-transition-old(root) {
   mix-blend-mode: normal;
-  animation: pt-dim 0.3s ease-out forwards;
+  animation: pt-old 0.7s var(--pt-ease) both;
 }
 
-@keyframes pt-dim {
-  to { filter: brightness(0.8); }
-}
-
-/* The new page (and the cover on it) waits for the dimming, cut down to nothing until it starts */
 html.pt-switch::view-transition-new(root) {
-  clip-path: inset(50% 50% 50% 50%);
   mix-blend-mode: normal;
-  animation: pt-box 1.8s linear 0.25s forwards;
+  animation: pt-new 0.7s var(--pt-ease) both;
 }
 
-/* The box: top, right, bottom and left insets. A line near the bottom for the first quarter of
-   a second, thickening; then up and out into the window by 1.15s */
-@keyframes pt-box {
-  0%   { clip-path: inset(84.9% 9% 15% 9%); animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1); }
-  14%  { clip-path: inset(84.4% 9% 14.8% 9%); animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1); }
-  27%  { clip-path: inset(80% 9% 14% 9%); animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1); }
-  39%  { clip-path: inset(62% 8% 12% 8%); }
-  47%  { clip-path: inset(35% 6% 10% 6%); }
-  56%  { clip-path: inset(16% 4% 7% 4%); animation-timing-function: cubic-bezier(0.33, 0, 0.67, 1); }
-  64%, 100% { clip-path: inset(0 0 0 0); }
+@keyframes pt-old {
+  to {
+    transform: translateY(-6vh) scale(0.98);
+    filter: brightness(0.55);
+  }
 }
 
-/* The cover: the whole box at first (faint, then black), then its bottom edge rises through the
-   box, and once the box is full it slides up off the top. Only its bottom edge is set here: the
-   box cuts its top and sides, so they always line up with the white */
-@keyframes pt-cover {
-  0%   { clip-path: inset(0 0 15% 0); opacity: 0.25; animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1); }
-  14%  { clip-path: inset(0 0 14.8% 0); opacity: 1; animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1); }
-  27%  { clip-path: inset(0 0 14% 0); animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1); }
-  39%  { clip-path: inset(0 0 12% 0); }
-  47%  { clip-path: inset(0 0 12% 0); }
-  56%  { clip-path: inset(0 0 25% 0); animation-timing-function: cubic-bezier(0.33, 0, 0.67, 1); }
-  64%  { clip-path: inset(0 0 55% 0); opacity: 1; animation-timing-function: cubic-bezier(0.25, 0.6, 0.35, 1); }
-  100% { clip-path: inset(0 0 100% 0); opacity: 1; }
+@keyframes pt-new {
+  from { clip-path: inset(100% 0 0 0); }
+  to   { clip-path: inset(0 0 0 0); }
 }
 
-/* The text, rising in behind masks as the cover leaves (page-transition.js splits it into its
-   lines and sets each one's delay, top to bottom; text with links or tags inside rises whole) */
-.pt-line {
+.pt-curtain {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  display: grid;
+  place-items: center;
+  background: #0C0D0C;
+  /* It sits outside <body>, so it takes the site's type itself */
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  pointer-events: none;
+  animation: pt-lift 1.2s var(--pt-ease) both;
+}
+
+/* Full until the rise has covered the window, then its bottom edge lifts off the top */
+@keyframes pt-lift {
+  0%, 58% { clip-path: inset(0 0 0 0); }
+  100%    { clip-path: inset(0 0 100% 0); }
+}
+
+.pt-curtain-mask {
   display: block;
   overflow: hidden;
-  padding-bottom: 0.12em;
-  margin-bottom: -0.12em;
+  padding: 0.1em 0.04em 0.16em;
 }
 
-.pt-mask {
-  overflow: hidden;
+.pt-curtain-name {
+  display: block;
+  font-size: clamp(56px, 9vw, 140px);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.05em;
+  color: #ffffff;
+  animation: pt-name 1.2s var(--pt-ease) both;
 }
 
-.pt-rise {
-  display: inline-block;
-  white-space: nowrap;
-  animation: pt-rise 0.8s cubic-bezier(0.33, 1, 0.68, 1) both;
+/* Up into view as the panel rises, a moment's hold, then up and away as it lifts */
+@keyframes pt-name {
+  0%, 18% { transform: translateY(110%); opacity: 1; }
+  48%, 60% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-60%); opacity: 0; }
 }
 
-.pt-rise.is-whole {
-  white-space: inherit;
+/* The page's content rises in under the lifting panel (not on Home: its text has its own
+   entrance, and its fixed parts would come loose inside a moving block) */
+html.pt-arrive main.content:not(.home) {
+  animation: pt-content 1.2s var(--pt-ease) both;
 }
 
-@keyframes pt-rise {
-  from { transform: translateY(110%); }
-  to   { transform: none; }
+@keyframes pt-content {
+  0%, 58% { transform: translateY(64px); }
+  100%    { transform: none; }
 }
 
 /* How it works: the jump (how.js). The scene stays pinned for a long stretch of scrolling while
