@@ -43,7 +43,7 @@
     ai: document.querySelector('[data-for="ai"]'), aiStatus: find("ai-status"),
     sentences: find("sentences"), budget: find("budget"),
     suggest: find("suggest"), problems: find("problems"),
-    phrases: find("phrases"), phrasesSection: find("phrases-section"), run: find("run"), runHelp: find("run-help"),
+    phrases: find("phrases"), phrasesSection: find("phrases-section"), run: find("run"), runLabel: find("run-label"), runHelp: find("run-help"),
     result: find("result"), notice: find("engine-notice"), noticeMessage: find("engine-message"),
     retry: find("engine-retry")
   };
@@ -96,6 +96,15 @@
   var inspectTimer = null;
   var inspectCount = 0;
   var running = false;
+  // Goes up each time Clear is pressed, so a run that was going then doesn't bring its result back
+  var clears = 0;
+  // A run you start shows the logo's loading loop for at least this long: two full loops of its
+  // 1.4 s animation (wb-mark in styles.css), so it always stops at the end of a squeeze. Reruns
+  // from a settings change don't wait
+  var MIN_RUN_MS = 2800;
+  function whenShown(started, quiet, then) {
+    setTimeout(then, quiet ? 0 : Math.max(0, MIN_RUN_MS - (Date.now() - started)));
+  }
   var rerunAfterCheck = false;  // run again once the sentence check for a restored sentence is back
   var autoTimer = null;
   var quietRun = false;         // a rerun from a settings change: update in place, don't scroll
@@ -478,10 +487,7 @@
     }
 
     var reason = blocker();
-    // The send button is an arrow; what it does is in its name, for screen readers and on hover
-    var runName = running ? "Running…" : "Run " + NAMES[state.method];
-    el.run.setAttribute("aria-label", runName);
-    el.run.title = runName;
+    el.runLabel.textContent = running ? "Running…" : "Run " + NAMES[state.method];
     el.run.disabled = running || reason !== "";
     el.run.classList.toggle("is-running", running);
     el.composer.classList.toggle("is-running", running);
@@ -532,7 +538,10 @@
     scheduleInspect(350);
   });
 
+  // Clear empties the box and takes the result away with it
   el.clear.addEventListener("click", function () {
+    clears++;
+    hideResult();
     state.text = "";
     resetForNewText();
     save();
@@ -689,23 +698,29 @@
     var sig = signature(method);
     var text = state.text;
     var started = Date.now();
+    var clearsAtStart = clears;
     running = true;
     runError = "";
     render();
-    if (method === "ai") return runAi(text, state.encoding, sig, started);
+    if (method === "ai") return runAi(text, state.encoding, sig, started, clearsAtStart);
+    var quiet = quietRun;
     api.compress(body).then(function (reply) {
       return { method: method, result: reply.result, nlp_mode: reply.nlp_mode, encoding: reply.encoding, signature: sig };
     }).then(function (run) {
       var runs = read(RUNS_KEY) || {};
       runs[method] = run;
       write(RUNS_KEY, runs);
-      running = false;
-      showResult(run);
-      if (!quietRun) {
-        var still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        el.result.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "start" });
-      }
-      quietRun = false;
+      whenShown(started, quiet, function () {
+        running = false;
+        quietRun = false;
+        // Cleared while it ran: it's kept for Results, but not shown here
+        if (clears !== clearsAtStart) return render();
+        showResult(run);
+        if (!quiet) {
+          var still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+          el.result.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "start" });
+        }
+      });
     }, function (error) {
       running = false;
       quietRun = false;
@@ -717,29 +732,37 @@
 
   // The AI rewrite asks each model on its own, so a quick model's rewrite shows at once and a slow
   // one fills in when it lands. The run is kept for Results once both have answered.
-  function runAi(text, encoding, sig, started) {
+  function runAi(text, encoding, sig, started, clearsAtStart) {
     var rows = chosenAiModels();
     var answers = {};
     var meta = { original_tokens: null, note: "" };
-    var left = rows.length, offline = 0, scrolled = false;
+    var left = rows.length, offline = 0, scrolled = false, latest = null;
     function draw() {
       var reply = { encoding: encoding, note: meta.note, original_tokens: meta.original_tokens,
         candidates: rows.map(function (row) {
           return answers[row.key] || { key: row.key, provider: AI_PROVIDERS[row.key], model: row.model, status: "running", checks: [] };
         }) };
       var run = aiRun(reply, text, (Date.now() - started) / 1000, sig);
-      if (!left) {
-        running = false;
+      var done = !left;
+      if (done) {
         var runs = read(RUNS_KEY) || {};
         runs.ai = run;
         write(RUNS_KEY, runs);
       }
-      showResult(run);
-      if (!scrolled) {
-        var still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        el.result.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "start" });
-        scrolled = true;
-      }
+      // Shown once the logo has had its loading time; always the newest answers by then
+      latest = run;
+      whenShown(started, false, function () {
+        if (latest !== run) return;
+        if (done) running = false;
+        // Cleared while it ran: it's kept for Results, but not shown here
+        if (clears !== clearsAtStart) return render();
+        showResult(run);
+        if (!scrolled) {
+          var still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+          el.result.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "start" });
+          scrolled = true;
+        }
+      });
     }
     rows.forEach(function (row) {
       api.optimize({ text: text, encoding: encoding, models: [row.key] }).then(function (reply) {
@@ -995,16 +1018,9 @@
     el.result.append(make("p", "wb-help", run.note));
 
     var next = make("div", "wb-next");
-    var tryNlp = make("button", "wb-secondary", "Try NLP on this prompt");
-    tryNlp.type = "button";
-    tryNlp.addEventListener("click", function () {
-      switchMethod("nlp");
-      var still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      form.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "start" });
-    });
     var link = make("a", null, "See Results →");
     link.href = "results.html";
-    next.append(tryNlp, link);
+    next.append(link);
     el.result.append(next);
     render();
   }
@@ -1065,20 +1081,10 @@
         make("p", "wb-help", "Removed something you need? Press Keep it next to that sentence and it runs again with it kept."));
     }
 
-    // What to do next: try the other method on this prompt, or see both on Results
+    // What to do next: see it next to the other methods on Results
     var other = run.method === "nlp" ? "tfidf" : "nlp";
     var otherRun = (read(RUNS_KEY) || {})[other];
     var next = make("div", "wb-next");
-    if (!otherRun || otherRun.result.original_text !== r.original_text) {
-      var tryOther = make("button", "wb-secondary", "Try " + NAMES[other] + " on this prompt");
-      tryOther.type = "button";
-      tryOther.addEventListener("click", function () {
-        switchMethod(other);
-        var still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        form.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "start" });
-      });
-      next.append(tryOther);
-    }
     var link = make("a", null, otherRun && otherRun.result.original_text === r.original_text ?
       "Both methods have run on this prompt: see them side by side on Results →" : "See Results →");
     link.href = "results.html";

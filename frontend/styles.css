@@ -1110,14 +1110,14 @@ html.intro-play .intro.is-playing {
   color: #16171A;
 }
 
-/* The prompt goes in like a chat message: an inset box with a sparkle, the text and a round send
-   button (which runs the method) */
+/* The prompt goes in like a chat message: an inset box with the squeeze mark and the text. Run
+   sits in the strip below it */
 .wb-composer {
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: 12px;
   margin: 16px;
-  padding: 8px 8px 8px 16px;
+  padding: 8px 6px 8px 16px;
   border: 1px solid #E5E4DF;
   border-radius: 12px;
   background: #FAFAF9;
@@ -1136,7 +1136,7 @@ html.intro-play .intro.is-playing {
 .wb-mark {
   flex: none;
   align-self: flex-start;
-  margin-top: 11px;
+  margin-top: 8px;
   overflow: visible;
   fill: #16171A;
   transform-origin: 50% 50%;
@@ -1211,24 +1211,41 @@ html.intro-play .intro.is-playing {
   }
 }
 
+/* Run: a near-black pill in the strip under the input, saying what it runs, with the arrow in a
+   small white circle at its end. Light grey until there's something to run */
 .wb-send {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 48px;
-  height: 48px;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  height: 40px;
+  padding: 0 6px 0 18px;
   border: none;
-  border-radius: 50%;
+  border-radius: 999px;
   background: #16171A;
   color: #ffffff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
   cursor: pointer;
   transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+}
+
+.wb-send-icon {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #16171A;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .wb-send svg {
   fill: none;
   stroke: currentColor;
-  stroke-width: 2;
+  stroke-width: 2.2;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
@@ -1237,15 +1254,24 @@ html.intro-play .intro.is-playing {
   background: #33343a;
 }
 
-.wb-send:active:not(:disabled) {
-  transform: scale(0.94);
+/* On hover the arrow's circle nudges up, as if about to send */
+.wb-send:hover:not(:disabled) .wb-send-icon {
+  transform: translateY(-2px);
 }
 
-/* Greyed out until there's something to run, like the image's send button */
+.wb-send:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
 .wb-send:disabled {
   background: #F1F1EF;
   color: #9a9a9a;
   cursor: default;
+}
+
+.wb-send:disabled .wb-send-icon {
+  background: #E5E4DF;
+  color: #9a9a9a;
 }
 
 .wb-send:focus-visible {
@@ -1253,15 +1279,27 @@ html.intro-play .intro.is-playing {
   outline-offset: 2px;
 }
 
-/* While it runs, the arrow becomes a small turning ring */
-.wb-send.is-running svg {
+/* While it runs it stays dark (it's working, not switched off), and the arrow becomes a small
+   turning ring */
+.wb-send.is-running {
+  background: #16171A;
+  color: #ffffff;
+  cursor: progress;
+}
+
+.wb-send.is-running .wb-send-icon {
+  background: #ffffff;
+  color: #16171A;
+}
+
+.wb-send.is-running .wb-send-icon svg {
   display: none;
 }
 
-.wb-send.is-running::before {
+.wb-send.is-running .wb-send-icon::before {
   content: "";
-  width: 16px;
-  height: 16px;
+  width: 12px;
+  height: 12px;
   border: 2px solid currentColor;
   border-right-color: transparent;
   border-radius: 50%;
@@ -1291,7 +1329,9 @@ html.intro-play .intro.is-playing {
 .wb-composer .wb-prompt {
   flex: 1;
   min-height: 150px;
-  padding: 10px 0;
+  /* Room on the right for the scrollbar, so it never sits over the words */
+  padding: 10px 14px 10px 0;
+  scrollbar-gutter: stable;
   /* No drag corner in a chat input; it scrolls once the text is longer than the box */
   resize: none;
 }
@@ -2123,7 +2163,7 @@ textarea.wb-input {
 
 @media (prefers-reduced-motion: reduce) {
   .wb-primary.is-running::before,
-  .wb-send.is-running::before {
+  .wb-send.is-running .wb-send-icon::before {
     animation: none;
   }
 
@@ -2205,6 +2245,7 @@ textarea.wb-input {
 /* Clear and Try an example, side by side in the prompt card's footer */
 .wb-foot-links {
   display: flex;
+  align-items: center;
   gap: 18px;
 }
 
