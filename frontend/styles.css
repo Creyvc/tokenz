@@ -1013,6 +1013,18 @@ html.intro-play .intro.is-playing {
   color: #16171A;
 }
 
+/* Compare and Results have no visible title (it's kept for screen readers), so each page starts
+   with its first box, level with the top of the sidebar's links */
+.content.workbench .wb,
+.content.results-page [data-results] > :first-child {
+  margin-top: 0;
+}
+
+/* Unless the "engine isn't running" notice is showing above the form */
+.content.workbench .engine-notice:not([hidden]) + .wb {
+  margin-top: 24px;
+}
+
 .page-intro {
   max-width: 640px;
   margin-top: 24px;
