@@ -42,7 +42,7 @@
         nlp: document.querySelector('[data-for="nlp"]'), tfidf: document.querySelector('[data-for="tfidf"]'),
     ai: document.querySelector('[data-for="ai"]'), aiStatus: find("ai-status"),
     sentences: find("sentences"), budget: find("budget"),
-    suggest: find("suggest"), budgetHelp: find("budget-help"), problems: find("problems"),
+    suggest: find("suggest"), problems: find("problems"),
     phrases: find("phrases"), phrasesSection: find("phrases-section"), run: find("run"), runHelp: find("run-help"),
     result: find("result"), notice: find("engine-notice"), noticeMessage: find("engine-message"),
     retry: find("engine-retry")
@@ -447,9 +447,6 @@
         el.share.textContent = "";
       }
       el.suggest.disabled = !plan || state.budget === plan.suggested_budget;
-      el.budgetHelp.textContent = !plan || nothingToCut ? "" : minimum != null ?
-        "Drag to choose. Your task and the sentences that must stay need at least " + minimum + " tokens (the mark on the track)." :
-        "Click your main task above to see the least you can keep.";
       // Rebuilt only when the messages change: a redraw between pressing and releasing a fix
       // button (the budget box losing focus causes one) would otherwise swallow the click
       var issues = tfidfIssues();
@@ -926,33 +923,6 @@
     return wrap;
   }
 
-  function reviewControls(text) {
-    var review = make("div", "wb-review");
-    var label = make("label", "wb-check");
-    var box = make("input");
-    box.type = "checkbox";
-    label.append(box, make("span", null, "I checked every requested task and constraint"));
-    var copy = make("button", "wb-primary", "Copy suggestion");
-    copy.type = "button";
-    copy.disabled = true;
-    var copied = make("span", "wb-help");
-    box.addEventListener("change", function () {
-      copy.disabled = !box.checked;
-      copied.textContent = "";
-    });
-    copy.addEventListener("click", function () {
-      navigator.clipboard.writeText(text).then(function () {
-        copied.textContent = "Copied.";
-      }, function () {
-        copied.textContent = "Couldn't copy. Select the suggestion above and copy it yourself.";
-      });
-    });
-    var end = make("div", "wb-review-end");
-    end.append(copied, copy);
-    review.append(label, end);
-    return review;
-  }
-
   // The AI rewrite: the best of the two at the top, then each model's own rewrite
   function showAiResult(run) {
     var r = run.result;
@@ -983,12 +953,6 @@
     summary.append(hero, stats);
     el.result.append(summary);
 
-    el.result.append(make("p", "wb-status", {
-      review_required: "The shortest rewrite that passed the checks is " + r.chosen + "'s. Check that every task and constraint survived before you use it.",
-      unchanged: single ? "Original kept: the rewrite didn't pass the checks." : "Original kept: no rewrite passed the checks.",
-      error: single ? "The model couldn't run. The reason is below." : "No model could run. The reasons are below.",
-      running: "Waiting for the models…"
-    }[r.status]));
     if (waiting.length && r.status !== "running") {
       el.result.append(make("p", "wb-help", "Still waiting for " + waiting.join(" and ") + ". Its rewrite shows here as soon as it answers."));
     }
@@ -997,7 +961,6 @@
     original.classList.add("wb-ai-original");
     el.result.append(original);
     var list = make("div", "wb-candidates");
-    var anyShorter = false;
     run.candidates.forEach(function (candidate) {
       var look = AI_STATES[candidate.status] || [candidate.status, "error"];
       // Each model's answer in its own dark panel, its rewrite in a violet bubble
@@ -1012,10 +975,9 @@
           candidate.reduction_percent.toFixed(1) + "% fewer"));
       }
       if (candidate.status === "accepted") {
-        anyShorter = true;
         var changes = wordChanges(r.original_text, candidate.optimized_prompt);
         body.append(bubble("is-reply", "Rewrite", changes ? marked(changes.right) : make("div", "wb-text", candidate.optimized_prompt),
-          candidate.optimized_tokens), reviewControls(candidate.optimized_prompt));
+          candidate.optimized_tokens));
       } else if (candidate.status === "running") {
         body.append(make("p", "wb-help", "Waiting for its answer…"));
       } else if (candidate.status === "rejected") {
@@ -1030,11 +992,6 @@
       list.append(card);
     });
     el.result.append(list);
-    if (anyShorter) {
-      var legend = make("p", "wb-legend");
-      legend.append(make("ins", "wb-ins", "shaded"), " was reworded or added");
-      el.result.append(legend);
-    }
     el.result.append(make("p", "wb-help", run.note));
 
     var next = make("div", "wb-next");
@@ -1082,30 +1039,19 @@
     summary.append(hero, stats);
     el.result.append(summary);
 
-    el.result.append(make("p", "wb-status", {
-      review_required: "Shorter version found. Check that every task and constraint survived before you use it.",
-      unchanged: run.method === "nlp" ?
-        "Original kept: no shorter version passed the checks. NLP only rewords supported openings and removes exact repeats, so saving 0 tokens is a valid result." :
-        "Original kept: no shorter version passed the checks.",
-      error: "This method couldn't run. The reason is below."
-    }[r.status]));
-
     var changes = changed ? wordChanges(r.original_text, r.candidate_text) : null;
     el.result.append(chat(
       bubble("is-mine", "Original", changes ? marked(changes.left) : make("div", "wb-text", r.original_text), r.original_target_tokens),
       bubble("is-reply", changed ? "Suggestion" : "Original kept", changes ? marked(changes.right) : make("div", "wb-text", r.candidate_text),
         r.candidate_target_tokens)));
-    if (changes) {
-      var legend = make("p", "wb-legend");
-      legend.append(make("del", "wb-del", "Struck through"), " was removed · ",
-        make("ins", "wb-ins", "shaded"), " was reworded or added");
-      el.result.append(legend);
-    }
 
+    // The engine's notes stay hidden, except the ones that say what to do: why a method couldn't
+    // run, and TF-IDF's budget being too small for the sentences that must stay
     var plain = r.warnings.map(function (warning) {
       var tight = warning.match(/^Budget is (\d+) tokens, but the main task and mandatory sentences need (\d+) tokens/);
       if (tight) return "Nothing was removed: the sentences that must stay need " + tight[2] +
         " tokens, more than the budget of " + tight[1] + ". Untick Keep on some sentences or raise the budget, then run again.";
+      if (r.status !== "error") return null;
       return warning in NOTE_TEXT ? NOTE_TEXT[warning] : warning;
     }).filter(Boolean);
     if (plain.length) {
@@ -1118,15 +1064,6 @@
       el.result.append(make("h3", null, "Sentences kept and removed"), sentenceTable(r.sentences),
         make("p", "wb-help", "Removed something you need? Press Keep it next to that sentence and it runs again with it kept."));
     }
-
-    var details = make("details", "wb-details");
-    details.append(make("summary", null, "Line-by-line changes and protected requirements"),
-      make("pre", "wb-diff", r.changes.join("\n") || "No changes."),
-      make("p", "wb-help", r.protected_constraints.length ?
-        "Checked to survive: " + r.protected_constraints.join(", ") : "No protected requirements were detected."));
-    el.result.append(details);
-
-    if (changed) el.result.append(reviewControls(r.candidate_text));
 
     // What to do next: try the other method on this prompt, or see both on Results
     var other = run.method === "nlp" ? "tfidf" : "nlp";

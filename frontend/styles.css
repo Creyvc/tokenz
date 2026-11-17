@@ -1798,14 +1798,6 @@ textarea.wb-input {
   white-space: nowrap;
 }
 
-.wb-status {
-  max-width: 720px;
-  margin-top: 28px;
-  font-size: 15px;
-  line-height: 1.6;
-  color: #5c5c5c;
-}
-
 /* Original and suggestion side by side, with the changes marked */
 .wb-text {
   height: calc(100% - 26px);
@@ -1902,16 +1894,6 @@ textarea.wb-input {
   -webkit-box-decoration-break: clone;
 }
 
-.wb-legend {
-  margin-top: 12px;
-  font-size: 12px;
-  color: #8a8a8a;
-}
-
-.wb-legend .wb-ins {
-  color: #5c5c5c;
-}
-
 .wb-notes {
   margin-top: 24px;
   padding-left: 18px;
@@ -1973,47 +1955,6 @@ textarea.wb-input {
 
 .wb-details[open] {
   padding-bottom: 16px;
-}
-
-/* The line-by-line diff is code, so it's the one monospace block in the results */
-.wb-diff {
-  padding: 14px 16px;
-  border-radius: 12px;
-  background: #FAFAF9;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 12px;
-  line-height: 1.6;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  color: #262626;
-}
-
-/* Review tick on the left, Copy on the right */
-.wb-review {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px 24px;
-  margin-top: 32px;
-  padding: 16px 18px;
-  border: 1px solid #E5E4DF;
-  border-radius: 16px;
-  background: #ffffff;
-}
-
-.wb-review .wb-check {
-  margin: 0;
-}
-
-.wb-review-end {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.wb-review .wb-help {
-  margin-top: 0;
 }
 
 .wb-next {
@@ -2798,10 +2739,6 @@ html.home-box-waiting .home-panel {
   max-width: 100%;
 }
 
-.wb-candidate .wb-review {
-  background: #FAFAF9;
-}
-
 .wb-candidate-model {
   margin-top: 0;
   font-size: 12px;
@@ -2814,12 +2751,6 @@ html.home-box-waiting .home-panel {
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
   color: #16171A;
-}
-
-/* The review tick and copy button sit tight under each card's rewrite */
-.wb-candidate .wb-review {
-  margin-top: 4px;
-  padding: 12px 14px;
 }
 
 .wb-candidate .wb-help {
