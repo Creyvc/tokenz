@@ -6,16 +6,6 @@
 (function () {
   var DRAFT_KEY = "tokenz_compare_draft";
   var RUNS_KEY = "tokenz_runs";
-  var EXAMPLE_TASK = "Please explain how photosynthesis works for a beginner.";
-  var EXAMPLE = EXAMPLE_TASK + " " + EXAMPLE_TASK + " Chlorophyll in the leaves absorbs sunlight. " +
-    "My teacher said this topic will be in the exam next week. " +
-    "Yesterday the bus to school was late and it was raining.";
-  var LEVEL_HELP = {
-    conservative: "Removes polite openings like “Could you please”, greetings, sign-offs and exact repeated sentences.",
-    balanced: "Also shortens request openings and wordy phrases like “in order to”, while keeping every content word.",
-    aggressive: "Also removes filler words, offers of help and sentences that only repeat an earlier request.",
-    maximum: "Aims for 20% or more by also trimming framing, hedges and personal reasons, and repeats spread across the prompt. Some words from that framing can go, so check the result closely. Concise prompts may not reach 20%."
-  };
   var LEVEL_NAMES = { conservative: "1 · Conservative", balanced: "2 · Balanced", aggressive: "3 · Aggressive", maximum: "4 · Maximum" };
   var NAMES = { nlp: "NLP", tfidf: "TF-IDF", ai: "AI rewrite" };
   // Names for the AI models; the engine's health check sends the same ones with each model
@@ -24,11 +14,6 @@
   var AI_STATES = { accepted: ["Shorter", "review_required"], rejected: ["Original kept", "unchanged"],
     failed: ["Couldn't run", "error"], running: ["Still working…", "running"] };
   var OUTCOMES = { review_required: "Needs review", unchanged: "Original kept", error: "Couldn't run", running: "Working…" };
-  var METHOD_HELP = {
-    nlp: "Tidies the wording: cuts polite openings and repeated sentences. Good for any prompt.",
-    tfidf: "Cuts whole sentences that are off-topic. Best for longer prompts with background.",
-    ai: "AI models each rewrite the whole prompt shorter. Sends your prompt to the ones you pick."
-  };
   // The engine's warnings, in plainer words. Anything not listed is shown as the engine wrote it.
   var NOTE_TEXT = {
     "Human review required: mechanical checks cannot prove equivalent meaning.": null,
@@ -43,6 +28,8 @@
   var MAC = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
   // The engine's own wording for "pick a task"; this page asks for that with the sentence list
   var TASK_PROBLEM = "Choose a main-task sentence";
+  // Why Run is off when the box is empty; kept off, but nothing is said (the empty box says it)
+  var NO_PROMPT = "no prompt";
 
   var form = document.querySelector("[data-workbench]");
   if (!form || !window.TokenzApi) return;
@@ -50,14 +37,13 @@
 
   function find(name) { return document.querySelector("[data-" + name + "]"); }
   var el = {
-    prompt: find("prompt"), promptTokens: find("prompt-tokens"), example: find("example"), clear: find("clear"),
+    prompt: find("prompt"), promptTokens: find("prompt-tokens"), clear: find("clear"),
     least: find("budget-least"), share: find("budget-share"), shortcut: find("shortcut"),
-    methodHelp: find("method-help"), levelHelp: find("level-help"),
-    nlp: document.querySelector('[data-for="nlp"]'), tfidf: document.querySelector('[data-for="tfidf"]'),
+        nlp: document.querySelector('[data-for="nlp"]'), tfidf: document.querySelector('[data-for="tfidf"]'),
     ai: document.querySelector('[data-for="ai"]'), aiStatus: find("ai-status"),
     sentences: find("sentences"), budget: find("budget"),
     suggest: find("suggest"), budgetHelp: find("budget-help"), problems: find("problems"),
-    phrases: find("phrases"), encoding: find("encoding"), run: find("run"), runHelp: find("run-help"),
+    phrases: find("phrases"), phrasesSection: find("phrases-section"), run: find("run"), runHelp: find("run-help"),
     result: find("result"), notice: find("engine-notice"), noticeMessage: find("engine-message"),
     retry: find("engine-retry")
   };
@@ -80,8 +66,10 @@
       if (typeof saved[name] === typeof state[name] || state[name] === null) state[name] = saved[name];
     });
   }
+  // Tokens are always counted with o200k_base (GPT-4o and newer); it isn't a choice on the page
+  state.encoding = "o200k_base";
   if (!NAMES[state.method]) state.method = "nlp";
-  if (!LEVEL_HELP[state.level]) state.level = "conservative";
+  if (!LEVEL_NAMES[state.level]) state.level = "conservative";
   if (!Array.isArray(state.keep)) state.keep = [];
   if (!Array.isArray(state.aiModels)) state.aiModels = ["qwen", "gemini_flash"];
   state.aiModels = state.aiModels.filter(function (key) { return AI_LABELS[key]; });
@@ -275,7 +263,7 @@
 
   function renderSentences() {
     var rows = plan ? plan.sentences : [];
-    var empty = rows.length ? "" : state.text.trim() ? "Reading your sentences…" : "Paste a prompt to see its sentences.";
+    var empty = rows.length ? "" : state.text.trim() ? "Reading your sentences…" : "Sentences will appear here once a prompt is entered.";
     var key = JSON.stringify([rows.map(function (row) { return row.text; }), empty]);
     if (el.sentences.dataset.key !== key) {
       el.sentences.dataset.key = key;
@@ -399,7 +387,7 @@
   function blocker() {
     if (engineReady === null) return "Checking the engine…";
     if (!engineReady) return "Start the engine to run this.";
-    if (!state.text.trim()) return "Paste a prompt first.";
+    if (!state.text.trim()) return NO_PROMPT;
     if (state.method === "nlp") return "";
     if (state.method === "ai") {
       if (!aiStatus || !aiStatus.available) return "Set up Groq and Gemini first (above).";
@@ -420,16 +408,14 @@
     if (el.phrases.value !== state.phrases) el.phrases.value = state.phrases;
     form.elements.method.value = state.method;
     form.elements.level.value = state.level;
-    el.methodHelp.textContent = METHOD_HELP[state.method];
-    el.encoding.value = state.encoding;
     el.nlp.hidden = !isNlp;
     el.tfidf.hidden = !isTfidf;
     el.ai.hidden = state.method !== "ai";
+    el.phrasesSection.hidden = state.method === "ai";
     if (state.method === "ai") {
       renderAiStatus();
       syncAiModels();
     }
-    el.levelHelp.textContent = LEVEL_HELP[state.level];
     el.promptTokens.textContent = plan ? plan.original_tokens + " tokens" : "";
 
     if (isTfidf) {
@@ -496,7 +482,7 @@
     el.run.disabled = running || reason !== "";
     el.run.classList.toggle("is-running", running);
     el.runHelp.textContent = running ? (state.method === "ai" ? "Groq's models usually answer in seconds; Gemini can take up to 30." : "") :
-      reason || runError;
+      (reason === NO_PROMPT ? "" : reason) || runError;
     el.clear.hidden = !state.text;
     el.shortcut.textContent = reason || running ? "" : (MAC ? "⌘" : "Ctrl") + " + Enter also runs it";
 
@@ -509,7 +495,7 @@
     }
   }
 
-  // Once a result is on screen, changing a setting (budget, Keep, strength, advanced settings)
+  // Once a result is on screen, changing a setting (budget, Keep, strength, protected phrases)
   // runs the method again by itself, so the result follows the slider. Editing the prompt
   // doesn't: that only marks the result out of date.
   function autoRun() {
@@ -542,18 +528,6 @@
     scheduleInspect(350);
   });
 
-  el.example.addEventListener("click", function () {
-    state.text = EXAMPLE;
-    resetForNewText();
-    // Start the example with its first sentence picked as the task
-    state.task = 0;
-    state.taskText = EXAMPLE_TASK;
-    state.confirmed = true;
-    save();
-    render();
-    scheduleInspect(0);
-  });
-
   el.clear.addEventListener("click", function () {
     state.text = "";
     resetForNewText();
@@ -578,9 +552,6 @@
     } else if (target.name === "level") {
       state.level = target.value;
       autoRun();
-    } else if (target === el.encoding) {
-      state.encoding = target.value;
-      scheduleInspect(0);
     } else if (target.name === "task") {
       // Clicking the sentence is the user's own choice of task, which counts as confirming it
       state.task = Number(target.value);

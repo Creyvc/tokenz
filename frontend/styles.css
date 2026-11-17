@@ -1101,11 +1101,6 @@ html.intro-play .intro.is-playing {
   padding: 14px 14px 0;
 }
 
-.wb-method-help {
-  font-size: 13px;
-  color: #8a8a8a;
-}
-
 .wb-prompt {
   display: block;
   width: 100%;
@@ -1279,18 +1274,6 @@ textarea.wb-input {
   resize: vertical;
 }
 
-/* The browser's own arrow swapped for a thin chevron */
-.wb-select {
-  width: auto;
-  max-width: 100%;
-  padding-right: 40px;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5 6 7.5 9 4.5' fill='none' stroke='%235c5c5c' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 14px center;
-  cursor: pointer;
-}
-
 .wb-budget-row {
   display: flex;
   align-items: center;
@@ -1419,25 +1402,15 @@ textarea.wb-input {
   display: none;
 }
 
-.wb-advanced {
-  margin-top: 40px;
-  border-top: 1px solid #E5E4DF;
-  border-bottom: 1px solid #E5E4DF;
+/* Protected phrases: its own small section, marked optional in quiet grey */
+.wb-optional {
+  margin-left: 6px;
+  font-weight: 400;
+  color: #9a9a9a;
 }
 
-.wb-advanced summary {
-  padding: 14px 0;
-  font-size: 14px;
-  font-weight: 500;
-  color: #16171A;
-  cursor: pointer;
-}
-
-.wb-advanced-body {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  padding-bottom: 20px;
+.wb-phrases {
+  min-height: 0;
 }
 
 /* Run, with the reason it's greyed out beside it */
@@ -1997,10 +1970,6 @@ textarea.wb-input {
 
 @media (max-width: 900px) {
   .wb-sides,
-  .wb-advanced-body {
-    grid-template-columns: 1fr;
-  }
-
   .wb-text {
     height: auto;
   }
@@ -2051,10 +2020,6 @@ textarea.wb-input {
   .wb-stat:first-child {
     padding: 0;
     border-left: none;
-  }
-
-  .wb-select {
-    width: 100%;
   }
 
   .rs-bar {

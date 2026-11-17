@@ -52,15 +52,13 @@
             <label><input type="radio" name="method" value="tfidf"><span>TF-IDF</span></label>
             <label><input type="radio" name="method" value="ai"><span>AI rewrite</span></label>
           </div>
-          <p class="wb-method-help" data-method-help></p>
         </div>
         <label class="wb-hidden-label" for="wb-prompt">Your prompt</label>
-        <textarea id="wb-prompt" class="wb-prompt" rows="8" maxlength="40000" placeholder="Paste the prompt you would send to an AI…" data-prompt></textarea>
+        <textarea id="wb-prompt" class="wb-prompt" rows="8" maxlength="40000" placeholder="Enter the prompt you want to optimize." data-prompt></textarea>
         <div class="wb-card-foot">
           <span class="wb-count" data-prompt-tokens></span>
           <span class="wb-foot-links">
             <button type="button" class="wb-link" data-clear hidden>Clear</button>
-            <button type="button" class="wb-link" data-example>Try an example</button>
           </span>
         </div>
       </div>
@@ -73,7 +71,6 @@
           <label><input type="radio" name="level" value="aggressive"><span><b>3</b>Aggressive</span></label>
           <label><input type="radio" name="level" value="maximum"><span><b>4</b>Maximum</span></label>
         </div>
-        <p class="wb-help" data-level-help></p>
       </section>
 
       <section class="wb-settings" data-for="tfidf" hidden>
@@ -106,23 +103,12 @@
         <div class="wb-ai-status" data-ai-status></div>
       </section>
 
-      <details class="wb-advanced">
-        <summary>Advanced settings</summary>
-        <div class="wb-advanced-body">
-          <div>
-            <label class="wb-label" for="wb-phrases">Protected phrases, one per line</label>
-            <textarea id="wb-phrases" class="wb-input" rows="3" data-phrases></textarea>
-          </div>
-          <div>
-            <label class="wb-label" for="wb-encoding">Token counting</label>
-            <select id="wb-encoding" class="wb-input wb-select" data-encoding>
-              <option value="o200k_base">o200k_base (GPT-4o and newer)</option>
-              <option value="cl100k_base">cl100k_base (GPT-4 and GPT-3.5)</option>
-            </select>
-            <p class="wb-help">Both versions are counted the same way. This doesn't change how the prompt is shortened.</p>
-          </div>
-        </div>
-      </details>
+      <!-- Words that must come through exactly as written. NLP and TF-IDF only: the AI rewrite
+           doesn't use them, so it's hidden there -->
+      <section class="wb-settings" data-phrases-section>
+        <h2 class="wb-section-title"><label for="wb-phrases">Protected phrases <span class="wb-optional">Optional</span></label></h2>
+        <textarea id="wb-phrases" class="wb-input wb-phrases" rows="3" placeholder="One per line: names, numbers or limits that must stay exactly as written." data-phrases></textarea>
+      </section>
 
       <div class="wb-actions">
         <button type="submit" class="wb-primary" data-run disabled>Run NLP</button>
