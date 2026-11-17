@@ -4,26 +4,81 @@
 // - The Grainient background: on wider screens it fills the whole window from the start, with
 //   the sentence and headline in white in the middle of it (no box, no TOKENZ); on narrow screens
 //   and with reduced motion it fills the rounded panel on the right, with TOKENZ in it. On a first
-//   visit it waits for the intro to finish, so its own bloom from the middle is seen rather than
-//   hidden under the intro's cover. Without WebGL2 it just stays plain.
+//   visit it starts as the intro's circle begins to zoom open, so its own bloom from the middle is
+//   seen through the growing hole. Without WebGL2 it just stays plain.
 // - The sentence, then the headline, rise into place line by line from behind a mask: the text
 //   mask animation from olivierlarose/text-mask-animation (each line slides up from 100%, 0.75s,
-//   ease [0.33, 1, 0.68, 1], 0.075s apart). It starts a quarter of a second after the intro uncovers the
-//   page, or straight away on a later visit. People who prefer less motion just see the text.
+//   ease [0.33, 1, 0.68, 1], 0.075s apart). On a first visit it and the gradient start as the
+//   intro's circle begins to zoom open, so the hole shows them already moving; the text a
+//   quarter of a second after that. Straight away on a later visit. People who prefer less motion just see the text.
 // - Scrolling (wider screens, not for reduced motion): a little way down, the sentence and
 //   headline mask out line by line, like their entrance played backwards. Then a white page
 //   scrolls up over the gradient, and the sidebar turns dark again where it covers it. Then it
 //   holds still while its title and the three methods slide past sideways (the horizontal
 //   section from olivierlarose.com). All of it follows the scroll, both ways.
+// - The sidebar is hidden over the top of Home and comes in once the Three Methods arrive: its
+//   logo and links rise from behind a mask like the headline, and its badge pushes in from the
+//   left edge. Scrolling back up plays that backwards before it hides.
 (function () {
   var root = document.documentElement;
   var still = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var STEP = 75;          // ms between lines
   var RISE = 750;         // ms for one line
-  var AFTER_INTRO = 250;  // ms to wait once the intro has uncovered the page
+  var AFTER_INTRO = 250;  // ms to wait once the intro's circle starts opening
   var REVISIT = 150;      // ms to wait when there's no intro
 
   if (!still) root.classList.add("home-text-waiting");
+
+  // The sidebar stays hidden over the top of Home and fades in once the Three Methods have arrived
+  // (their section's top within the top tenth of the window), staying from there on down.
+  // Hidden from the first paint, so it never flashes up first (styles.css, wider screens only)
+  root.classList.add("home-nav-hidden");
+  var NAV_IN_MS = 1400;  // long enough for the last link (7 × 75ms in) and the badge to finish, either way
+  function sidebarFromMethods() {
+    var next = document.querySelector(".home-next");
+    if (!next) return root.classList.remove("home-nav-hidden");
+    var queued = 0, settle = 0, after = 0;
+    var hidden = root.classList.contains("home-nav-hidden");
+    function check() {
+      queued = 0;
+      var hide = next.getBoundingClientRect().top > 0.1 * window.innerHeight;
+      if (hide === hidden) return;
+      hidden = hide;
+      clearTimeout(settle);
+      clearTimeout(after);
+      root.classList.remove("home-nav-in", "home-nav-out");
+      if (still) return root.classList.toggle("home-nav-hidden", hide);
+      // Each item's place, counted from the top for coming in and from the bottom for going out
+      document.querySelectorAll(".nav").forEach(function (nav) {
+        var items = nav.querySelectorAll(".logo, .nav-links a");
+        items.forEach(function (item, i) {
+          item.style.setProperty("--i", i);
+          item.style.setProperty("--o", items.length - 1 - i);
+        });
+      });
+      void root.offsetWidth;  // (starts them again if they were mid-way)
+      if (!hide) {
+        // Arriving: the logo and links rise from behind a mask one after another, and the badge
+        // pushes in from the left edge (home-nav-in, styles.css); the class goes once they've played
+        root.classList.remove("home-nav-hidden");
+        root.classList.add("home-nav-in");
+        settle = setTimeout(function () { root.classList.remove("home-nav-in"); }, NAV_IN_MS);
+      } else {
+        // Leaving, the same played backwards: the links drop behind their masks from the bottom
+        // up and the badge slides back out to the left (home-nav-out); then it's hidden, and the
+        // pieces go back to their places unseen
+        root.classList.add("home-nav-out");
+        settle = setTimeout(function () {
+          root.classList.add("home-nav-hidden");
+          after = setTimeout(function () { root.classList.remove("home-nav-out"); }, 400);
+        }, NAV_IN_MS);
+      }
+    }
+    function soon() { if (!queued) queued = requestAnimationFrame(check); }
+    check();
+    window.addEventListener("scroll", soon, { passive: true });
+    window.addEventListener("resize", soon);
+  }
 
   // Arriving from another page through the page switch (page-transition.js), Home's text waits
   // under the switch's black cover and only rises in as it leaves (ARRIVE ms in), all together:
@@ -962,17 +1017,28 @@
   }
 
   document.addEventListener("DOMContentLoaded", function () {
+    sidebarFromMethods();
     scrollEffect();
     mountMethodBackgrounds();
     if (!root.classList.contains("intro-play")) {
       mountWhenArrived();
       return start(REVISIT);
     }
+    // The intro says when its circle is about to zoom open: start the gradient and the text then,
+    // behind the cover, so the hole opens onto the page already moving. (If that never comes, the
+    // cover going away starts them instead.)
+    var begun = false;
+    function begin() {
+      if (begun) return;
+      begun = true;
+      mountBackground();
+      start(AFTER_INTRO);
+    }
+    document.addEventListener("tokenz:intro-opening", begin, { once: true });
     var watch = new MutationObserver(function () {
       if (root.classList.contains("intro-play")) return;
       watch.disconnect();
-      mountBackground();
-      start(AFTER_INTRO);
+      begin();
     });
     watch.observe(root, { attributes: true, attributeFilter: ["class"] });
   });

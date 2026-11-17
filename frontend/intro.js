@@ -368,7 +368,7 @@
   var MORPH_TIME = 650;
   var WORD_HOLD = 700;   // TOKENZ holds still this long once spelt out (about 290ms on screen at SPEED 2.4)
   var ROUND = TO_LETTERS + 2 * LETTER_STAGGER + MORPH_TIME + WORD_HOLD; // then all the letters soften into a rounded font together
-  var ROUND_TIME = 1000;
+  var ROUND_TIME = 500;   // (about 210ms on screen at SPEED 2.4)
   var ROUNDED = 0.75;    // how round they get: each corner's radius, as a share of the stroke thickness
                          // (0.5 or more makes every stroke end a full round cap)
   var ROUND_HOLD = 300;  // the rounded word holds still this long (about 125ms on screen at SPEED 2.4)
@@ -504,6 +504,11 @@
     });
     group.appendChild(blob);
     svg.appendChild(background);
+    // White inside the hole while it opens, fading away (see the zoom below)
+    var veil = document.createElementNS(SVG_NS, "ellipse");
+    veil.setAttribute("fill", "#ffffff");
+    veil.setAttribute("opacity", "0");
+    svg.appendChild(veil);
     svg.appendChild(group);
 
     // The logo mark, drawn in its own 64 × 64 units and centred on the screen
@@ -610,6 +615,9 @@
     cover.style.background = "transparent";
 
     var startTime = null;
+    var opening = false;
+    var OPEN_EARLY = 1000; // timeline ms before the zoom (about 420ms on screen), for the gradient to warm up
+    var VEIL_TIME = 500;   // the white in the hole fades from halfway through the zoom, this long (about 210ms on screen)
 
     function frame(time) {
       if (startTime === null) startTime = time;
@@ -694,6 +702,13 @@
         blob.removeAttribute("transform");
       }
 
+      // Just before the zoom, tell Home to start its gradient and text behind the cover, so the
+      // growing hole shows the page already alive rather than blank white (home.js)
+      if (!opening && now >= GROW - OPEN_EARLY) {
+        opening = true;
+        document.dispatchEvent(new Event("tokenz:intro-opening"));
+      }
+
       // Growing by the same ratio each moment reads as a steady zoom, eased at both ends
       var growing = easeInOut(progress(now, GROW, GROW_TIME));
       if (growing > 0) {
@@ -703,6 +718,13 @@
         var ry = holeRy * scale;
         background.setAttribute("d", "M0,0H" + W + "V" + H + "H0Z" +
           "M" + (cx - rx) + "," + cy + "a" + rx + "," + ry + " 0 1,0 " + 2 * rx + ",0a" + rx + "," + ry + " 0 1,0 " + -2 * rx + ",0Z");
+        // The page fades in through the hole: it stays white until the zoom is halfway, then
+        // clears, so white turns into the page gently rather than all at once
+        veil.setAttribute("cx", cx);
+        veil.setAttribute("cy", cy);
+        veil.setAttribute("rx", rx);
+        veil.setAttribute("ry", ry);
+        veil.setAttribute("opacity", (1 - easeInOut(progress(now, GROW + GROW_TIME / 2, VEIL_TIME))).toFixed(3));
       }
 
       if (now < GROW + GROW_TIME) {

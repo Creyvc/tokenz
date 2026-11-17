@@ -1227,85 +1227,143 @@ html.intro-play .intro.is-playing {
   }
 }
 
-/* Run: a near-black pill in the strip under the input, saying what it runs, with the arrow in a
-   small white circle at its end. Light grey until there's something to run */
+/* Run: a liquid-glass pill in the strip under the input, saying what it runs, with a chevron in a
+   dark circle at its end. Clear glass with bright rims where the light catches it (the inset
+   shadows), a dark blurred line inside its lower half for depth (::before), a soft white glare
+   on two corners (::after) and a faint inner ring (.wb-send-ring). The layer around it
+   (.wb-send-fx) turns the contrast up, which is what makes the rims and shading read as glass.
+   It sizes to its words. On hover it lifts and the circle grows; pressed, it sinks. Faded until
+   there's something to run */
+.wb-send-fx {
+  display: inline-flex;
+  filter: contrast(3);
+}
+
 .wb-send {
+  --h: 48px;
+  --tr: 15%;
+  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 12px;
-  height: 40px;
-  padding: 0 6px 0 18px;
-  border: none;
-  border-radius: 999px;
-  background: #16171A;
-  color: #ffffff;
+  gap: 14px;
+  height: var(--h);
+  padding: 0 7px 0 22px;
+  border: 1px double rgba(51, 51, 51, 0.08);
+  box-shadow:
+    inset 2px -2px 1px -1px rgba(255, 255, 255, 0.9),
+    inset -2px 2px 1px -1px rgba(255, 255, 255, 0.9),
+    inset 6px -6px 1px -6px rgba(255, 255, 255, 0.55),
+    inset -6px 6px 1px -6px rgba(255, 255, 255, 0.55),
+    inset 0 0 2px rgba(0, 0, 0, 0.8),
+    0 4px 8px rgba(0, 0, 0, 0.2);
+  background: rgba(0, 0, 0, 0.02);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+  filter: brightness(0.9);
   font: inherit;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 500;
+  color: #3e3e3e;
   white-space: nowrap;
   cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: background 0.25s, transform 0.25s, opacity 0.25s;
+}
+
+.wb-send::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  top: 35%;
+  left: 8px;
+  right: 8px;
+  height: calc(100% - 16px);
+  border: 1px solid rgba(0, 0, 0, 0.9);
+  filter: blur(8px);
+  pointer-events: none;
+}
+
+.wb-send::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  inset: -1px;
+  filter: blur(7px);
+  background: linear-gradient(45deg,
+    rgba(255, 255, 255, 0.8) 0%,
+    transparent var(--tr),
+    transparent calc(100% - var(--tr)),
+    rgba(255, 255, 255, 0.8) 100%);
+  pointer-events: none;
+}
+
+.wb-send-ring {
+  position: absolute;
+  inset: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  filter: blur(1px);
+  pointer-events: none;
+}
+
+.wb-send-text {
+  filter: drop-shadow(0 25px 3px rgba(102, 102, 102, 0.15));
 }
 
 .wb-send-icon {
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: #ffffff;
-  color: #16171A;
-  transition: background 0.2s ease, color 0.2s ease, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  width: 34px;
+  height: 34px;
+  background: #3e3e3e;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.3);
+  color: #f5f5f5;
+  transition: transform 0.25s;
 }
 
-.wb-send svg {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2.2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+.wb-send-icon svg {
+  width: 13px;
+  height: 13px;
+  fill: currentColor;
+  filter: drop-shadow(0 25px 3px rgba(102, 102, 102, 0.2));
 }
 
 .wb-send:hover:not(:disabled) {
-  background: #33343a;
+  background: rgba(0, 0, 0, 0);
+  transform: translateY(-3px);
 }
 
-/* On hover the arrow's circle nudges up, as if about to send */
 .wb-send:hover:not(:disabled) .wb-send-icon {
-  transform: translateY(-2px);
+  transform: scale(1.1);
 }
 
 .wb-send:active:not(:disabled) {
-  transform: scale(0.97);
+  transform: scale(0.94);
+}
+
+.wb-send:active:not(:disabled) .wb-send-text {
+  color: #000000;
+}
+
+.wb-send:active:not(:disabled) .wb-send-icon {
+  transform: scale(0.94);
 }
 
 .wb-send:disabled {
-  background: #F1F1EF;
-  color: #9a9a9a;
+  opacity: 0.45;
   cursor: default;
-}
-
-.wb-send:disabled .wb-send-icon {
-  background: #E5E4DF;
-  color: #9a9a9a;
 }
 
 .wb-send:focus-visible {
   outline: 2px solid #16171A;
-  outline-offset: 2px;
+  outline-offset: 3px;
 }
 
-/* While it runs it stays dark (it's working, not switched off), and the arrow becomes a small
+/* While it runs it stays clear (it's working, not switched off), and the chevron becomes a small
    turning ring */
 .wb-send.is-running {
-  background: #16171A;
-  color: #ffffff;
+  opacity: 1;
   cursor: progress;
-}
-
-.wb-send.is-running .wb-send-icon {
-  background: #ffffff;
-  color: #16171A;
 }
 
 .wb-send.is-running .wb-send-icon svg {
@@ -1320,6 +1378,35 @@ html.intro-play .intro.is-playing {
   border-right-color: transparent;
   border-radius: 50%;
   animation: wb-spin 0.8s linear infinite;
+}
+
+/* A little smaller on a phone */
+@media (max-width: 600px) {
+  .wb-send {
+    --h: 44px;
+    gap: 12px;
+    padding-left: 18px;
+    font-size: 14px;
+  }
+
+  .wb-send-icon {
+    width: 30px;
+    height: 30px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wb-send,
+  .wb-send-icon {
+    transition: opacity 0.25s;
+  }
+
+  .wb-send:hover:not(:disabled),
+  .wb-send:active:not(:disabled),
+  .wb-send:hover:not(:disabled) .wb-send-icon,
+  .wb-send:active:not(:disabled) .wb-send-icon {
+    transform: none;
+  }
 }
 
 .wb-prompt {
@@ -5339,4 +5426,400 @@ html.hw-still .hw-land {
   .wb-flash {
     animation: none;
   }
+}
+
+/* Compare in frosted glass: the form (and the result under it) is one sheet of milky glass over
+   the moving gradient, which shows through softly blurred. A fine bright edge and a light line
+   along the top catch the light, a deep soft shadow lifts it off the page, and the sections
+   inside are parted by hairlines. What sits inside (the prompt box, tabs, tiles, bubbles) is a
+   lighter glass on the glass. Square corners, as the rest of the page */
+.content.workbench .wb,
+.content.workbench .wb-result,
+.content.workbench .engine-notice {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.74), rgba(255, 255, 255, 0.62));
+  -webkit-backdrop-filter: blur(28px) saturate(150%);
+  backdrop-filter: blur(28px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.85),
+    0 40px 80px -40px rgba(8, 12, 18, 0.55);
+}
+
+/* The result joins the form below it: one sheet, so no edge or light line where they meet */
+.content.workbench .wb-result {
+  border-top: 1px solid rgba(22, 23, 26, 0.08);
+  box-shadow: 0 40px 80px -40px rgba(8, 12, 18, 0.55);
+}
+
+.content.workbench .wb:has(~ .wb-result:not([hidden])) {
+  border-bottom: none;
+}
+
+/* The sections inside are clear, so the sheet's glass shows through, with hairlines between */
+.content.workbench .wb > .wb-card,
+.content.workbench .wb-result .wb-card,
+.content.workbench .wb-settings,
+.content.workbench .wb-actions {
+  background: transparent;
+}
+
+.content.workbench .wb-settings,
+.content.workbench .wb-actions,
+.content.workbench .wb-card-foot {
+  border-top-color: rgba(22, 23, 26, 0.08);
+}
+
+/* Lighter glass inside: the prompt box, the phrases box, tabs, History, the tiles, the number box */
+.content.workbench .wb-composer,
+.content.workbench .wb-card-plain,
+.content.workbench .wb-input {
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: inset 0 1px 2px rgba(22, 23, 26, 0.04);
+}
+
+.content.workbench .wb-composer:focus-within {
+  border-color: rgba(22, 23, 26, 0.55);
+}
+
+.content.workbench .wb-segmented,
+.content.workbench .wb-history-open {
+  background: rgba(255, 255, 255, 0.45);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.7);
+}
+
+.content.workbench .wb-history-open:hover {
+  background: rgba(255, 255, 255, 0.75);
+}
+
+.content.workbench .wb-steps input:not(:checked) + span {
+  background: rgba(255, 255, 255, 0.5);
+  border-color: rgba(255, 255, 255, 0.8);
+}
+
+.content.workbench .wb-steps label:hover input:not(:checked) + span {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+/* Your prompt's bubble in the result: the same light glass */
+.content.workbench .is-mine .wb-bubble-text {
+  background: rgba(255, 255, 255, 0.6);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.8);
+}
+
+/* Run keeps its round pill shape and round icon inside Compare's square corners */
+.content.workbench .wb-send,
+.content.workbench .wb-send::before,
+.content.workbench .wb-send::after,
+.content.workbench .wb-send-ring,
+.content.workbench .wb-send-icon {
+  border-radius: 9999px;
+}
+
+/* Liquid glass over all of Compare and Results, made exactly like Run (the pasted glass button):
+   each glass piece gets Run's layers behind its content (glass.js adds them): .lg-layer turns the
+   contrast up three times like Run's .wb-send-fx; inside it .lg-glass has Run's clear fill, rims,
+   dark edge and shadow, its ::before the dark blurred line inside the lower edge, its ::after the
+   blurred white glare on two corners, and .lg-ring the faint ring 4px in. The big sheets keep a
+   light frost behind the text so it stays readable; the pieces on them are as clear as Run */
+.lg {
+  position: relative;
+  isolation: isolate;
+}
+
+:is(.content.workbench, .content.results-page) .lg-layer {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  filter: contrast(3);
+  pointer-events: none;
+}
+
+:is(.content.workbench, .content.results-page) .lg-glass {
+  position: absolute;
+  inset: 0;
+  border: 1px double rgba(51, 51, 51, 0.08);
+  border-radius: inherit;
+  box-shadow:
+    inset 2px -2px 1px -1px rgba(255, 255, 255, 0.9),
+    inset -2px 2px 1px -1px rgba(255, 255, 255, 0.9),
+    inset 6px -6px 1px -6px rgba(255, 255, 255, 0.55),
+    inset -6px 6px 1px -6px rgba(255, 255, 255, 0.55),
+    inset 0 0 2px rgba(0, 0, 0, 0.8),
+    0 4px 8px rgba(0, 0, 0, 0.2);
+  background: rgba(0, 0, 0, 0.02);
+  filter: brightness(0.9);
+}
+
+/* Run's dark line sits from 35% down to just past its bottom; on a tall piece it keeps to the
+   lowest 32px, the same as on Run */
+:is(.content.workbench, .content.results-page) .lg-glass::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  top: max(35%, calc(100% - 32px));
+  bottom: -1px;
+  left: 8px;
+  right: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.9);
+  border-radius: inherit;
+  filter: blur(8px);
+}
+
+:is(.content.workbench, .content.results-page) .lg-glass::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  inset: -1px;
+  border-radius: inherit;
+  filter: blur(7px);
+  background: linear-gradient(45deg,
+    rgba(255, 255, 255, 0.8) 0%,
+    transparent var(--lg-tr, 15%),
+    transparent calc(100% - var(--lg-tr, 15%)),
+    rgba(255, 255, 255, 0.8) 100%);
+}
+
+:is(.content.workbench, .content.results-page) .lg-ring {
+  position: absolute;
+  inset: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: inherit;
+  filter: blur(1px);
+}
+
+/* The sheets: a light frost for the text, the glass layers on top of it; on something this big
+   the glare keeps to the corners */
+.content.workbench :is(.wb, .wb-result, .engine-notice),
+.content.results-page [data-results] {
+  --lg-tr: 5%;
+  border: 1px solid transparent;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.18));
+  -webkit-backdrop-filter: blur(10px) saturate(150%);
+  backdrop-filter: blur(10px) saturate(150%);
+  box-shadow: 0 40px 80px -40px rgba(8, 12, 18, 0.45);
+}
+
+/* Compare's result runs straight on from the form, a hairline between */
+.content.workbench .wb-result {
+  border-top: 1px solid rgba(22, 23, 26, 0.08);
+}
+
+/* Results: one sheet, so what's in it is clear and parted by hairlines */
+.content.results-page [data-results] > *,
+.content.results-page [data-results] .wb-card,
+.content.results-page .rs-empty {
+  background: transparent;
+}
+
+.content.results-page [data-results] > * + *,
+.content.results-page .wb-card-foot,
+.content.results-page .wb-card-head {
+  border-color: rgba(22, 23, 26, 0.08);
+}
+
+.content.results-page .rs-cards {
+  gap: 0;
+  background: transparent;
+}
+
+.content.results-page .rs-card + .rs-card {
+  border-left: 1px solid rgba(22, 23, 26, 0.08);
+}
+
+/* The pieces on the sheets are as clear as Run: only their glass layers */
+.content.workbench :is(.wb-composer, .wb-card-plain, .wb-segmented, .wb-history-open, .wb-secondary,
+  .is-mine .wb-bubble-text),
+.content.workbench .wb-steps input:not(:checked) + span,
+.content.results-page :is(.wb-primary, .is-mine .wb-bubble-text) {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+.content.results-page .wb-primary {
+  color: #16171A;
+}
+
+.content.workbench .wb-composer:focus-within {
+  border-color: rgba(22, 23, 26, 0.45);
+}
+
+/* The number box under TF-IDF's slider can't hold the layers, so it gets Run's rims directly */
+.content.workbench .wb-input {
+  border: 1px double rgba(51, 51, 51, 0.08);
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow:
+    inset 2px -2px 1px -1px #ffffff,
+    inset -2px 2px 1px -1px #ffffff,
+    inset 0 0 2px rgba(0, 0, 0, 0.6);
+}
+
+/* Like Run, buttons lift a little on hover */
+.content.workbench :is(.wb-history-open, .wb-secondary, .wb-steps label > span),
+.content.results-page .wb-primary {
+  transition: background 0.25s, transform 0.25s, color 0.2s;
+}
+
+.content.workbench :is(.wb-history-open:hover, .wb-secondary:hover:not(:disabled)),
+.content.workbench .wb-steps label:hover input:not(:checked) + span,
+.content.results-page .wb-primary:hover {
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateY(-3px);
+}
+
+/* The selected tab stays solid white */
+.content.workbench .wb-segmented input:checked + span {
+  background: #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .content.workbench :is(.wb-history-open:hover, .wb-secondary:hover:not(:disabled)),
+  .content.workbench .wb-steps label:hover input:not(:checked) + span,
+  .content.results-page .wb-primary:hover {
+    transform: none;
+  }
+}
+
+/* On the see-through glass the gradient shows behind the text, so the light greys would vanish
+   over its darker parts: here they're near-black at a lower strength instead. (:where keeps
+   these weak, so the chosen Strength tile and the selected tab keep their own colours) */
+.content.workbench :where(.wb-help, .wb-count, .wb-steps b, .wb-unit, .wb-sentence-why, .wb-sentence-empty,
+  .wb-optional, .wb-hero-label, .wb-stat dt, .wb-bubble-meta, .wb-shortcut, .wb-range-least,
+  .wb-candidate-model, .wb-ai-model-id, .wb-ai-model.is-off .wb-ai-model-name),
+.content.results-page :where(.wb-help, .wb-count, .wb-bubble-meta, .rs-detail) {
+  color: rgba(22, 23, 26, 0.68);
+}
+
+.content.workbench :where(.wb-segmented label > span, .wb-steps label > span, .wb-link, .wb-sentence-keep,
+  .wb-problems, .wb-notes, .wb-ai-status ul, .wb-pill.is-unchanged),
+.content.results-page :where(.rs-bar-label, .rs-empty p, .wb-pill.is-unchanged) {
+  color: rgba(22, 23, 26, 0.84);
+}
+
+.content.workbench .wb-prompt::placeholder {
+  color: rgba(22, 23, 26, 0.5);
+}
+
+/* Rounded like the pasted button, so its rims bend round every corner: the sheets 28px, the boxes
+   on them 20px, and the tab strip, its tabs, History and the plain buttons whole pills. (Run is
+   already a pill.) Where Compare's result joins the form, those corners stay square so the two
+   read as one sheet */
+.content.workbench .wb,
+.content.workbench .wb-result,
+.content.workbench .engine-notice,
+.content.results-page [data-results] {
+  border-radius: 28px;
+}
+
+.content.workbench .wb:has(~ .wb-result:not([hidden])) {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.content.workbench .wb:has(~ .wb-result:not([hidden])) ~ .wb-result {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+.content.workbench :is(.wb-composer, .wb-card-plain, .wb-input, .wb-steps label > span, .wb-bubble-text),
+.content.results-page .wb-bubble-text {
+  border-radius: 20px;
+}
+
+/* The phrases box's text area sits in its own rounded box: no square corners poking out */
+.content.workbench .wb-card-plain .wb-prompt {
+  border-radius: 20px;
+}
+
+.content.workbench :is(.wb-segmented, .wb-segmented label > span, .wb-history-open, .wb-secondary,
+  .wb-pill, .wb-history-count),
+.content.results-page :is(.wb-primary, .wb-pill) {
+  border-radius: 9999px;
+}
+
+/* Words the suggestion drops, in your prompt's bubble: on the clear glass the old grey matched
+   the background, so they're near-black at half strength, still struck through */
+:is(.content.workbench, .content.results-page) .is-mine .wb-del {
+  color: rgba(22, 23, 26, 0.5);
+  text-decoration-color: rgba(22, 23, 26, 0.45);
+}
+
+/* Home: no sidebar over the top of the page; it comes in once the Three Methods arrive and stays
+   from there on down (home-nav-hidden, home.js), and fades out going back up. Wider screens only:
+   on a phone it's the top bar */
+@media (min-width: 801px) {
+  html.home-nav-hidden .nav {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.35s ease, visibility 0s 0.35s;
+  }
+
+  .nav-copy {
+    transition: opacity 0.35s ease;
+  }
+}
+
+/* The sidebar arriving on Home (home-nav-in, home.js): the logo and each link rise into place
+   from behind a mask, like the headline (0.75s, 0.075s apart, the same ease), and the black
+   badge pushes in from the screen's left edge. The mask is a clip that moves against the rise,
+   so each one is cut exactly at its own place while its words come up; it reaches a little
+   out to the sides so the dot beside the active link isn't cut */
+@media (min-width: 801px) {
+  html.home-nav-in .nav,
+  html.home-nav-in.home-scroll .nav:not(.nav-copy) {
+    transition: none;
+  }
+
+  html.home-nav-in .nav :is(.logo, .nav-links a) {
+    animation: nav-rise 0.75s cubic-bezier(0.33, 1, 0.68, 1) calc(var(--i, 0) * 75ms) both;
+  }
+
+  html.home-nav-in .nav .tz-lockup {
+    animation: nav-push 0.75s cubic-bezier(0.33, 1, 0.68, 1) 0.15s both;
+  }
+}
+
+@keyframes nav-rise {
+  from {
+    transform: translateY(100%);
+    clip-path: inset(0 -40px 100% -40px);
+  }
+  to {
+    transform: none;
+    clip-path: inset(0 -40px 0 -40px);
+  }
+}
+
+@keyframes nav-push {
+  from { transform: translateX(-100%); }
+}
+
+/* Going back up the page, the same played backwards (home-nav-out, home.js): the links drop
+   behind their masks from the bottom up, and the badge slides back out past the left edge */
+@media (min-width: 801px) {
+  html.home-nav-out .nav :is(.logo, .nav-links a) {
+    animation: nav-drop 0.75s cubic-bezier(0.33, 1, 0.68, 1) calc(var(--o, 0) * 75ms) both;
+  }
+
+  html.home-nav-out .nav .tz-lockup {
+    animation: nav-pull 0.75s cubic-bezier(0.33, 1, 0.68, 1) both;
+  }
+}
+
+@keyframes nav-drop {
+  from {
+    transform: none;
+    clip-path: inset(0 -40px 0 -40px);
+  }
+  to {
+    transform: translateY(100%);
+    clip-path: inset(0 -40px 100% -40px);
+  }
+}
+
+@keyframes nav-pull {
+  to { transform: translateX(-100%); }
 }
