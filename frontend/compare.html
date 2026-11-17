@@ -137,14 +137,18 @@
          right when History is clicked. Click one to bring back its prompt, method, settings and
          result (compare.js). Closes with the ✕, Esc, or a click outside it -->
     <dialog class="wb-history" id="wb-history" aria-labelledby="wb-history-title" data-history>
-      <div class="wb-history-head">
-        <h2 id="wb-history-title">History</h2>
-        <button type="button" class="wb-link" data-history-clear>Clear history</button>
-        <button type="button" class="wb-history-close" data-history-close aria-label="Close history">
-          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
-        </button>
+      <!-- Its curved left edge, which bends as the panel slides in and out (styles.css) -->
+      <svg class="wb-history-curve" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path/></svg>
+      <div class="wb-history-body">
+        <div class="wb-history-head">
+          <h2 id="wb-history-title">History</h2>
+          <button type="button" class="wb-link" data-history-clear>Clear history</button>
+          <button type="button" class="wb-history-close" data-history-close aria-label="Close history">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+          </button>
+        </div>
+        <ol class="wb-history-list" data-history-list></ol>
       </div>
-      <ol class="wb-history-list" data-history-list></ol>
     </dialog>
   </main>
 </body>

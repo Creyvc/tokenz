@@ -1788,8 +1788,14 @@ textarea.wb-input {
 /* History: a panel down the right of the window, sliding in over the page (blurred, like the Info
    and Cookies windows). Every finished run this visit, newest first; each one a white panel like
    the others: method and time on top, the prompt (two lines at most), and what it saved on the
-   right. The one on screen is outlined */
+   right. The one on screen is outlined.
+   Its motion is the curved menu's from olivierlarose's tutorial (blog.olivierlarose.com/tutorials/
+   curved-menu), only the motion, with its numbers: the panel slides in from past the right edge,
+   0.8s; its left edge is a curve that bulges out as it comes and flattens as it lands (1s), and
+   bends out again as it leaves; the runs slide in from 80px right, each 0.05s after the one above.
+   All on the tutorial's ease, cubic-bezier(0.76, 0, 0.24, 1) */
 .wb-history {
+  --menu-ease: cubic-bezier(0.76, 0, 0.24, 1);
   position: fixed;
   inset: 0 0 0 auto;
   width: min(460px, 100vw);
@@ -1797,42 +1803,106 @@ textarea.wb-input {
   height: 100dvh;
   max-height: 100dvh;
   margin: 0;
-  padding: 24px;
+  padding: 0;
   border: none;
-  border-left: 1px solid #E5E4DF;
   background: #ffffff;
+  /* The curve hangs off the left edge, so nothing here is clipped; the body inside scrolls */
+  overflow: visible;
+}
+
+.wb-history-body {
+  height: 100%;
+  padding: 24px;
   overflow-y: auto;
   overscroll-behavior: contain;
-  box-shadow: -24px 0 60px rgba(22, 23, 26, 0.08);
+}
+
+/* The curve: 100px wide, just left of the panel, as tall as it. Drawn in a 100 × 100 box
+   stretched to fit, so the tutorial's paths work at any height */
+.wb-history-curve {
+  position: absolute;
+  top: 0;
+  left: -99px;
+  width: 100px;
+  height: 100%;
+  overflow: visible;
+  fill: #ffffff;
+  pointer-events: none;
+}
+
+.wb-history-curve path {
+  d: path("M100 0 L100 100 Q100 50 100 0");
 }
 
 .wb-history[open] {
-  animation: wb-drawer-in 0.38s cubic-bezier(0.32, 0.72, 0, 1);
+  animation: wb-menu-in 0.8s var(--menu-ease);
+}
+
+.wb-history[open] .wb-history-curve path {
+  animation: wb-curve-in 1s var(--menu-ease);
+}
+
+.wb-history[open] .wb-history-list > li {
+  animation: wb-menu-item-in 0.8s var(--menu-ease) calc(0.05s * var(--i, 0)) backwards;
 }
 
 .wb-history.is-closing {
-  animation: wb-drawer-out 0.24s cubic-bezier(0.4, 0, 1, 1) forwards;
+  animation: wb-menu-out 0.8s var(--menu-ease) forwards;
+}
+
+.wb-history.is-closing .wb-history-curve path {
+  animation: wb-curve-out 0.8s var(--menu-ease) forwards;
+}
+
+.wb-history.is-closing .wb-history-list > li {
+  animation: wb-menu-item-out 0.8s var(--menu-ease) calc(0.05s * var(--i, 0)) forwards;
 }
 
 .wb-history::backdrop {
   background: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
   animation: modal-backdrop-in 0.3s ease;
 }
 
-@keyframes wb-drawer-in {
-  from { transform: translateX(100%); }
+.wb-history.is-closing::backdrop {
+  animation: wb-backdrop-out 0.8s var(--menu-ease) forwards;
 }
 
-@keyframes wb-drawer-out {
-  to { transform: translateX(100%); }
+@keyframes wb-menu-in {
+  from { transform: translateX(calc(100% + 100px)); }
+}
+
+@keyframes wb-menu-out {
+  to { transform: translateX(calc(100% + 100px)); }
+}
+
+@keyframes wb-curve-in {
+  from { d: path("M100 0 L100 100 Q-100 50 100 0"); }
+}
+
+@keyframes wb-curve-out {
+  to { d: path("M100 0 L100 100 Q-100 50 100 0"); }
+}
+
+@keyframes wb-menu-item-in {
+  from { transform: translateX(80px); }
+}
+
+@keyframes wb-menu-item-out {
+  to { transform: translateX(80px); }
+}
+
+@keyframes wb-backdrop-out {
+  to { opacity: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .wb-history[open],
   .wb-history.is-closing,
-  .wb-history::backdrop {
+  .wb-history::backdrop,
+  .wb-history .wb-history-curve path,
+  .wb-history .wb-history-list > li {
     animation: none;
   }
 }
@@ -5232,4 +5302,41 @@ html.hw-still .hw-land {
 .content.results-page *::before,
 .content.results-page *::after {
   border-radius: 0;
+}
+
+/* Compare: a pressed button flashes (compare.js), turning to its negative and back twice, the
+   same hard flash as the box between Compare and Results */
+.wb-flash {
+  animation: wb-flash 0.28s step-end;
+}
+
+@keyframes wb-flash {
+  0%   { filter: invert(1) hue-rotate(180deg); }
+  25%  { filter: none; }
+  50%  { filter: invert(1) hue-rotate(180deg); }
+  75%  { filter: none; }
+}
+
+/* The method tabs have no background of their own to turn negative, so they flash solid black,
+   back to their own look in between (white for the chosen one) */
+.wb-segmented .wb-flash {
+  --tab-bg: transparent;
+  animation-name: wb-flash-tab;
+}
+
+.wb-segmented input:checked + .wb-flash {
+  --tab-bg: #ffffff;
+}
+
+@keyframes wb-flash-tab {
+  0%   { background-color: #16171A; color: #ffffff; }
+  25%  { background-color: var(--tab-bg); color: #16171A; }
+  50%  { background-color: #16171A; color: #ffffff; }
+  75%  { background-color: var(--tab-bg); color: #16171A; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wb-flash {
+    animation: none;
+  }
 }

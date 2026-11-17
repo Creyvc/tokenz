@@ -605,7 +605,7 @@
     el.historyCount.hidden = !list.length;
     el.historyCount.textContent = list.length;
     if (!list.length) el.historyList.append(make("li", "wb-history-empty", "No runs yet."));
-    list.forEach(function (item) {
+    list.forEach(function (item, index) {
       var r = item.run.result;
       var row = make("li");
       var open = make("button", "wb-history-item");
@@ -622,6 +622,8 @@
           r.original_target_tokens + " → " + r.candidate_target_tokens + " tokens"));
       open.append(top, make("span", "wb-history-text", item.form.text), saved);
       open.addEventListener("click", function () { openHistory(item); });
+      // Its place in the list, for the stagger as the panel slides in and out
+      row.style.setProperty("--i", index);
       row.append(open);
       el.historyList.append(row);
     });
@@ -634,6 +636,7 @@
     el.history.showModal();
   });
 
+  // (0.8s: as long as the panel takes to slide out, wb-menu-out in styles.css)
   function closeHistory() {
     if (!el.history.open || el.history.classList.contains("is-closing")) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return el.history.close();
@@ -641,7 +644,7 @@
     setTimeout(function () {
       el.history.classList.remove("is-closing");
       el.history.close();
-    }, 240);
+    }, 800);
   }
 
   el.historyClose.addEventListener("click", closeHistory);
@@ -1252,4 +1255,25 @@
   render();
   if (runs[state.method] && runs[state.method].signature === signature(state.method)) showResult(runs[state.method]);
   checkEngine();
+
+  // Any button pressed on the page flashes, like the box when switching to Results: it turns to
+  // its negative and back, twice (.wb-flash in styles.css). The method tabs and Strength tiles
+  // count as buttons; the flash goes on the part you see
+  var PRESSABLE = "button, .wb-segmented label, .wb-steps label";
+  document.querySelector(".content.workbench").addEventListener("click", function (event) {
+    // (clicking a label also clicks its radio button: one flash is enough)
+    if (event.target.matches("input")) return;
+    var pressed = event.target.closest(PRESSABLE);
+    if (!pressed) return;
+    var face = pressed.matches("label") ? pressed.querySelector(":scope > span") : pressed;
+    face.classList.remove("wb-flash");
+    void face.offsetWidth;  // starts it again on a quick second press
+    face.classList.add("wb-flash");
+  });
+  // (also when it's cut short, as when switching method hides the Strength tiles mid-flash)
+  ["animationend", "animationcancel"].forEach(function (type) {
+    document.addEventListener(type, function (event) {
+      if (/^wb-flash/.test(event.animationName)) event.target.classList.remove("wb-flash");
+    });
+  });
 })();
