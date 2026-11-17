@@ -27,6 +27,9 @@
     var layers = document.elementsFromPoint(window.innerWidth / 2, window.innerHeight / 2);
     for (var i = 0; i < layers.length; i++) {
       var el = layers[i];
+      // A page's own background can say how it looks (Compare's and Results' light gradients)
+      var toned = el.closest("[data-tone]");
+      if (toned) return toned.dataset.tone === "dark";
       if (el.tagName === "CANVAS" || el.tagName === "IMG" || el.tagName === "VIDEO") return true;
       var bg = getComputedStyle(el).backgroundColor.match(/[\d.]+/g);
       if (bg && (bg.length < 4 || Number(bg[3]) > 0.5)) {
