@@ -56,6 +56,7 @@ backend's own files belong to the friend: keep changes there small, tested and r
 - `styles.css`: every style for the whole site.
 - `assets/logo-mark.svg` (sidebar logo) and `assets/favicon.svg` (browser tab icon, cropped
   tighter so the mark looks bigger in the tab). Same artwork; change them separately.
+  `favicon.svg` is black, and white when the browser is in dark mode (a media query inside it).
 
 ## Scripts and what each page loads
 
