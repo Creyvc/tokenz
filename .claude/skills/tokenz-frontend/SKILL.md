@@ -38,9 +38,6 @@ backend's own files belong to the friend: keep changes there small, tested and r
   finished run also goes into `tokenz_history` (newest first, up to 30) for the History box under
   the result, where clicking one brings back its prompt, settings and result. Clear empties the
   box, the result and `tokenz_runs`, but not History; "Clear history" empties that.
-- `glass.js` (Compare and Results): gives each glass piece the same layers as Compare's Run button
-  (`.lg-layer` > `.lg-glass` > `.lg-ring`, styled in `styles.css`), behind its content, and adds them
-  to pieces drawn later. The list of pieces is at its top.
 - `results.js`: reads `tokenz_runs` for the Results chart and table, showing only the most recent
   prompt's runs; never calls the engine.
 - Compare's third method, **AI rewrite**, calls `/api/optimize` once per ticked model (Qwen and GPT-OSS
