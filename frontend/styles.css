@@ -5207,52 +5207,103 @@ html.hw-still .hw-land {
 }
 
 
-/* About: the team toy (team.js), under the title: three cartoon people to bonk by clicking them */
-.hw-land .about {
-  max-width: 1000px;
+/* About: the head made of particles (head.js) from just under the top to the bottom of the
+   window, where its drips end, with the team as tracker labels either side: a small index, the
+   name in capitals, then their LinkedIn and GitHub; each has a thin line to the head (drawn on
+   the canvas). On a phone the labels sit in a row under it */
+.content.about:has(.head-stage) {
+  padding-bottom: 0;
 }
 
-.team-toy {
-  margin-top: 8px;
-}
-
-.team-canvas {
-  display: block;
-  width: 100%;
-  aspect-ratio: 8 / 3;
-  cursor: pointer;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.team-canvas:focus-visible {
-  outline: 2px solid #8B7FF2;
-  outline-offset: 4px;
-  border-radius: 12px;
-}
-
-/* Each name under its person (at the same points across as team.js draws them) */
-.team-names {
+.head-stage {
   position: relative;
-  height: 56px;
-  margin: -4px 0 0;
+  height: calc(100vh - 72px);
+  min-height: 480px;
+}
+
+.head-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  touch-action: pan-y;
+}
+
+.head-names {
+  position: absolute;
+  inset: 0;
+  margin: 0;
   padding: 0;
   list-style: none;
+  pointer-events: none;
 }
 
-.team-names li {
+.head-names li {
   position: absolute;
-  top: 0;
-  left: var(--at);
+  top: var(--y);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  transform: translateX(-50%);
-  font-size: 15px;
-  font-weight: 600;
+  gap: 10px;
+  pointer-events: auto;
+}
+
+.head-names li.is-left {
+  left: 0;
+  align-items: flex-start;
+}
+
+.head-names li.is-right {
+  right: 0;
+  align-items: flex-end;
+}
+
+.head-name {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   color: #16171A;
   white-space: nowrap;
+}
+
+.head-name small {
+  font-size: 10px;
+  color: #8B7FF2;
+}
+
+@media (max-width: 800px) {
+  .head-stage {
+    height: auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .head-canvas {
+    position: relative;
+    height: 70vh;
+  }
+
+  .head-names {
+    position: static;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 24px 0 48px;
+  }
+
+  .head-names li {
+    position: static;
+  }
+
+  .head-names li.is-right {
+    align-items: flex-start;
+  }
 }
 
 /* Their LinkedIn and GitHub, side by side under each name */
@@ -5261,8 +5312,6 @@ html.hw-still .hw-land {
   gap: 12px;
 }
 
-/* Just the sound switch, on the right */
-/* Each link under a name */
 .team-in {
   display: block;
   line-height: 0;
@@ -5277,30 +5326,6 @@ html.hw-still .hw-land {
 .team-in:focus-visible {
   outline: 2px solid #8B7FF2;
   outline-offset: 3px;
-}
-
-.team-bar {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  margin-top: 8px;
-  font-size: 13px;
-  color: #8a8a8a;
-}
-
-.team-sound {
-  padding: 6px 14px;
-  border: 1px solid #E5E4DF;
-  border-radius: 999px;
-  background: #ffffff;
-  font: inherit;
-  font-size: 12px;
-  color: #262626;
-  cursor: pointer;
-}
-
-.team-sound[aria-pressed="false"] {
-  color: #8a8a8a;
 }
 
 /* Compare and Results: every corner square and sharp, from the panels down to the buttons,
@@ -5437,14 +5462,14 @@ html.hw-still .hw-land {
   to { transform: translateX(-100%); }
 }
 
-/* About opens straight on the team (no dive first): the title, then the three faces, in a column
-   as wide as Compare's so they have room */
-.content.about:has(.team-toy) {
+/* About opens straight on the team (no dive first): the head and their names, in a column as
+   wide as Compare's so they have room */
+.content.about:has(.head-stage) {
   --column: 1000px;
 }
 
 /* With no visible title, the faces start level with the top of the sidebar's links */
-.content.about:has(.team-toy) {
+.content.about:has(.head-stage) {
   padding-top: 72px;
 }
 
