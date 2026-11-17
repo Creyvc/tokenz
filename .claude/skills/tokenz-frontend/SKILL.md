@@ -34,8 +34,12 @@ backend's own files belong to the friend: keep changes there small, tested and r
 
 - `api.js`: every call to the engine (`/api/health`, `/api/inspect`, `/api/compress`).
 - `compare.js`: the Compare form and result. Keeps the form in `tokenz_compare_draft` and each
-  finished run in `tokenz_runs` (sessionStorage, this visit only).
-- `results.js`: reads `tokenz_runs` for the Results chart and table; never calls the engine.
+  finished run in `tokenz_runs` (sessionStorage, this visit only), the latest per method. Every
+  finished run also goes into `tokenz_history` (newest first, up to 30) for the History box under
+  the result, where clicking one brings back its prompt, settings and result. Clear empties the
+  box, the result and `tokenz_runs`, but not History; "Clear history" empties that.
+- `results.js`: reads `tokenz_runs` for the Results chart and table, showing only the most recent
+  prompt's runs; never calls the engine.
 - Compare's third method, **AI rewrite**, calls `/api/optimize` once per ticked model (Qwen and GPT-OSS
   120B on Groq, Gemini on Google, through `backend/optimizer/`), so each card shows as it lands. It's the only option that sends the prompt off the computer, so its
   section says so and shows the setup status from `/api/health`. It never re-runs by itself. Its run

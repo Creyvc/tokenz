@@ -53,6 +53,12 @@
   var runs = {};
   try { runs = JSON.parse(sessionStorage.getItem(RUNS_KEY)) || {}; } catch (e) {}
   var done = METHODS.filter(function (method) { return runs[method] && runs[method].result; });
+  // Only the most recent prompt's runs: an older prompt's run stays in Compare's History, not here
+  if (done.length) {
+    var newest = done.reduce(function (a, b) { return (runs[b].at || 0) > (runs[a].at || 0) ? b : a; });
+    var latestText = runs[newest].result.original_text;
+    done = done.filter(function (method) { return runs[method].result.original_text === latestText; });
+  }
 
   if (!done.length) {
     var empty = make("div", "rs-empty");

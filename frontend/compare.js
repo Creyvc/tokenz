@@ -6,6 +6,9 @@
 (function () {
   var DRAFT_KEY = "tokenz_compare_draft";
   var RUNS_KEY = "tokenz_runs";
+  // Every finished run this visit, newest first, with the form as it was when it ran
+  var HISTORY_KEY = "tokenz_history";
+  var HISTORY_MAX = 30;
   var LEVEL_NAMES = { conservative: "1 · Conservative", balanced: "2 · Balanced", aggressive: "3 · Aggressive", maximum: "4 · Maximum" };
   var NAMES = { nlp: "NLP", tfidf: "TF-IDF", ai: "AI rewrite" };
   // Names for the AI models; the engine's health check sends the same ones with each model
@@ -45,7 +48,8 @@
     suggest: find("suggest"), problems: find("problems"),
     phrases: find("phrases"), phrasesSection: find("phrases-section"), run: find("run"), runLabel: find("run-label"), runHelp: find("run-help"),
     result: find("result"), notice: find("engine-notice"), noticeMessage: find("engine-message"),
-    retry: find("engine-retry")
+    retry: find("engine-retry"), history: find("history"), historyList: find("history-list"),
+    historyClear: find("history-clear")
   };
 
   function read(key) {
@@ -495,6 +499,7 @@
       (reason === NO_PROMPT ? "" : reason) || runError;
     el.clear.hidden = !state.text;
     el.shortcut.textContent = reason || running ? "" : (MAC ? "⌘" : "Ctrl") + " + Enter also runs it";
+    renderHistory();
 
     if (shown && shown.method !== state.method) {
       hideResult();
@@ -549,6 +554,106 @@
     save();
     render();
     el.prompt.focus();
+  });
+
+  // ---- History: every finished run this visit, newest first ----
+
+  // The parts of the form a result depends on, so opening it from History brings them all back
+  function snapshot() {
+    return { text: state.text, method: state.method, level: state.level, phrases: state.phrases,
+      task: state.task, taskText: state.taskText, keep: state.keep.slice(), confirmed: state.confirmed,
+      budget: state.budget, aiModels: state.aiModels.slice() };
+  }
+
+  // A finished run: Results' latest for its method, and the top of History (the same run again
+  // moves up rather than showing twice)
+  function keep(run, form0) {
+    run.at = Date.now();
+    var runs = read(RUNS_KEY) || {};
+    runs[run.method] = run;
+    write(RUNS_KEY, runs);
+    var list = (read(HISTORY_KEY) || []).filter(function (item) { return item.run.signature !== run.signature; });
+    list.unshift({ at: run.at, form: form0, run: run });
+    write(HISTORY_KEY, list.slice(0, HISTORY_MAX));
+    renderHistory();
+  }
+
+  function ago(at) {
+    var mins = Math.floor((Date.now() - at) / 60000);
+    if (mins < 1) return "Just now";
+    if (mins < 60) return mins + " min ago";
+    var d = new Date(at);
+    return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+  }
+
+  function renderHistory() {
+    var list = read(HISTORY_KEY) || [];
+    // Rebuilt only when the list or the run on screen changes (render() calls this often)
+    var key = JSON.stringify([list.map(function (item) { return item.at; }), shown && shown.signature,
+      list.length && ago(list[0].at)]);
+    if (el.historyList.dataset.key === key) return;
+    el.historyList.dataset.key = key;
+    el.historyList.textContent = "";
+    el.historyClear.hidden = !list.length;
+    if (!list.length) el.historyList.append(make("li", "wb-history-empty", "No runs yet."));
+    list.forEach(function (item) {
+      var r = item.run.result;
+      var row = make("li");
+      var open = make("button", "wb-history-item");
+      open.type = "button";
+      if (shown && shown.signature === item.run.signature) {
+        open.classList.add("is-current");
+        open.setAttribute("aria-current", "true");
+      }
+      var top = make("span", "wb-history-top");
+      top.append(make("span", "wb-history-method", NAMES[item.run.method]), make("span", "wb-history-time", ago(item.at)));
+      var saved = make("span", "wb-history-saved");
+      saved.append(make("span", "wb-history-num", r.status === "error" ? "—" : (r.reduction_percent || 0).toFixed(1) + "%"),
+        make("span", "wb-history-sub", r.status === "error" ? OUTCOMES.error :
+          r.original_target_tokens + " → " + r.candidate_target_tokens + " tokens"));
+      open.append(top, make("span", "wb-history-text", item.form.text), saved);
+      open.addEventListener("click", function () { openHistory(item); });
+      row.append(open);
+      el.historyList.append(row);
+    });
+  }
+
+  // Back to a past run: its prompt and settings in the form, its result under it, and on Results
+  function openHistory(item) {
+    if (running) return;
+    Object.keys(item.form).forEach(function (name) { state[name] = item.form[name]; });
+    state.budgetTouched = true;
+    plan = null;
+    var runs = read(RUNS_KEY) || {};
+    item.run.at = Date.now();
+    runs[item.run.method] = item.run;
+    write(RUNS_KEY, runs);
+    save();
+    showResult(item.run);
+    if (state.method === "tfidf") scheduleInspect(0);
+    renderHistory();
+    var still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    el.result.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "start" });
+  }
+
+  // Runs from before History existed (this visit) start it off, newest first
+  (function seedHistory() {
+    if (read(HISTORY_KEY)) return;
+    var runs = read(RUNS_KEY) || {};
+    var list = Object.keys(runs).filter(function (method) { return runs[method] && runs[method].result; })
+      .map(function (method) {
+        var run = runs[method];
+        return { at: run.at || Date.now(), run: run,
+          form: { text: run.result.original_text, method: method, level: run.nlp_mode || state.level, phrases: "",
+            task: null, taskText: "", keep: [], confirmed: false, budget: null, aiModels: state.aiModels.slice() } };
+      })
+      .sort(function (a, b) { return b.at - a.at; });
+    if (list.length) write(HISTORY_KEY, list);
+  })();
+
+  el.historyClear.addEventListener("click", function () {
+    try { sessionStorage.removeItem(HISTORY_KEY); } catch (e) {}
+    renderHistory();
   });
 
   function switchMethod(method) {
@@ -701,10 +806,11 @@
     var text = state.text;
     var started = Date.now();
     var clearsAtStart = clears;
+    var form0 = snapshot();
     running = true;
     runError = "";
     render();
-    if (method === "ai") return runAi(text, state.encoding, sig, started, clearsAtStart);
+    if (method === "ai") return runAi(text, state.encoding, sig, started, clearsAtStart, form0);
     var quiet = quietRun;
     api.compress(body).then(function (reply) {
       return { method: method, result: reply.result, nlp_mode: reply.nlp_mode, encoding: reply.encoding, signature: sig };
@@ -715,9 +821,7 @@
         quietRun = false;
         return render();
       }
-      var runs = read(RUNS_KEY) || {};
-      runs[method] = run;
-      write(RUNS_KEY, runs);
+      keep(run, form0);
       whenShown(started, quiet, function () {
         running = false;
         quietRun = false;
@@ -740,7 +844,7 @@
 
   // The AI rewrite asks each model on its own, so a quick model's rewrite shows at once and a slow
   // one fills in when it lands. The run is kept for Results once both have answered.
-  function runAi(text, encoding, sig, started, clearsAtStart) {
+  function runAi(text, encoding, sig, started, clearsAtStart, form0) {
     var rows = chosenAiModels();
     var answers = {};
     var meta = { original_tokens: null, note: "" };
@@ -757,11 +861,7 @@
         if (done) running = false;
         return render();
       }
-      if (done) {
-        var runs = read(RUNS_KEY) || {};
-        runs.ai = run;
-        write(RUNS_KEY, runs);
-      }
+      if (done) keep(run, form0);
       // Shown once the logo has had its loading time; always the newest answers by then
       latest = run;
       whenShown(started, false, function () {

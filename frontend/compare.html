@@ -122,6 +122,16 @@
     </form>
 
     <section class="wb-result" data-result aria-live="polite" hidden></section>
+
+    <!-- Every finished run this visit, newest first: click one to bring back its prompt, method,
+         settings and result (compare.js) -->
+    <section class="wb-history" data-history>
+      <div class="wb-history-head">
+        <h2>History</h2>
+        <button type="button" class="wb-link" data-history-clear>Clear history</button>
+      </div>
+      <ol class="wb-history-list" data-history-list></ol>
+    </section>
   </main>
 </body>
 </html>
