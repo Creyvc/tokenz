@@ -5215,44 +5215,11 @@ html.hw-still .hw-land {
   padding-bottom: 0;
 }
 
-/* Two screens of scrolling turn the head one full way round, while it stays pinned */
-.head-scroll {
-  position: relative;
-  height: calc(100vh - 72px + 200vh);
-}
-
+/* The head fills the window below the top padding, so the page doesn't scroll */
 .head-stage {
-  position: sticky;
-  top: 72px;
+  position: relative;
   height: calc(100vh - 72px);
   min-height: 480px;
-}
-
-/* A small note in the bottom right that scrolling turns it, gone once the reader has */
-.head-hint {
-  position: fixed;
-  right: 32px;
-  bottom: 28px;
-  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 11px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: #8a8a8a;
-  transition: opacity 0.4s ease;
-}
-
-html.head-turned .head-hint {
-  opacity: 0;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .head-scroll {
-    height: auto;
-  }
-
-  .head-hint {
-    display: none;
-  }
 }
 
 .head-canvas {
@@ -5332,8 +5299,6 @@ html.head-turned .head-hint {
 
 @media (max-width: 800px) {
   .head-stage {
-    position: relative;
-    top: 0;
     height: auto;
     min-height: 0;
     display: flex;
