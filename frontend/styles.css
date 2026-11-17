@@ -4438,20 +4438,17 @@ html.home-wipe .nav.nav-copy {
   background: #c8c8c8;
 }
 
-/* The page switch (page-transition.js), a curtain. One ease throughout (--pt-ease), 1.2s:
-   - 0 to 0.7s, the rise: the new page, with a near-black panel on top of it (.pt-curtain), is
-     uncovered from the bottom of the window up, over the old page, which drifts up a touch and
-     dims (the browser's own page-switch animation, restyled while html.pt-switch is on)
-   - the new page's name slides up into the middle of the panel in big white letters
-   - 0.7s on, the lift: the panel's bottom edge rises off the top of the window, the name drifts
-     up and fades, and the page's content rises into place under it (html.pt-arrive)
-   The sidebar's dot doesn't slide here: it's on the new link when the page shows */
-:root {
-  --pt-ease: cubic-bezier(0.76, 0, 0.24, 1);
+/* The page switch (page-transition.js), one soft flash: the page you're leaving fades into a
+   solid colour, the opposite of it (near-black from a light page, white from a dark one,
+   html.pt-flash-white), which holds for a moment, and the new page fades in from it. 0.6s,
+   eased. The colour is the switch's own backdrop, so it's exact, with no grey on the way. While
+   it runs (html.pt-switch) both pages are pictures; the sidebar's dot slides over them as usual */
+html.pt-switch::view-transition {
+  background: #16171A;
 }
 
-html.pt-switch .nav-dot {
-  view-transition-name: none;
+html.pt-switch.pt-flash-white::view-transition {
+  background: #ffffff;
 }
 
 html.pt-switch::view-transition-group(root) {
@@ -4460,78 +4457,22 @@ html.pt-switch::view-transition-group(root) {
 
 html.pt-switch::view-transition-old(root) {
   mix-blend-mode: normal;
-  animation: pt-old 0.7s var(--pt-ease) both;
+  animation: pt-flash-out 0.6s both;
 }
 
 html.pt-switch::view-transition-new(root) {
   mix-blend-mode: normal;
-  animation: pt-new 0.7s var(--pt-ease) both;
+  animation: pt-flash-in 0.6s both;
 }
 
-@keyframes pt-old {
-  to {
-    transform: translateY(-6vh) scale(0.98);
-    filter: brightness(0.55);
-  }
+@keyframes pt-flash-out {
+  0%        { opacity: 1; animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1); }
+  42%, 100% { opacity: 0; }
 }
 
-@keyframes pt-new {
-  from { clip-path: inset(100% 0 0 0); }
-  to   { clip-path: inset(0 0 0 0); }
-}
-
-.pt-curtain {
-  position: fixed;
-  inset: 0;
-  z-index: 2147483000;
-  display: grid;
-  place-items: center;
-  background: #0C0D0C;
-  /* It sits outside <body>, so it takes the site's type itself */
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  pointer-events: none;
-  animation: pt-lift 1.2s var(--pt-ease) both;
-}
-
-/* Full until the rise has covered the window, then its bottom edge lifts off the top */
-@keyframes pt-lift {
-  0%, 58% { clip-path: inset(0 0 0 0); }
-  100%    { clip-path: inset(0 0 100% 0); }
-}
-
-.pt-curtain-mask {
-  display: block;
-  overflow: hidden;
-  padding: 0.1em 0.04em 0.16em;
-}
-
-.pt-curtain-name {
-  display: block;
-  font-size: clamp(56px, 9vw, 140px);
-  font-weight: 600;
-  line-height: 1;
-  letter-spacing: -0.05em;
-  color: #ffffff;
-  animation: pt-name 1.2s var(--pt-ease) both;
-}
-
-/* Up into view as the panel rises, a moment's hold, then up and away as it lifts */
-@keyframes pt-name {
-  0%, 18% { transform: translateY(110%); opacity: 1; }
-  48%, 60% { transform: translateY(0); opacity: 1; }
-  100% { transform: translateY(-60%); opacity: 0; }
-}
-
-/* The page's content rises in under the lifting panel (not on Home: its text has its own
-   entrance, and its fixed parts would come loose inside a moving block) */
-html.pt-arrive main.content:not(.home) {
-  animation: pt-content 1.2s var(--pt-ease) both;
-}
-
-@keyframes pt-content {
-  0%, 58% { transform: translateY(64px); }
-  100%    { transform: none; }
+@keyframes pt-flash-in {
+  0%, 52% { opacity: 0; animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1); }
+  100%    { opacity: 1; }
 }
 
 /* How it works: the jump (how.js). The scene stays pinned for a long stretch of scrolling while

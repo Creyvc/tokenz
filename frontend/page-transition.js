@@ -1,12 +1,11 @@
-// The page switch, a curtain: a near-black panel rises from the bottom of the window over the
-// page you're leaving (which drifts up a touch and dims), the new page's name slides up in big
-// white letters in its middle, then the panel lifts off the top and the new page's content rises
-// into place under it. One ease throughout (pt-* in styles.css).
-// - The rise is the browser's own page-switch animation (@view-transition in styles.css),
-//   restyled while it runs (html.pt-switch): the new page, with the panel (.pt-curtain) on top,
-//   is uncovered from the bottom up over the old one. The panel then lifts off on the live page.
-// - The sidebar's dot doesn't slide here (it would be behind the panel): it's simply on the new
-//   link when the page shows.
+// The page switch, one soft flash: the page you're leaving fades into a solid colour, the
+// opposite of it (near-black from a light page, white from a dark one), and the new page fades in
+// from it (pt-flash-* in styles.css).
+// - It's the browser's own page-switch animation (@view-transition in styles.css), restyled while
+//   it runs (html.pt-switch; html.pt-flash-white for a white flash).
+// - The old page decides the colour (its background at the middle of the window) and tells the
+//   new page, which draws the switch.
+// - The sidebar's dot still slides from the old link to the new one, over it.
 // - Loaded in each page's <head> without defer, so it's ready for the new page's first frame.
 // - With reduced motion, nothing changes: the browser's own animation runs as before.
 // - TokenzTransition.go(url) opens a page from a script (Home's COMPARE at the end).
@@ -14,11 +13,28 @@
   var root = document.documentElement;
   var still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  // Leaving: the old page's picture drifts up and dims under the rising panel
+  // Leaving: is this page dark where you're looking? Then the flash is white, otherwise black
+  var FLASH = "tokenz_flash";
   window.addEventListener("pageswap", function (event) {
     if (still || !event.viewTransition) return;
     root.classList.add("pt-switch");
+    try { sessionStorage.setItem(FLASH, looksDark() ? "white" : "black"); } catch (e) {}
   });
+
+  // The background under the middle of the window: going down through everything drawn there,
+  // the first solid colour. A picture or the moving gradient (a canvas) counts as dark
+  function looksDark() {
+    var layers = document.elementsFromPoint(window.innerWidth / 2, window.innerHeight / 2);
+    for (var i = 0; i < layers.length; i++) {
+      var el = layers[i];
+      if (el.tagName === "CANVAS" || el.tagName === "IMG" || el.tagName === "VIDEO") return true;
+      var bg = getComputedStyle(el).backgroundColor.match(/[\d.]+/g);
+      if (bg && (bg.length < 4 || Number(bg[3]) > 0.5)) {
+        return 0.2126 * bg[0] + 0.7152 * bg[1] + 0.0722 * bg[2] < 128;
+      }
+    }
+    return false;
+  }
 
   // Back to a page that was left (the Back button can bring it back as it was): undo that,
   // unless the switch back to it has already begun
@@ -54,42 +70,22 @@
     if (event.persisted && !revealing) root.classList.remove("pt-switch");
   });
 
-  // Arriving: the panel, with this page's name, over the new page while it's uncovered; then it
-  // lifts off and the page's content rises in (not on Home, whose text has its own entrance)
-  var CURTAIN_MS = 1250;
+  // Arriving: the blink, in the colour the old page chose
   window.addEventListener("pagereveal", function (event) {
     if (still || !event.viewTransition) return;
     revealing = true;
     running = event.viewTransition;
-    root.classList.add("pt-switch", "pt-arrive");
-    Array.prototype.forEach.call(document.querySelectorAll(".pt-curtain"), function (old) { old.remove(); });
-    var curtain = document.createElement("div");
-    curtain.className = "pt-curtain";
-    curtain.setAttribute("aria-hidden", "true");
-    var mask = document.createElement("span");
-    mask.className = "pt-curtain-mask";
-    var name = document.createElement("span");
-    name.className = "pt-curtain-name";
-    name.textContent = pageName();
-    mask.append(name);
-    curtain.append(mask);
-    root.append(curtain);
+    root.classList.add("pt-switch");
+    try {
+      if (sessionStorage.getItem(FLASH) === "white") root.classList.add("pt-flash-white");
+      sessionStorage.removeItem(FLASH);
+    } catch (e) {}
     event.viewTransition.finished.finally(function () {
-      root.classList.remove("pt-switch");
+      root.classList.remove("pt-switch", "pt-flash-white");
       revealing = false;
       running = null;
     });
-    setTimeout(function () {
-      curtain.remove();
-      root.classList.remove("pt-arrive");
-    }, CURTAIN_MS);
   });
-
-  // "Compare · Tokenz" → "Compare"; Home's title is just "Tokenz"
-  function pageName() {
-    var title = document.title.split(" · ")[0].trim();
-    return title && title !== "Tokenz" ? title : "Home";
-  }
 
   window.TokenzTransition = {
     go: function (url) { window.location.assign(url); }
