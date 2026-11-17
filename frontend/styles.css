@@ -533,6 +533,11 @@ html.modal-open {
   margin-top: 10px;
 }
 
+/* Its button has the banner's cut corner, smaller: bottom right, cut off at 45° */
+.consent-settings .consent-deny {
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%);
+}
+
 /* Intro on the front page (intro.js): the academic-project notice, then the animation.
    Hidden unless the script decided to play it this visit */
 .intro {

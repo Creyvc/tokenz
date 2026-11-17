@@ -5,19 +5,15 @@
   var CONTENT = {
     info:
       '<h1 id="modal-title">Info</h1>' +
-      '<p class="info-intro">Tokenz is a token saver for AI prompts. It shortens what you send to a language model while keeping the meaning, so every request uses fewer tokens.</p>' +
+      '<p class="info-intro">Tokenz shortens AI prompts, reducing token use without changing the answer.</p>' +
       '<div class="info-body">' +
-      '<p>Tokenz started in 2026 as an academic project. Prompts sent to large language models are often longer than they need to be, and every extra token adds cost and waiting time.</p>' +
-      '<p>Tokenz squeezes a prompt down before it is sent, removing repetition and filler while keeping the parts the model needs to give the same answer. Compare shows the original and the shortened prompt side by side, and Results shows how many tokens were saved.</p>' +
-      '<p>The project is built for learning and experimenting. It aims to show that smaller prompts can work just as well, and to measure honestly when they don\'t.</p>' +
+      '<p>Developed in 2026 as an academic project. Prompts are processed on your device; only AI rewrite sends them to an external service (Groq and Google).</p>' +
       '</div>',
     cookies:
       '<h1 id="modal-title">Cookies</h1>' +
-      '<p class="info-intro">Tokenz asks before using any optional cookies, and you can change your choice at any time.</p>' +
+      '<p class="info-intro">Tokenz uses a single cookie to remember your choice. No tracking.</p>' +
       '<div class="info-body">' +
-      '<p>One essential cookie, tokenz_consent, remembers whether you accepted or denied. It lasts six months and stores nothing else.</p>' +
-      '<p>Optional cookies, such as analytics to see how the site is used, only switch on after you click Accept All. If you click Deny All they stay off, and any set earlier are removed. Tokenz doesn\'t use any optional cookies yet, but anything added later will follow this rule.</p>' +
-      '<p>The font is loaded from Google Fonts, which means Google can see your IP address when the page loads. Google Fonts does not set cookies.</p>' +
+      '<p>Fonts are served by Google Fonts, which receives your IP address but sets no cookies.</p>' +
       '</div>' +
       '<div class="consent-settings">' +
       '<button type="button" class="consent-deny" data-consent-open>Change cookie settings</button>' +
