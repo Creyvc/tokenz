@@ -49,7 +49,8 @@
     phrases: find("phrases"), phrasesSection: find("phrases-section"), run: find("run"), runLabel: find("run-label"), runHelp: find("run-help"),
     result: find("result"), notice: find("engine-notice"), noticeMessage: find("engine-message"),
     retry: find("engine-retry"), history: find("history"), historyList: find("history-list"),
-    historyClear: find("history-clear")
+    historyClear: find("history-clear"), historyOpen: find("history-open"), historyClose: find("history-close"),
+    historyCount: find("history-count")
   };
 
   function read(key) {
@@ -601,6 +602,8 @@
     el.historyList.dataset.key = key;
     el.historyList.textContent = "";
     el.historyClear.hidden = !list.length;
+    el.historyCount.hidden = !list.length;
+    el.historyCount.textContent = list.length;
     if (!list.length) el.historyList.append(make("li", "wb-history-empty", "No runs yet."));
     list.forEach(function (item) {
       var r = item.run.result;
@@ -624,9 +627,41 @@
     });
   }
 
+  // The panel: slides in from the right as a window over the page; slides back out to close
+  el.historyOpen.addEventListener("click", function () {
+    renderHistory();
+    el.history.classList.remove("is-closing");
+    el.history.showModal();
+  });
+
+  function closeHistory() {
+    if (!el.history.open || el.history.classList.contains("is-closing")) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return el.history.close();
+    el.history.classList.add("is-closing");
+    setTimeout(function () {
+      el.history.classList.remove("is-closing");
+      el.history.close();
+    }, 240);
+  }
+
+  el.historyClose.addEventListener("click", closeHistory);
+  // Esc slides it out too, rather than snapping shut
+  el.history.addEventListener("cancel", function (event) {
+    event.preventDefault();
+    closeHistory();
+  });
+  // A click outside the panel (on the dimmed page around it) closes it
+  el.history.addEventListener("click", function (event) {
+    if (event.target !== el.history) return;
+    var box = el.history.getBoundingClientRect();
+    var inside = event.clientX >= box.left && event.clientX <= box.right && event.clientY >= box.top && event.clientY <= box.bottom;
+    if (!inside) closeHistory();
+  });
+
   // Back to a past run: its prompt and settings in the form, its result under it, and on Results
   function openHistory(item) {
     if (running) return;
+    closeHistory();
     Object.keys(item.form).forEach(function (name) { state[name] = item.form[name]; });
     state.budgetTouched = true;
     plan = null;

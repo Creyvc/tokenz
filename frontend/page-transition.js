@@ -1,6 +1,6 @@
-// The page switch, one soft flash: the page you're leaving fades into a solid colour, the
-// opposite of it (near-black from a light page, white from a dark one), and the new page fades in
-// from it (pt-flash-* in styles.css).
+// The page switch, three blinks of solid colour between the old page and the new: the opposite
+// of the page you're leaving, then its own colour, then the opposite again (black, white, black
+// from a light page; white, near-black, white from a dark one) (pt-blinks in styles.css).
 // - It's the browser's own page-switch animation (@view-transition in styles.css), restyled while
 //   it runs (html.pt-switch; html.pt-flash-white for a white flash).
 // - The old page decides the colour (its background at the middle of the window) and tells the

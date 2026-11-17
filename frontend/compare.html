@@ -52,6 +52,12 @@
             <label><input type="radio" name="method" value="tfidf"><span>TF-IDF</span></label>
             <label><input type="radio" name="method" value="ai"><span>AI rewrite</span></label>
           </div>
+          <!-- Opens History, the panel of past runs; the number is how many there are -->
+          <button type="button" class="wb-history-open" data-history-open aria-haspopup="dialog" aria-controls="wb-history">
+            <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M3.5 12a8.5 8.5 0 1 0 2.5-6M3.5 4v4h4M12 7.5V12l3 2"/></svg>
+            <span>History</span>
+            <span class="wb-history-count" data-history-count hidden></span>
+          </button>
         </div>
         <!-- The prompt goes in like a chat message: the squeeze mark (assets/logo-mark.svg's own
              paths, inline so its parts can move while a run is going) and the text. The button that
@@ -123,15 +129,19 @@
 
     <section class="wb-result" data-result aria-live="polite" hidden></section>
 
-    <!-- Every finished run this visit, newest first: click one to bring back its prompt, method,
-         settings and result (compare.js) -->
-    <section class="wb-history" data-history>
+    <!-- History: every finished run this visit, newest first, in a panel that slides in from the
+         right when History is clicked. Click one to bring back its prompt, method, settings and
+         result (compare.js). Closes with the ✕, Esc, or a click outside it -->
+    <dialog class="wb-history" id="wb-history" aria-labelledby="wb-history-title" data-history>
       <div class="wb-history-head">
-        <h2>History</h2>
+        <h2 id="wb-history-title">History</h2>
         <button type="button" class="wb-link" data-history-clear>Clear history</button>
+        <button type="button" class="wb-history-close" data-history-close aria-label="Close history">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+        </button>
       </div>
       <ol class="wb-history-list" data-history-list></ol>
-    </section>
+    </dialog>
   </main>
 </body>
 </html>

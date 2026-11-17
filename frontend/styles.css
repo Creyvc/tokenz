@@ -1733,33 +1733,152 @@ textarea.wb-input {
   to { transform: rotate(360deg); }
 }
 
-/* History: every finished run this visit, newest first, under the result. Each one is a white
-   panel like the others: method and time on top, the prompt (two lines at most), and what it
-   saved on the right. The one on screen is outlined */
+/* The History button, top right of the prompt box across from the method tabs: a clock, the
+   word, and how many runs there are */
+.wb-history-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 999px;
+  background: #F1F1EF;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: #16171A;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.wb-history-open:hover {
+  background: #E6E6E3;
+}
+
+.wb-history-open:focus-visible {
+  outline: 2px solid #16171A;
+  outline-offset: 2px;
+}
+
+.wb-history-open svg,
+.wb-history-close svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.wb-history-count {
+  min-width: 20px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: #16171A;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  color: #ffffff;
+}
+
+/* History: a panel down the right of the window, sliding in over the page (blurred, like the Info
+   and Cookies windows). Every finished run this visit, newest first; each one a white panel like
+   the others: method and time on top, the prompt (two lines at most), and what it saved on the
+   right. The one on screen is outlined */
 .wb-history {
-  margin-top: 80px;
-  padding-top: 56px;
-  border-top: 1px solid #E5E4DF;
+  position: fixed;
+  inset: 0 0 0 auto;
+  width: min(460px, 100vw);
+  max-width: 100vw;
+  height: 100dvh;
+  max-height: 100dvh;
+  margin: 0;
+  padding: 24px;
+  border: none;
+  border-left: 1px solid #E5E4DF;
+  background: #ffffff;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  box-shadow: -24px 0 60px rgba(22, 23, 26, 0.08);
+}
+
+.wb-history[open] {
+  animation: wb-drawer-in 0.38s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.wb-history.is-closing {
+  animation: wb-drawer-out 0.24s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+.wb-history::backdrop {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: modal-backdrop-in 0.3s ease;
+}
+
+@keyframes wb-drawer-in {
+  from { transform: translateX(100%); }
+}
+
+@keyframes wb-drawer-out {
+  to { transform: translateX(100%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wb-history[open],
+  .wb-history.is-closing,
+  .wb-history::backdrop {
+    animation: none;
+  }
 }
 
 .wb-history-head {
+  position: sticky;
+  top: -24px;
+  z-index: 1;
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
+  align-items: center;
   gap: 16px;
+  margin: -24px -24px 0;
+  padding: 24px 24px 16px;
+  background: #ffffff;
 }
 
 .wb-history-head h2 {
+  margin-right: auto;
   font-size: 22px;
   font-weight: 500;
   letter-spacing: -0.02em;
   color: #16171A;
 }
 
+.wb-history-close {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: #F1F1EF;
+  color: #16171A;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.wb-history-close:hover {
+  background: #E6E6E3;
+}
+
+.wb-history-close:focus-visible {
+  outline: 2px solid #16171A;
+  outline-offset: 2px;
+}
+
 .wb-history-list {
   display: grid;
   gap: 10px;
-  margin-top: 20px;
+  margin-top: 8px;
   list-style: none;
 }
 
@@ -4450,17 +4569,23 @@ html.home-wipe .nav.nav-copy {
   background: #c8c8c8;
 }
 
-/* The page switch (page-transition.js), one soft flash: the page you're leaving fades into a
-   solid colour, the opposite of it (near-black from a light page, white from a dark one,
-   html.pt-flash-white), which holds for a moment, and the new page fades in from it. 0.6s,
-   eased. The colour is the switch's own backdrop, so it's exact, with no grey on the way. While
-   it runs (html.pt-switch) both pages are pictures; the sidebar's dot slides over them as usual */
-html.pt-switch::view-transition {
-  background: #16171A;
+/* The page switch (page-transition.js), three blinks: solid colours in crisp steps, between the
+   page you're leaving and the new one. First the opposite of the old page's colour, then its own,
+   then the opposite again (from a light page: black, white, black; from a dark one, html.pt-flash-
+   white: white, near-black, white), then the new page. 0.3s. The colours are the switch's own
+   backdrop, shown while both pages are hidden. The sidebar's dot slides over it as usual */
+html.pt-switch {
+  --pt-other: #16171A;
+  --pt-own: #ffffff;
 }
 
-html.pt-switch.pt-flash-white::view-transition {
-  background: #ffffff;
+html.pt-switch.pt-flash-white {
+  --pt-other: #ffffff;
+  --pt-own: #16171A;
+}
+
+html.pt-switch::view-transition {
+  animation: pt-blinks 0.3s step-end both;
 }
 
 html.pt-switch::view-transition-group(root) {
@@ -4469,22 +4594,31 @@ html.pt-switch::view-transition-group(root) {
 
 html.pt-switch::view-transition-old(root) {
   mix-blend-mode: normal;
-  animation: pt-flash-out 0.6s both;
+  animation: pt-old-off 0.3s step-end both;
 }
 
 html.pt-switch::view-transition-new(root) {
   mix-blend-mode: normal;
-  animation: pt-flash-in 0.6s both;
+  animation: pt-new-on 0.3s step-end both;
 }
 
-@keyframes pt-flash-out {
-  0%        { opacity: 1; animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1); }
-  42%, 100% { opacity: 0; }
+/* Old page 0 to 0.03s; blinks at 0.03, 0.1 and 0.17s; new page from 0.25s */
+@keyframes pt-blinks {
+  0%   { background: transparent; }
+  10%  { background: var(--pt-other); }
+  34%  { background: var(--pt-own); }
+  58%  { background: var(--pt-other); }
+  82%, 100% { background: transparent; }
 }
 
-@keyframes pt-flash-in {
-  0%, 52% { opacity: 0; animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1); }
-  100%    { opacity: 1; }
+@keyframes pt-old-off {
+  0%        { opacity: 1; }
+  10%, 100% { opacity: 0; }
+}
+
+@keyframes pt-new-on {
+  0%        { opacity: 0; }
+  82%, 100% { opacity: 1; }
 }
 
 /* How it works: the jump (how.js). The scene stays pinned for a long stretch of scrolling while
