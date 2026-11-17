@@ -4429,9 +4429,9 @@ html.home-scroll .measure-title {
   left: 218px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 12px;
+  font-size: 18px;
   font-weight: 500;
   line-height: 1;
   letter-spacing: 0.16em;
@@ -4442,8 +4442,8 @@ html.home-scroll .measure-title {
 html.home-scroll .measure-title::before {
   content: "";
   flex: none;
-  width: 7px;
-  height: 7px;
+  width: 10px;
+  height: 10px;
   background: #8B7FF2;
 }
 
@@ -4511,7 +4511,7 @@ html.home-scroll .measure-item:not(.is-active) .measure-text {
   display: none;
 }
 
-/* "1/4" with two small violet squares beside it */
+/* "1/4" with the squeeze mark beside it, in violet (assets/logo-mark.svg's own paths) */
 html.home-scroll .measure-count {
   position: absolute;
   right: 64px;
