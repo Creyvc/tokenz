@@ -1085,11 +1085,13 @@ html.intro-play .intro.is-playing {
   white-space: nowrap;
 }
 
-/* The prompt card: method switch on top, the text, then the count and the example link */
+/* The boxes on Compare and Results: white panels shaped like a chat window, with a thin light
+   border and rounded corners */
 .wb-card {
   border: 1px solid #E5E4DF;
   border-radius: 16px;
   background: #ffffff;
+  color: #16171A;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -1098,7 +1100,96 @@ html.intro-play .intro.is-playing {
   flex-wrap: wrap;
   align-items: center;
   gap: 8px 16px;
-  padding: 14px 14px 0;
+  padding: 16px 16px 0;
+}
+
+/* A panel's name, top left (Results) */
+.wb-card-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: #16171A;
+}
+
+/* The prompt goes in like a chat message: an inset box with a sparkle, the text and a round send
+   button (which runs the method) */
+.wb-composer {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  margin: 16px;
+  padding: 8px 8px 8px 16px;
+  border: 1px solid #E5E4DF;
+  border-radius: 12px;
+  background: #FAFAF9;
+  transition: border-color 0.2s ease;
+}
+
+.wb-composer:focus-within {
+  border-color: #16171A;
+}
+
+.wb-sparkle {
+  flex: none;
+  align-self: flex-start;
+  margin-top: 13px;
+  fill: #16171A;
+}
+
+.wb-send {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border: none;
+  border-radius: 50%;
+  background: #16171A;
+  color: #ffffff;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+}
+
+.wb-send svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.wb-send:hover:not(:disabled) {
+  background: #33343a;
+}
+
+.wb-send:active:not(:disabled) {
+  transform: scale(0.94);
+}
+
+/* Greyed out until there's something to run, like the image's send button */
+.wb-send:disabled {
+  background: #F1F1EF;
+  color: #9a9a9a;
+  cursor: default;
+}
+
+.wb-send:focus-visible {
+  outline: 2px solid #16171A;
+  outline-offset: 2px;
+}
+
+/* While it runs, the arrow becomes a small turning ring */
+.wb-send.is-running svg {
+  display: none;
+}
+
+.wb-send.is-running::before {
+  content: "";
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: wb-spin 0.8s linear infinite;
 }
 
 .wb-prompt {
@@ -1118,6 +1209,20 @@ html.intro-play .intro.is-playing {
 
 .wb-prompt::placeholder {
   color: #9a9a9a;
+}
+
+/* In the composer the box around it does the padding */
+.wb-composer .wb-prompt {
+  flex: 1;
+  min-height: 150px;
+  padding: 10px 0;
+  /* No drag corner in a chat input; it scrolls once the text is longer than the box */
+  resize: none;
+}
+
+/* A status pill in a panel's top row sits at the far right */
+.wb-card-head .wb-pill {
+  margin-left: auto;
 }
 
 .wb-card-foot {
@@ -1156,7 +1261,7 @@ html.intro-play .intro.is-playing {
   pointer-events: none;
 }
 
-.wb-segmented span {
+.wb-segmented label > span {
   display: block;
   padding: 7px 18px;
   border-radius: 999px;
@@ -1166,7 +1271,7 @@ html.intro-play .intro.is-playing {
   transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.wb-segmented label:hover span {
+.wb-segmented label:hover > span {
   color: #16171A;
 }
 
@@ -1177,10 +1282,14 @@ html.intro-play .intro.is-playing {
 }
 
 /* No ring around a tab or a step when it has keyboard focus: its text darkens instead */
-.wb-segmented input:focus-visible + span,
-.wb-steps input:focus-visible + span {
+.wb-segmented input:focus-visible + span {
   outline: none;
   color: #16171A;
+}
+
+.wb-steps input:focus-visible + span {
+  outline: 2px solid #16171A;
+  outline-offset: 2px;
 }
 
 /* Settings under the card, each under a thin line */
@@ -1204,10 +1313,6 @@ html.intro-play .intro.is-playing {
   margin-top: 32px;
 }
 
-.wb-help-top {
-  margin: -6px 0 0;
-}
-
 /* Strength: four cards, the chosen one outlined in near-black */
 .wb-steps {
   display: grid;
@@ -1220,12 +1325,14 @@ html.intro-play .intro.is-playing {
   cursor: pointer;
 }
 
-.wb-steps span {
+/* Strength: four white tiles, like the panels; the chosen one fills near-black */
+.wb-steps label > span {
   display: block;
   height: 100%;
   padding: 12px 14px;
   border: 1px solid #E5E4DF;
-  border-radius: 12px;
+  border-radius: 16px;
+  background: #ffffff;
   font-size: 14px;
   font-weight: 500;
   color: #5c5c5c;
@@ -1240,14 +1347,19 @@ html.intro-play .intro.is-playing {
   color: #9a9a9a;
 }
 
-.wb-steps label:hover span {
+.wb-steps label:hover > span {
   border-color: #9a9a9a;
+  color: #16171A;
 }
 
 .wb-steps input:checked + span {
   border-color: #16171A;
-  box-shadow: 0 0 0 1px #16171A;
-  color: #16171A;
+  background: #16171A;
+  color: #ffffff;
+}
+
+.wb-steps input:checked + span b {
+  color: #9a9a9a;
 }
 
 /* Plain inputs: the budget box, protected phrases, token counting */
@@ -1404,13 +1516,12 @@ textarea.wb-input {
 
 /* Protected phrases: its own small section, marked optional in quiet grey */
 .wb-optional {
-  margin-left: 6px;
-  font-weight: 400;
+  font-size: 13px;
   color: #9a9a9a;
 }
 
 .wb-phrases {
-  min-height: 0;
+  min-height: 96px;
 }
 
 /* Run, with the reason it's greyed out beside it */
@@ -1620,17 +1731,6 @@ textarea.wb-input {
 }
 
 /* Original and suggestion side by side, with the changes marked */
-.wb-sides {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-top: 28px;
-}
-
-.wb-side {
-  margin: 0;
-}
-
 .wb-text {
   height: calc(100% - 26px);
   padding: 16px 18px;
@@ -1643,8 +1743,71 @@ textarea.wb-input {
   color: #262626;
 }
 
-.wb-side:last-child .wb-text {
-  border-color: #16171A;
+/* The texts as a chat in a dark panel: your prompt in a light bubble on the right, the shorter
+   version in a violet bubble on the left, each with its name and token count under it */
+.wb-chat {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 28px;
+  padding: 28px 24px;
+}
+
+.wb-chat .wb-card-head {
+  padding: 0;
+}
+
+.wb-bubble {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 80%;
+  margin: 0;
+}
+
+.wb-bubble.is-mine {
+  align-self: flex-end;
+  align-items: flex-end;
+}
+
+.wb-bubble.is-reply {
+  align-self: flex-start;
+}
+
+.wb-text.wb-bubble-text {
+  height: auto;
+  padding: 14px 20px;
+  border: none;
+  border-radius: 16px;
+  line-height: 1.65;
+}
+
+.is-mine .wb-bubble-text {
+  background: #F1F1EF;
+  color: #16171A;
+}
+
+.is-reply .wb-bubble-text {
+  background: #8467DD;
+  color: #ffffff;
+}
+
+.wb-bubble-meta {
+  padding: 0 6px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: #8a8a8a;
+}
+
+/* What changed, on the bubbles: removed words struck through on the light one, new or reworded
+   ones lightly shaded on the violet one */
+.is-mine .wb-del {
+  color: #8a8a8a;
+}
+
+.is-reply .wb-ins {
+  background: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
 }
 
 .wb-del {
@@ -1760,6 +1923,7 @@ textarea.wb-input {
   padding: 16px 18px;
   border: 1px solid #E5E4DF;
   border-radius: 16px;
+  background: #ffffff;
 }
 
 .wb-review .wb-check {
@@ -1823,26 +1987,8 @@ textarea.wb-input {
   margin-top: 28px;
 }
 
-.rs-card {
-  padding: 20px 22px;
-  border: 1px solid #E5E4DF;
-  border-radius: 16px;
-}
-
-.rs-card-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.rs-card h2 {
-  font-size: 15px;
-  color: #16171A;
-}
-
 .rs-card-num {
-  margin-top: 20px;
+  padding: 22px 18px 24px;
   font-size: 48px;
   font-weight: 500;
   line-height: 1;
@@ -1851,25 +1997,12 @@ textarea.wb-input {
   color: #16171A;
 }
 
-.rs-card-sub {
-  margin-top: 8px;
-  font-size: 13px;
-  font-variant-numeric: tabular-nums;
-  color: #8a8a8a;
-}
-
 .rs-chart {
-  margin: 56px 0 0;
+  margin: 40px 0 0;
 }
 
-.rs-chart-title {
-  font-size: 14px;
-  font-weight: 500;
-  color: #16171A;
-}
-
-.rs-chart-title span {
-  font-weight: 400;
+.rs-chart-note {
+  font-size: 13px;
   color: #8a8a8a;
 }
 
@@ -1877,7 +2010,7 @@ textarea.wb-input {
 .rs-bars {
   display: grid;
   gap: 2px;
-  margin-top: 16px;
+  padding: 14px 18px 12px;
 }
 
 .rs-bar {
@@ -1913,11 +2046,11 @@ textarea.wb-input {
   height: 100%;
   min-width: 2px;
   border-radius: 0 4px 4px 0;
-  background: #16171A;
+  background: #8467DD;
 }
 
 .rs-bar.is-baseline .rs-bar-fill {
-  background: #8a8a8a;
+  background: #C9C8C3;
 }
 
 .rs-bar-value {
@@ -1928,13 +2061,27 @@ textarea.wb-input {
 
 .rs-detail {
   min-height: 1.5em;
-  margin-top: 12px;
   font-size: 13px;
   color: #5c5c5c;
 }
 
-.rs-table {
+.rs-numbers {
   margin-top: 40px;
+}
+
+.rs-numbers .wb-table-wrap {
+  margin-top: 0;
+  padding: 6px 18px 10px;
+}
+
+/* Each method's texts on Results: its name over its chat */
+.wb-details .wb-chat {
+  margin-top: 16px;
+}
+
+/* The table's last row needs no line of its own: the box's edge closes it */
+.rs-numbers tbody tr:last-child td {
+  border-bottom: none;
 }
 
 .rs-table td:nth-child(n+2):nth-child(-n+6) {
@@ -1958,7 +2105,8 @@ textarea.wb-input {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .wb-primary.is-running::before {
+  .wb-primary.is-running::before,
+  .wb-send.is-running::before {
     animation: none;
   }
 
@@ -1969,9 +2117,19 @@ textarea.wb-input {
 }
 
 @media (max-width: 900px) {
-  .wb-sides,
   .wb-text {
     height: auto;
+  }
+}
+
+/* On a phone the bubbles can take nearly the whole width */
+@media (max-width: 600px) {
+  .wb-bubble {
+    max-width: 92%;
+  }
+
+  .wb-chat {
+    padding: 20px 16px;
   }
 }
 
@@ -2493,25 +2651,9 @@ html.home-box-waiting .home-panel {
   }
 }
 
-/* Compare, AI rewrite: the notice that this option sends the prompt away, in a quiet box */
-.wb-ai-notice {
-  padding: 16px 18px;
-  border: 1px solid #E5E4DF;
-  border-radius: 12px;
-  background: #FAFAF9;
-  font-size: 14px;
-  line-height: 1.6;
-  color: #262626;
-}
-
-.wb-ai-notice b {
-  font-weight: 500;
-  color: #16171A;
-}
-
 /* Whether Groq and Gemini are set up, and how to set them up */
 .wb-ai-status {
-  margin-top: 16px;
+  margin-top: 0;
   font-size: 14px;
   line-height: 1.6;
   color: #262626;
@@ -2550,13 +2692,11 @@ html.home-box-waiting .home-panel {
   margin-top: 16px;
 }
 
-.wb-candidate {
+.wb-candidate-body {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 18px;
-  border: 1px solid #E5E4DF;
-  border-radius: 16px;
+  padding: 14px 18px 18px;
 }
 
 .wb-candidate-head {
@@ -2566,19 +2706,28 @@ html.home-box-waiting .home-panel {
   gap: 12px;
 }
 
-.wb-candidate .wb-candidate-head h3 {
-  margin: 0;
-  font-size: 15px;
-  color: #16171A;
-}
-
 /* The original, set apart from the summary sentence above it */
 .wb-ai-original {
   margin-top: 28px;
 }
 
+.wb-candidate-head h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 500;
+  color: #16171A;
+}
+
+.wb-candidate .wb-bubble {
+  max-width: 100%;
+}
+
+.wb-candidate .wb-review {
+  background: #FAFAF9;
+}
+
 .wb-candidate-model {
-  margin-top: -6px;
+  margin-top: 0;
   font-size: 12px;
   color: #8a8a8a;
 }
@@ -2589,10 +2738,6 @@ html.home-box-waiting .home-panel {
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
   color: #16171A;
-}
-
-.wb-candidate .wb-text {
-  height: auto;
 }
 
 /* The review tick and copy button sit tight under each card's rewrite */

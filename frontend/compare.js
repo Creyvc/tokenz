@@ -169,7 +169,7 @@
     }
     // One box per model; a model that isn't set up says why and can't be ticked
     var picker = make("fieldset", "wb-ai-models");
-    picker.append(make("legend", "wb-label", "Models"));
+    picker.append(make("legend", "wb-label", "AI Models"));
     aiStatus.optimizers.forEach(function (row) {
       var label = make("label", "wb-check wb-ai-model" + (row.available ? "" : " is-off"));
       var box = make("input");
@@ -263,7 +263,10 @@
 
   function renderSentences() {
     var rows = plan ? plan.sentences : [];
-    var empty = rows.length ? "" : state.text.trim() ? "Reading your sentences…" : "Sentences will appear here once a prompt is entered.";
+    var empty = rows.length ? "" : state.text.trim() ? "Reading your sentences…" : "";
+    // Nothing to list before there's a prompt, so the list, its lines and its heading stay out of the way
+    el.sentences.hidden = !rows.length && !empty;
+    document.getElementById("wb-sentences-label").hidden = el.sentences.hidden;
     var key = JSON.stringify([rows.map(function (row) { return row.text; }), empty]);
     if (el.sentences.dataset.key !== key) {
       el.sentences.dataset.key = key;
@@ -478,7 +481,10 @@
     }
 
     var reason = blocker();
-    el.run.textContent = running ? "Running…" : "Run " + NAMES[state.method];
+    // The send button is an arrow; what it does is in its name, for screen readers and on hover
+    var runName = running ? "Running…" : "Run " + NAMES[state.method];
+    el.run.setAttribute("aria-label", runName);
+    el.run.title = runName;
     el.run.disabled = running || reason !== "";
     el.run.classList.toggle("is-running", running);
     el.runHelp.textContent = running ? (state.method === "ai" ? "Groq's models usually answer in seconds; Gemini can take up to 30." : "") :
@@ -543,6 +549,61 @@
     if (method === "tfidf" && !plan) scheduleInspect(0);
     save();
     render();
+    blinkSwitch(method);
+  }
+
+  // ---- Switching method: what changes blinks in, the same blink as the cookie banner's
+  // (intro-blink in styles.css). The chosen tab blinks, then each part that's showing below the
+  // prompt box, then the words inside it in reading order ----
+  var BLINK_TIME = 120;   // ms, one blink
+  var blinkClear = null;
+
+  function blinkSwitch(method) {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    var tab = form.querySelector('input[name="method"][value="' + method + '"] + span');
+    var parts = [el[method], el.phrasesSection, el.result].filter(function (part) { return part && !part.hidden; });
+    var pieces = tab ? [tab] : [];
+    parts.forEach(function (part) { pieces = pieces.concat([part], words(part)); });
+    // About half a second in all, however many words there are
+    var step = Math.min(10, 450 / pieces.length);
+    pieces.forEach(function (piece) { piece.classList.remove("intro-blink"); });
+    void form.offsetWidth;   // let the browser see the class gone, so each blink starts again
+    pieces.forEach(function (piece, i) {
+      piece.style.animationDelay = (i === 0 ? 0 : 60 + i * step) + "ms";
+      piece.classList.add("intro-blink");
+    });
+    // Once it's played, the class comes off again, so nothing re-blinks later when it's shown
+    clearTimeout(blinkClear);
+    blinkClear = setTimeout(function () {
+      pieces.forEach(function (piece) {
+        piece.classList.remove("intro-blink");
+        piece.style.animationDelay = "";
+      });
+    }, 60 + pieces.length * step + BLINK_TIME + 50);
+  }
+
+  // Each word in an element, in its own span (made once, then reused). Text the user typed and
+  // the inside of form fields are left alone
+  function words(root) {
+    var found = [];
+    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    var nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach(function (node) {
+      var parent = node.parentNode;
+      if (!node.nodeValue.trim() || parent.closest("textarea, select, option")) return;
+      if (parent.classList.contains("blink-word")) return found.push(parent);
+      var fragment = document.createDocumentFragment();
+      node.nodeValue.split(/(\s+)/).forEach(function (part) {
+        if (!part) return;
+        if (!part.trim()) return fragment.append(part);
+        var span = make("span", "blink-word", part);
+        fragment.append(span);
+        found.push(span);
+      });
+      parent.replaceChild(fragment, node);
+    });
+    return found;
   }
 
   form.addEventListener("change", function (event) {
@@ -786,10 +847,19 @@
     return box;
   }
 
-  function side(title, box) {
-    var figure = make("figure", "wb-side");
-    figure.append(make("figcaption", "wb-label", title), box);
+  // The texts as a chat, in a dark panel: your prompt in a light bubble on the right, the shorter
+  // version in a violet bubble on the left, each with its name and token count under it
+  function bubble(kind, title, box, count) {
+    var figure = make("figure", "wb-bubble " + kind);
+    box.classList.add("wb-bubble-text");
+    figure.append(box, make("figcaption", "wb-bubble-meta", title + (count == null ? "" : " · " + count + " tokens")));
     return figure;
+  }
+
+  function chat() {
+    var panel = make("div", "wb-card wb-chat");
+    Array.prototype.forEach.call(arguments, function (part) { panel.append(part); });
+    return panel;
   }
 
   function stat(list, label, value) {
@@ -922,35 +992,37 @@
       el.result.append(make("p", "wb-help", "Still waiting for " + waiting.join(" and ") + ". Its rewrite shows here as soon as it answers."));
     }
 
-    var original = side("Original", make("div", "wb-text", r.original_text));
+    var original = chat(bubble("is-mine", "Original", make("div", "wb-text", r.original_text), r.original_target_tokens));
     original.classList.add("wb-ai-original");
     el.result.append(original);
     var list = make("div", "wb-candidates");
     var anyShorter = false;
     run.candidates.forEach(function (candidate) {
       var look = AI_STATES[candidate.status] || [candidate.status, "error"];
-      var card = make("section", "wb-candidate");
-      var top = make("div", "wb-candidate-head");
-      top.append(make("h3", null, aiLabel(candidate)),
-        make("span", "wb-pill is-" + look[1], look[0]));
-      card.append(top, make("p", "wb-candidate-model", candidate.model));
+      // Each model's answer in its own dark panel, its rewrite in a violet bubble
+      var card = make("section", "wb-candidate wb-card");
+      var top = make("div", "wb-card-head wb-candidate-head");
+      top.append(make("h3", null, aiLabel(candidate)), make("span", "wb-pill is-" + look[1], look[0]));
+      var body = make("div", "wb-candidate-body");
+      card.append(top, body);
+      body.append(make("p", "wb-candidate-model", candidate.model));
       if (candidate.optimized_tokens != null) {
-        card.append(make("p", "wb-candidate-num", candidate.optimized_tokens + " tokens · " +
+        body.append(make("p", "wb-candidate-num", candidate.optimized_tokens + " tokens · " +
           candidate.reduction_percent.toFixed(1) + "% fewer"));
       }
       if (candidate.status === "accepted") {
         anyShorter = true;
         var changes = wordChanges(r.original_text, candidate.optimized_prompt);
-        card.append(changes ? marked(changes.right) : make("div", "wb-text", candidate.optimized_prompt),
-          reviewControls(candidate.optimized_prompt));
+        body.append(bubble("is-reply", "Rewrite", changes ? marked(changes.right) : make("div", "wb-text", candidate.optimized_prompt),
+          candidate.optimized_tokens), reviewControls(candidate.optimized_prompt));
       } else if (candidate.status === "running") {
-        card.append(make("p", "wb-help", "Waiting for its answer…"));
+        body.append(make("p", "wb-help", "Waiting for its answer…"));
       } else if (candidate.status === "rejected") {
-        card.append(make("p", "wb-help", "Rejected, so the original is kept: " + candidate.checks.join(" ")));
+        body.append(make("p", "wb-help", "Rejected, so the original is kept: " + candidate.checks.join(" ")));
       } else {
         // The optimizer's timeout wording, in plainer words for the website's 30-second limit
         var timedOut = /timed out/i.test(candidate.error || "");
-        card.append(make("p", "wb-help", timedOut ?
+        body.append(make("p", "wb-help", timedOut ?
           "Took longer than 30 seconds, so it was stopped. Its free plan is sometimes busy: run it again in a moment." :
           candidate.error || "This model didn't finish."));
       }
@@ -1018,11 +1090,10 @@
     }[r.status]));
 
     var changes = changed ? wordChanges(r.original_text, r.candidate_text) : null;
-    var sides = make("div", "wb-sides");
-    sides.append(
-      side("Original", changes ? marked(changes.left) : make("div", "wb-text", r.original_text)),
-      side(changed ? "Suggestion" : "Original kept", changes ? marked(changes.right) : make("div", "wb-text", r.candidate_text)));
-    el.result.append(sides);
+    el.result.append(chat(
+      bubble("is-mine", "Original", changes ? marked(changes.left) : make("div", "wb-text", r.original_text), r.original_target_tokens),
+      bubble("is-reply", changed ? "Suggestion" : "Original kept", changes ? marked(changes.right) : make("div", "wb-text", r.candidate_text),
+        r.candidate_target_tokens)));
     if (changes) {
       var legend = make("p", "wb-legend");
       legend.append(make("del", "wb-del", "Struck through"), " was removed · ",

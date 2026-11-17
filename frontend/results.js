@@ -21,6 +21,29 @@
     return node;
   }
 
+  // Dark panels, like Compare's prompt box: a name at the top, the content, and an optional strip
+  // along the bottom
+  function card(tagName, className, label) {
+    var box = make(tagName, "wb-card " + className);
+    var head = make("div", "wb-card-head");
+    head.append(make("h2", "wb-card-title", label));
+    box.append(head);
+    return { box: box, head: head };
+  }
+
+  // Your prompt in a light bubble on the right, the shorter version in a violet one on the left
+  function bubble(kind, title, text, count) {
+    var figure = make("figure", "wb-bubble " + kind);
+    figure.append(make("div", "wb-text wb-bubble-text", text), make("figcaption", "wb-bubble-meta", title + " · " + count + " tokens"));
+    return figure;
+  }
+
+  function foot(text) {
+    var strip = make("div", "wb-card-foot");
+    strip.append(make("span", "wb-count", text));
+    return strip;
+  }
+
   function compareLink(text) {
     var link = make("a", null, text);
     link.href = "compare.html";
@@ -82,13 +105,12 @@
   var cards = make("div", "rs-cards");
   done.forEach(function (method, i) {
     var r = results[i];
-    var card = make("section", "rs-card");
-    var top = make("div", "rs-card-top");
-    top.append(make("h2", null, NAMES[method]), make("span", "wb-pill is-" + r.status, OUTCOMES[r.status] || r.status));
-    card.append(top, make("p", "rs-card-num", r.reduction_percent.toFixed(1) + "%"),
-      make("p", "rs-card-sub", r.original_target_tokens + " → " + r.candidate_target_tokens + " tokens · " + r.tokens_saved + " saved" +
+    var one = card("section", "rs-card", NAMES[method]);
+    one.head.append(make("span", "wb-pill is-" + r.status, OUTCOMES[r.status] || r.status));
+    one.box.append(make("p", "rs-card-num", r.reduction_percent.toFixed(1) + "%"),
+      foot(r.original_target_tokens + " → " + r.candidate_target_tokens + " tokens · " + r.tokens_saved + " saved" +
         (method === "ai" && r.chosen ? " · " + r.chosen : "")));
-    cards.append(card);
+    cards.append(one.box);
   });
   box.append(cards);
 
@@ -116,12 +138,11 @@
     }
     var top = Math.max.apply(null, bars.map(function (bar) { return bar.tokens; })) || 1;
 
-    var chart = make("figure", "rs-chart");
-    var caption = make("figcaption", "rs-chart-title", "Prompt tokens");
-    caption.append(make("span", null, " · shorter bars mean fewer tokens"));
+    var chart = card("figure", "rs-chart", "Prompt tokens");
+    chart.head.append(make("span", "rs-chart-note", "Shorter bars mean fewer tokens"));
     var list = make("div", "rs-bars");
     list.setAttribute("role", "list");
-    var detail = make("p", "rs-detail", "Point at or tab to a bar for details.");
+    var detail = make("span", "wb-count rs-detail", "Point at or tab to a bar for details.");
     detail.setAttribute("aria-live", "polite");
 
     bars.forEach(function (bar) {
@@ -140,8 +161,10 @@
       });
       list.append(row);
     });
-    chart.append(caption, list, detail);
-    box.append(chart);
+    var strip = make("div", "wb-card-foot");
+    strip.append(detail);
+    chart.box.append(list, strip);
+    box.append(chart.box);
   }
 
   // The table: the same numbers, plus outcome and settings
@@ -168,9 +191,11 @@
     tbody.append(tr);
   });
   table.append(thead, tbody);
+  var numbers = card("section", "rs-numbers", "Run details");
   var wrap = make("div", "wb-table-wrap");
   wrap.append(table);
-  box.append(wrap);
+  numbers.box.append(wrap);
+  box.append(numbers.box);
 
   if (results.some(function (r) { return r.status === "unchanged"; })) {
     box.append(make("p", "wb-help", "“Original kept” is a valid outcome: no shorter version passed the checks, so it saves 0 tokens."));
@@ -182,10 +207,11 @@
   details.append(make("summary", null, "Prompts and suggestions"));
   done.forEach(function (method, i) {
     var r = results[i];
-    details.append(make("h3", null, NAMES[method]),
-      make("p", "wb-label", "Original"), make("div", "wb-text", r.original_text),
-      make("p", "wb-label", r.candidate_text === r.original_text ? "Original kept" : "Suggestion"),
-      make("div", "wb-text", r.candidate_text));
+    // Each method's two texts as a chat, like on Compare
+    var pair = card("div", "wb-chat", NAMES[method]);
+    pair.box.append(bubble("is-mine", "Original", r.original_text, r.original_target_tokens),
+      bubble("is-reply", r.candidate_text === r.original_text ? "Original kept" : "Suggestion", r.candidate_text, r.candidate_target_tokens));
+    details.append(pair.box);
   });
   box.append(details);
 
