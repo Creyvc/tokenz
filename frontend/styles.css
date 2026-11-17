@@ -5215,10 +5215,44 @@ html.hw-still .hw-land {
   padding-bottom: 0;
 }
 
-.head-stage {
+/* Two screens of scrolling turn the head one full way round, while it stays pinned */
+.head-scroll {
   position: relative;
+  height: calc(100vh - 72px + 200vh);
+}
+
+.head-stage {
+  position: sticky;
+  top: 72px;
   height: calc(100vh - 72px);
   min-height: 480px;
+}
+
+/* A small note in the bottom right that scrolling turns it, gone once the reader has */
+.head-hint {
+  position: fixed;
+  right: 32px;
+  bottom: 28px;
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #8a8a8a;
+  transition: opacity 0.4s ease;
+}
+
+html.head-turned .head-hint {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .head-scroll {
+    height: auto;
+  }
+
+  .head-hint {
+    display: none;
+  }
 }
 
 .head-canvas {
@@ -5227,6 +5261,19 @@ html.hw-still .hw-land {
   width: 100%;
   height: 100%;
   touch-action: pan-y;
+}
+
+/* The labels' lines, over the points; and the picture itself where WebGL2 can't run */
+.head-lines {
+  pointer-events: none;
+}
+
+.head-fallback {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  height: 72%;
+  transform: translateX(-50%);
 }
 
 .head-names {
@@ -5275,8 +5322,18 @@ html.hw-still .hw-land {
   color: #8B7FF2;
 }
 
+/* A white backing behind each label, so the vacuum's streaks pass behind it rather than through */
+.head-name,
+.head-names .team-links {
+  padding: 2px 6px;
+  margin: -2px -6px;
+  background: #ffffff;
+}
+
 @media (max-width: 800px) {
   .head-stage {
+    position: relative;
+    top: 0;
     height: auto;
     min-height: 0;
     display: flex;
@@ -5286,6 +5343,10 @@ html.hw-still .hw-land {
   .head-canvas {
     position: relative;
     height: 70vh;
+  }
+
+  .head-lines {
+    display: none;
   }
 
   .head-names {
