@@ -2058,11 +2058,6 @@ textarea.wb-input {
   margin: 40px 0 0;
 }
 
-.rs-chart-note {
-  font-size: 13px;
-  color: #8a8a8a;
-}
-
 /* One bar per row: name, bar from zero, number. The original is grey, the methods near-black */
 .rs-bars {
   display: grid;
@@ -2151,14 +2146,6 @@ textarea.wb-input {
 
 .results-page .wb-details .wb-text {
   height: auto;
-}
-
-.results-note {
-  max-width: 640px;
-  margin-top: 56px;
-  font-size: 13px;
-  line-height: 1.6;
-  color: #8a8a8a;
 }
 
 @media (prefers-reduced-motion: reduce) {

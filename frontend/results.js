@@ -139,7 +139,6 @@
     var top = Math.max.apply(null, bars.map(function (bar) { return bar.tokens; })) || 1;
 
     var chart = card("figure", "rs-chart", "Prompt tokens");
-    chart.head.append(make("span", "rs-chart-note", "Shorter bars mean fewer tokens"));
     var list = make("div", "rs-bars");
     list.setAttribute("role", "list");
     var detail = make("span", "wb-count rs-detail", "Point at or tab to a bar for details.");
@@ -214,8 +213,4 @@
     details.append(pair.box);
   });
   box.append(details);
-
-  var again = make("p", "wb-next");
-  again.append(compareLink("Run again on Compare"));
-  box.append(again);
 })();

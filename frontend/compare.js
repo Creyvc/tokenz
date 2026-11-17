@@ -538,10 +538,12 @@
     scheduleInspect(350);
   });
 
-  // Clear empties the box and takes the result away with it
+  // Clear empties the box and takes the results away with it: the one here and the ones the
+  // Results page shows
   el.clear.addEventListener("click", function () {
     clears++;
     hideResult();
+    try { sessionStorage.removeItem(RUNS_KEY); } catch (e) {}
     state.text = "";
     resetForNewText();
     save();
@@ -707,13 +709,19 @@
     api.compress(body).then(function (reply) {
       return { method: method, result: reply.result, nlp_mode: reply.nlp_mode, encoding: reply.encoding, signature: sig };
     }).then(function (run) {
+      // Cleared while it ran: it's dropped, here and on Results
+      if (clears !== clearsAtStart) {
+        running = false;
+        quietRun = false;
+        return render();
+      }
       var runs = read(RUNS_KEY) || {};
       runs[method] = run;
       write(RUNS_KEY, runs);
       whenShown(started, quiet, function () {
         running = false;
         quietRun = false;
-        // Cleared while it ran: it's kept for Results, but not shown here
+        // Cleared during the loading wait
         if (clears !== clearsAtStart) return render();
         showResult(run);
         if (!quiet) {
@@ -744,6 +752,11 @@
         }) };
       var run = aiRun(reply, text, (Date.now() - started) / 1000, sig);
       var done = !left;
+      // Cleared while it ran: it's dropped, here and on Results
+      if (clears !== clearsAtStart) {
+        if (done) running = false;
+        return render();
+      }
       if (done) {
         var runs = read(RUNS_KEY) || {};
         runs.ai = run;
@@ -754,7 +767,7 @@
       whenShown(started, false, function () {
         if (latest !== run) return;
         if (done) running = false;
-        // Cleared while it ran: it's kept for Results, but not shown here
+        // Cleared during the loading wait (Clear has already emptied Results)
         if (clears !== clearsAtStart) return render();
         showResult(run);
         if (!scrolled) {
