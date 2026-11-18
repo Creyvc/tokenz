@@ -129,8 +129,9 @@ grey, and never get the dot.
 
 ## Styles
 
-- Font: Inter everywhere, for every text (since 18 November 2026: Home's headline, the intro
-  notice, the labels and numbers too). Don't add another font without asking.
+- Font: Inter for every text (since 18 November 2026: Home's headline, the labels and numbers
+  too), except the intro's academic-project notice, which stays in JetBrains Mono. Don't add
+  another font without asking.
 - Colours are written out, not variables: near-black `#16171A`, body text `#262626`, greys
   `#5c5c5c` / `#8a8a8a` / `#9a9a9a`, light lines `#E5E4DF`, white background.
 - Sidebar is 210px wide and fixed; `.content` leaves `margin-left: 210px` for it. At 800px and

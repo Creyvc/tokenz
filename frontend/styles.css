@@ -1,6 +1,6 @@
-/* Inter: a clean, slightly tight sans-serif close to the reference screenshot. The one font for
-   every text on the site */
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+/* Inter: a clean, slightly tight sans-serif close to the reference screenshot. The font for every
+   text on the site, except the academic-project notice before the intro, in JetBrains Mono */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap");
 
 * {
   margin: 0;
@@ -612,6 +612,7 @@ html.intro-play .intro.is-playing {
 /* The notice window: dark, terminal-style, in a monospace font (only here, not on the rest of
    the site), with thin grey lines and everything in capitals */
 .intro-warning-card {
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   width: 100%;
   max-width: 640px;
   margin: auto;
