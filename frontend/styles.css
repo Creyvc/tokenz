@@ -1775,7 +1775,8 @@ textarea.wb-input {
   font-size: 16px;
 }
 
-/* (its title on the left, "Optional" at the far right of the box) */
+/* (its title on the left, "Optional" at the far right of the box. The title is one span of its
+   own, so it stays in one piece when switching method splits its words up to blink them) */
 .wb-phrases-box .wb-section-title label {
   display: flex;
   align-items: baseline;
@@ -1783,9 +1784,12 @@ textarea.wb-input {
   gap: 12px;
 }
 
+/* (see-through: the box around it has the fill, and a fill of its own would cover the title's
+   letters as they rise in past it when the page opens) */
 .wb-phrases-box .wb-phrases {
   min-height: 84px;
   padding: 4px 0 8px;
+  background: transparent;
   font-size: 14px;
 }
 
@@ -2721,15 +2725,15 @@ html.wb-arrive .rs-bar-fill {
 }
 
 /* Results' texts: your prompt once, then one outlined box per method, its name and counts on a
-   strip along the top and its suggestion under it */
+   strip along the top and its suggestion under it, all the same distance apart */
 .rs-text-group {
   margin-top: 16px;
   border: 1px solid #D9D8D3;
   background: #ffffff;
 }
 
-.rs-text-group + .rs-text-group {
-  margin-top: 12px;
+.content.results-page .wb-details[open] {
+  padding-bottom: 22px;
 }
 
 .rs-text-head {
@@ -2768,10 +2772,6 @@ html.wb-arrive .rs-bar-fill {
 .results-page .wb-details .is-original .wb-text.rs-text-body {
   border-left-color: #C9C8C3;
   background: #F7F7F5;
-}
-
-.rs-text-group.is-original {
-  margin-bottom: 24px;
 }
 
 .results-page .wb-details .is-kept .wb-text.rs-text-body {
@@ -5782,10 +5782,22 @@ html.wb-arrive .wb-text-rise {
 }
 
 /* (moving down by its own height while cut off at the same distance from its bottom, so it
-   always shows only within its own place: rising from behind a mask at its foot) */
+   always shows only within its own place: rising from behind a mask at its foot. The mask
+   stays a little below the line the whole way, so letters that reach past it, like the tails
+   of g, p and y under a tight title, aren't cut off on the way up) */
 @keyframes wb-rise {
-  from { transform: translateY(100%); clip-path: inset(0 0 100% 0); }
-  to   { transform: none; clip-path: inset(0 0 0 0); }
+  from { transform: translateY(calc(100% + 0.3em)); clip-path: inset(-0.3em -0.2em 100% -0.2em); }
+  to   { transform: none; clip-path: inset(-0.3em -0.2em -0.3em -0.2em); }
+}
+
+/* A box to type in (its grey hint) comes up a short way and fades in, rather than travelling up
+   its whole empty height */
+html.wb-arrive :is(textarea, input).wb-text-rise {
+  animation-name: wb-rise-field;
+}
+
+@keyframes wb-rise-field {
+  from { transform: translateY(14px); opacity: 0; }
 }
 
 /* Home's FAQ, after the editorial "questions, answered" pages: on the left, a big, tight

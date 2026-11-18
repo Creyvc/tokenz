@@ -112,6 +112,11 @@
       if (el === part || !el.getClientRects().length || found.indexOf(el) >= 0) return;
       found.push(el);
     });
+    // A box to type in with no shape of its own (Compare's protected phrases, whose box is
+    // around its title too): its grey hint rises with the title instead of being there already
+    Array.prototype.forEach.call(part.querySelectorAll("textarea[placeholder], input[placeholder]"), function (field) {
+      if (!field.value && !isShape(field) && field.getClientRects().length) found.push(field);
+    });
     return found.filter(function (el) {
       return !found.some(function (other) { return other !== el && other.contains(el); });
     });
