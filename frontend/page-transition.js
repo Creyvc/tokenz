@@ -36,6 +36,16 @@
     document.addEventListener("DOMContentLoaded", arrive);
   }
 
+  function isShape(el) {
+    var style = getComputedStyle(el);
+    var fill = style.backgroundColor.match(/[\d.]+/g);
+    var filled = fill && (fill.length < 4 || Number(fill[3]) > 0);
+    var lined = ["Top", "Right", "Bottom", "Left"].some(function (side) {
+      return parseFloat(style["border" + side + "Width"]) > 0 && style["border" + side + "Style"] !== "none";
+    });
+    return filled || lined;
+  }
+
   function arrive() {
     var main = document.querySelector(".content.workbench, .content.results-page");
     var boxes = main ? main.querySelectorAll(":scope > :is(.engine-notice, .wb, .wb-result, [data-results]):not([hidden])") : [];
@@ -55,19 +65,56 @@
     skin.style.width = (right - left) + "px";
     skin.style.height = (bottom - top) + "px";
     main.prepend(skin);
-    var parts = [];
+    var parts = [], texts = [];
     boxes.forEach(function (box) {
       Array.prototype.forEach.call(box.children, function (part) {
         if (part.hidden) return;
         part.style.setProperty("--rise", parts.length);
         parts.push(part);
+        texts = texts.concat(textsIn(part));
       });
     });
+    texts.forEach(function (text) { text.classList.add("wb-text-rise"); });
     setTimeout(function () {
       root.classList.remove("wb-arrive");
       skin.remove();
       parts.forEach(function (part) { part.style.removeProperty("--rise"); });
-    }, 1200 + parts.length * 75 + 800);
+      texts.forEach(function (text) {
+        text.classList.remove("wb-text-rise");
+        if (!text.className) text.removeAttribute("class");
+        // (words that were given a wrapper of their own go back as they were)
+        if (text.classList.contains("wb-text-wrap")) text.replaceWith(text.firstChild);
+      });
+    }, 1300 + parts.length * 75 + 800);
+  }
+
+  // The pieces of text in a part, each whole (a label, a title, a sentence with its link), not
+  // word by word: for every bit of words, the nearest box around it that isn't a plain run of
+  // inline text (the page's own boxes, which can move), the outermost where they nest. When that
+  // box is a shape of its own (a tile, a tab, a button: it has a fill or an outline), the shape
+  // slides with its part and only its words rise, in a wrapper of their own for the while
+  function textsIn(part) {
+    var found = [], nodes = [];
+    var walk = document.createTreeWalker(part, NodeFilter.SHOW_TEXT);
+    for (var node = walk.nextNode(); node; node = walk.nextNode()) nodes.push(node);
+    nodes.forEach(function (node) {
+      if (!node.nodeValue.trim()) return;
+      var el = node.parentElement;
+      if (!el || el.closest("textarea, script, style, [hidden]")) return;
+      while (el !== part && /^(inline|contents)$/.test(getComputedStyle(el).display)) el = el.parentElement;
+      if (el !== part && isShape(el)) {
+        var wrap = document.createElement("span");
+        wrap.className = "wb-text-wrap";
+        node.replaceWith(wrap);
+        wrap.append(node);
+        el = wrap;
+      }
+      if (el === part || !el.getClientRects().length || found.indexOf(el) >= 0) return;
+      found.push(el);
+    });
+    return found.filter(function (el) {
+      return !found.some(function (other) { return other !== el && other.contains(el); });
+    });
   }
 
   function isBoxPage(url) {

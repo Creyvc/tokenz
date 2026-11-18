@@ -5416,8 +5416,10 @@ html.hw-still .hw-land {
       by page-transition.js) grows from a point at its top-right corner, which stays where it is, to its
       full size, down and to the left at once, evenly (0.8s). The real boxes are see-through
       meanwhile, and nothing inside them grows.
-   2. Then each part inside slides up into place from behind its own mask, one after another
-      (--rise, its place in the order, page-transition.js), like Home's headline.
+   2. Then each part inside (its boxes and shapes) slides up into place, one after another
+      (--rise, its place in the order, page-transition.js), and a moment later each piece of
+      text in it rises from behind its own mask, a whole line at a time, like Home's headline
+      (.wb-text-rise).
    Between Compare and Results the box blinks first, as before (html.wb-arrive is set by
    page-transition.js), and nothing of this runs with reduced motion */
 html.wb-arrive :is(.content.workbench, .content.results-page) {
@@ -5444,7 +5446,19 @@ html.wb-arrive .content.results-page [data-results] {
 
 html.wb-arrive .content.workbench :is(.wb, .wb-result, .engine-notice) > *,
 html.wb-arrive .content.results-page [data-results] > * {
-  animation: wb-rise 0.75s cubic-bezier(0.33, 1, 0.68, 1) calc(1.2s + var(--rise, 0) * 75ms) backwards;
+  animation: wb-slide 0.7s cubic-bezier(0.22, 1, 0.36, 1) calc(1.2s + var(--rise, 0) * 75ms) backwards;
+}
+
+.wb-text-wrap {
+  display: inline-block;
+}
+
+html.wb-arrive .wb-text-rise {
+  animation: wb-rise 0.75s cubic-bezier(0.33, 1, 0.68, 1) calc(1.3s + var(--rise, 0) * 75ms) backwards;
+}
+
+@keyframes wb-slide {
+  from { transform: translateY(36px); opacity: 0; }
 }
 
 @keyframes wb-grow {

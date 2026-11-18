@@ -366,12 +366,12 @@
   var TO_LETTERS = 750;  // boxes become T O K E N Z with square corners, from the middle outwards
   var LETTER_STAGGER = 80;
   var MORPH_TIME = 650;
-  var WORD_HOLD = 700;   // TOKENZ holds still this long once spelt out (about 290ms on screen at SPEED 2.4)
+  var WORD_HOLD = 700;   // TOKENZ holds still this long once spelt out (about 250ms on screen at SPEED 2.8)
   var ROUND = TO_LETTERS + 2 * LETTER_STAGGER + MORPH_TIME + WORD_HOLD; // then all the letters soften into a rounded font together
-  var ROUND_TIME = 500;   // (about 210ms on screen at SPEED 2.4)
+  var ROUND_TIME = 500;   // (about 180ms on screen at SPEED 2.8)
   var ROUNDED = 0.75;    // how round they get: each corner's radius, as a share of the stroke thickness
                          // (0.5 or more makes every stroke end a full round cap)
-  var ROUND_HOLD = 300;  // the rounded word holds still this long (about 125ms on screen at SPEED 2.4)
+  var ROUND_HOLD = 300;  // the rounded word holds still this long (about 110ms on screen at SPEED 2.8)
   var TO_OS = ROUND + ROUND_TIME + ROUND_HOLD; // then the T and Z become wide O's
   var MERGE = TO_OS + MORPH_TIME;        // Venom-style merge: tendrils shoot out from every letter to the middle...
   var REACH_TIME = 350;
@@ -380,7 +380,7 @@
   var SETTLE = PULL + 150 + MERGE_TIME;  // the O wobbles like jelly as it settles
   var GROW = SETTLE + 150;               // the O grows until its hole uncovers the page, while still wobbling
   var GROW_TIME = 1200;
-  var SPEED = 2.4;   // plays the whole timeline above this much faster (1 = as written)
+  var SPEED = 2.8;   // plays the whole timeline above this much faster (1 = as written)
 
   function run() {
     var cover = document.querySelector(".intro");
@@ -614,14 +614,16 @@
     // From here the white comes from the drawing, so its hole can show the page through
     cover.style.background = "transparent";
 
-    var startTime = null;
     var opening = false;
-    var OPEN_EARLY = 1000; // timeline ms before the zoom (about 420ms on screen), for the gradient to warm up
-    var VEIL_TIME = 500;   // the white in the hole fades from halfway through the zoom, this long (about 210ms on screen)
+    var OPEN_EARLY = 1000; // timeline ms before the zoom (about 360ms on screen), for the gradient to warm up
+    var VEIL_TIME = 500;   // the white in the hole fades from halfway through the zoom, this long (about 180ms on screen)
 
+    // The clock moves on by each frame's time, but never more than a 30th of a second at once:
+    // if the computer stalls for a moment, the motion slows through it instead of jumping ahead
+    var clock = 0, lastTime = null;
     function frame(time) {
-      if (startTime === null) startTime = time;
-      var clock = (time - startTime) * SPEED;
+      if (lastTime !== null) clock += Math.min(time - lastTime, 1000 / 30) * SPEED;
+      lastTime = time;
       var openingClock = clock / OPENING_PACE;
       drawLogo(openingClock);
       // The letters' timeline starts once the logo has played
