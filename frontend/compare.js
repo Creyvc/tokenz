@@ -40,7 +40,7 @@
 
   function find(name) { return document.querySelector("[data-" + name + "]"); }
   var el = {
-    prompt: find("prompt"), composer: find("composer"), promptTokens: find("prompt-tokens"), clear: find("clear"),
+    prompt: find("prompt"), composer: find("composer"), promptTokens: find("prompt-tokens"), runWhy: find("run-why"), clear: find("clear"),
     least: find("budget-least"), share: find("budget-share"), shortcut: find("shortcut"),
         nlp: document.querySelector('[data-for="nlp"]'), tfidf: document.querySelector('[data-for="tfidf"]'),
     ai: document.querySelector('[data-for="ai"]'), aiStatus: find("ai-status"),
@@ -230,13 +230,17 @@
 
   // Sentence preflight for TF-IDF (it also counts the prompt's tokens)
 
-  // The sentence most likely to be the main task: the first the engine reads as a request or
-  // instruction, or else the last question, or else the last sentence
+  // The sentence most likely to be the main task: of those the engine reads as a request or
+  // instruction, the longest (the main ask, rather than a short role like "Act as a tutor."), or
+  // else the last question, or else the last sentence
   function likelyTask(sentences) {
     if (!sentences.length) return null;
+    var best = null;
     for (var i = 0; i < sentences.length; i++) {
-      if ((sentences[i].mandatory_reasons || []).indexOf("Request or instruction") !== -1) return i;
+      if ((sentences[i].mandatory_reasons || []).indexOf("Request or instruction") === -1) continue;
+      if (best === null || sentences[i].text.length > sentences[best].text.length) best = i;
     }
+    if (best !== null) return best;
     for (var j = sentences.length - 1; j >= 0; j--) {
       if (/\?\s*$/.test(sentences[j].text)) return j;
     }
@@ -526,6 +530,10 @@
     el.composer.classList.toggle("is-running", running);
     el.runHelp.textContent = running ? (state.method === "ai" ? "Groq's models usually answer in seconds; Gemini can take up to 30." : "") :
       (reason === NO_PROMPT ? "" : reason) || runError;
+    // (beside Run, briefly; the notes themselves are further down)
+    var quiet = !reason || reason === NO_PROMPT || reason === "Checking the engine…" || running;
+    var firstIssue = reason === "Fix the points above first." ? tfidfIssues().filter(function (issue) { return issue.indexOf(NOTHING_TO_CUT) !== 0; })[0] : null;
+    el.runWhy.textContent = quiet ? "" : firstIssue ? firstIssue.split(/(?<=\.)\s/)[0] : reason;
     el.clear.hidden = !state.text;
     el.shortcut.textContent = reason || running ? "" : (MAC ? "⌘" : "Ctrl") + " + Enter also runs it";
     renderHistory();

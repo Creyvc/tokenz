@@ -1369,6 +1369,19 @@ html.intro-play .intro.is-playing {
   color: #8a8a8a;
 }
 
+/* Why Run is greyed out, just left of it */
+.wb-foot-why {
+  margin-left: auto;
+  font-size: 13px;
+  line-height: 1.4;
+  text-align: right;
+  color: #5c5c5c;
+}
+
+.wb-foot-why:empty {
+  display: none;
+}
+
 /* Two-option switch, like a pill split in half; the chosen side is white and lifted */
 .wb-segmented {
   display: inline-flex;
