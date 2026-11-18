@@ -5208,7 +5208,7 @@ html.hw-still .hw-land {
 
 
 /* About: the team as three glowing balls (orbs.js), each over its person's name in capitals
-   (a small violet number first) and their LinkedIn and GitHub. The balls are drawn on a canvas
+   and their LinkedIn and GitHub. The balls are drawn on a canvas
    behind, each centred in the empty square above its name (.orb-spot). Three across, filling the
    window below the top; one above another on a phone */
 .content.about:has(.orbs-stage) {
@@ -5233,9 +5233,10 @@ html.hw-still .hw-land {
   pointer-events: none;
 }
 
+/* (no z-index of its own: that would wall the text off from the balls, and the names below need
+   to see them to blend) */
 .orbs-team {
   position: relative;
-  z-index: 1;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 24px;
@@ -5257,22 +5258,69 @@ html.hw-still .hw-land {
   aspect-ratio: 1;
 }
 
+/* The names and links take the opposite colour of whatever's behind them, letter by letter, so
+   when a bead or a ball drifts under the text it stays easy to read. They're written in the
+   opposite of their real colours: on the white page that flips back to exactly how they look
+   (near-black, LinkedIn blue) */
+.orb-name,
+.team-links {
+  mix-blend-mode: difference;
+}
+
+/* Each name and, hidden below it in the same place, a hello ("Hello, I'm Vuthy"). Hovering the
+   name, it rises up out of view and the hello rises into its place; leaving, they swap back.
+   The box is as wide as the longer of the two, so nothing beside or under it moves */
 .orb-name {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
+  display: grid;
+  overflow: hidden;
+  padding-block: 2px;
   font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 13px;
   font-weight: 500;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #16171A;
+  color: #E9E8E5;   /* shows as #16171A */
   white-space: nowrap;
+  cursor: default;
 }
 
-.orb-name small {
-  font-size: 10px;
-  color: #8B7FF2;
+.orb-name > span {
+  grid-area: 1 / 1;
+  justify-self: center;
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.orb-name-hello {
+  transform: translateY(110%);
+}
+
+.orb-name:hover .orb-name-real,
+.orb-name.is-saying .orb-name-real {
+  transform: translateY(-110%);
+}
+
+.orb-name:hover .orb-name-hello,
+.orb-name.is-saying .orb-name-hello {
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orb-name > span {
+    transition: opacity 0.2s ease;
+    transform: none;
+  }
+
+  .orb-name-hello,
+  .orb-name:hover .orb-name-real,
+  .orb-name.is-saying .orb-name-real {
+    opacity: 0;
+    transform: none;
+  }
+
+  .orb-name:hover .orb-name-hello,
+  .orb-name.is-saying .orb-name-hello {
+    opacity: 1;
+  }
 }
 
 /* Without WebGL2: still, soft gradients in each ball's colours */
@@ -5316,7 +5364,7 @@ html.hw-still .hw-land {
 }
 
 .team-in:focus-visible {
-  outline: 2px solid #8B7FF2;
+  outline: 2px solid #74800D;   /* shows as #8B7FF2 */
   outline-offset: 3px;
 }
 
