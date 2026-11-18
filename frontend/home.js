@@ -324,7 +324,8 @@
     var measureItems = end ? Array.prototype.slice.call(end.querySelectorAll(".measure-item")) : [];
     var measureNow = end ? end.querySelector(".measure-count-now") : null;
     var MEASURE_STEP = 2;    // windows of scrolling from one measure to the next
-    var MEASURE_TAIL = 1.2;  // windows of scrolling with the last one shown, before the white comes
+    var MEASURE_TAIL = 2;    // windows of scrolling with the last one shown, before the white comes:
+                             // its drawing keeps moving up with the scroll till it meets the top
     var MEASURE_WIPE = 1.2;  // windows of scrolling for the white to rise and fill the window
     var measureWipe = end ? end.querySelector(".measure-wipe") : null;
     var measureAt = null, measureAtTime = 0;  // which measure is in the middle (0 to 3), eased
@@ -679,7 +680,7 @@
         if (end) end.style.removeProperty("height");
         if (wipeCtx) { wipeCtx.setTransform(1, 0, 0, 1, 0, 0); wipeCtx.clearRect(0, 0, wipeCanvas.width, wipeCanvas.height); wipeShown = null; }
         root.classList.remove("home-wipe");
-        root.style.removeProperty("--wipe-top");
+        ["--wipe-top", "--wipe-mask", "--wipe-mask-off"].forEach(function (name) { root.style.removeProperty(name); });
         measureItems.forEach(function (item) {
           item.classList.remove("is-active");
           item.style.removeProperty("--y");
@@ -946,10 +947,15 @@
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, W, H);
       if (amount <= 0) return edge;
+      // The white squares (and the solid white below them) over the sidebar, so it can turn dark
+      // over exactly those and stay white over the black and violet ones (--wipe-mask)
+      var navRight = navBox ? navBox.getBoundingClientRect().right : 0;
+      var whites = [];
       // Snapped to the grid, so the squares stay put and only flick on and off
       var row0 = Math.floor(edge / size);
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, (row0 + 2) * size, W, H);
+      whites.push([0, (row0 + 2) * size, Math.ceil(navRight), H - (row0 + 2) * size]);
       var shuffle = Math.floor(edge / (size / 4));
       var cols = Math.ceil(W / size);
       for (var r = row0 - 2; r < row0 + 2; r++) {
@@ -969,9 +975,25 @@
           if (!color) continue;
           ctx.fillStyle = color;
           ctx.fillRect(c * size, r * size, size, size);
+          if (color === "#ffffff" && c * size < navRight) whites.push([c * size, r * size, size, size]);
         }
       }
+      sidebarMask(whites, W, H);
       return edge;
+    }
+
+    // The sidebar's two masks, as pictures the size of the window: the white areas (the dark
+    // sidebar shows there) and everything else (the white copy of it shows there)
+    var navBox = document.querySelector(".nav:not(.nav-copy)");
+    function sidebarMask(rects, W, H) {
+      var shapes = rects.filter(function (r) { return r[1] < H && r[1] + r[3] > 0; }).map(function (r) {
+        return "M" + r[0] + " " + r[1] + "h" + r[2] + "v" + r[3] + "h" + -r[2] + "z";
+      }).join("");
+      var head = "<svg xmlns='http://www.w3.org/2000/svg' width='" + W + "' height='" + H + "'>";
+      var on = head + "<path d='" + (shapes || "M0 0") + "'/></svg>";
+      var off = head + "<path fill-rule='evenodd' d='M0 0h" + W + "v" + H + "h" + -W + "z" + shapes + "'/></svg>";
+      root.style.setProperty("--wipe-mask", "url(\"data:image/svg+xml," + encodeURIComponent(on) + "\")");
+      root.style.setProperty("--wipe-mask-off", "url(\"data:image/svg+xml," + encodeURIComponent(off) + "\")");
     }
 
     // decrypting in, and the counter shows its number
@@ -987,7 +1009,16 @@
       // the edge, white above it (home-wipe, styles.css)
       root.classList.toggle("home-wipe", wipe > 0);
       root.style.setProperty("--wipe-top", edge.toFixed(1) + "px");
-      var target = Math.min(count - 1, Math.max(0, -top / (MEASURE_STEP * H)));
+      // Past the last one, its drawing carries on up with the scroll until the top of its frame
+      // meets the top of the window, just as the white begins (--y beyond the last measure)
+      var card = Math.min(0.38 * H, 0.24 * window.innerWidth);
+      var pitch = card + 0.25 * H;
+      var last = measureItems[count - 1];
+      var lastMark = last.querySelector(".measure-mark") || last;
+      var restTop = lastMark.getBoundingClientRect().top - (parseFloat(last.style.getPropertyValue("--y")) || 0);
+      var beyond = Math.max(0, restTop) / pitch;
+      var tail = clamp((-top - MEASURE_STEP * (count - 1) * H) / (MEASURE_TAIL * H));
+      var target = Math.min(count - 1, Math.max(0, -top / (MEASURE_STEP * H))) + beyond * tail;
       // (with the same short ease as the methods' row, so the steps of a mouse wheel blend)
       var now = performance.now();
       if (measureAt == null) measureAt = target;
@@ -997,14 +1028,15 @@
       if (measureAt !== target) soon();
       // Square drawings, about 38% of the window tall, well apart: only the edge of the next
       // one shows at the bottom of the window
-      var card = Math.min(0.38 * H, 0.24 * window.innerWidth);
       end.style.setProperty("--card", card.toFixed(1) + "px");
       measureItems.forEach(function (item, i) {
         var off = i - measureAt;
-        item.style.setProperty("--y", (off * (card + 0.25 * H)).toFixed(1) + "px");
-        item.style.setProperty("--o", (1 - 0.8 * Math.min(1, Math.abs(off))).toFixed(3));
+        item.style.setProperty("--y", (off * pitch).toFixed(1) + "px");
+        // (the last one stays bright while it carries on up)
+        var fade = i - Math.min(measureAt, count - 1);
+        item.style.setProperty("--o", (1 - 0.8 * Math.min(1, Math.abs(fade))).toFixed(3));
       });
-      var active = Math.round(measureAt);
+      var active = Math.round(Math.min(measureAt, count - 1));
       if (active !== activeMeasure) {
         measureItems.forEach(function (item, i) { item.classList.toggle("is-active", i === active); });
         if (measureNow) measureNow.textContent = active + 1;

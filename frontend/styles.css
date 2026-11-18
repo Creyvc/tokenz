@@ -1759,6 +1759,14 @@ textarea.wb-input {
   margin-bottom: 4px;
 }
 
+/* (its title on the left, "Optional" at the far right of the box) */
+.wb-phrases-box .wb-section-title label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .wb-phrases-box .wb-phrases {
   min-height: 84px;
   padding: 4px 0 8px;
@@ -4864,19 +4872,33 @@ html.home-dark .nav.nav-copy {
 }
 
 /* While the white rises at the end of "What We Measure" (and after, over the white FAQ), the
-   sidebar stays put and changes colour where the white has reached: the real, dark one shows
-   below the white's edge, and the white copy above it (--wipe-top, home.js) */
+   sidebar stays put and changes colour square by square, exactly where the white is: the real,
+   dark one shows over the white (and each white pixel of the edge), and the white copy over
+   the black and the violet pixels (--wipe-mask and --wipe-mask-off, pictures of the white the
+   size of the window, home.js) */
 html.home-wipe .nav:not(.nav-copy) {
   opacity: 1;
-  -webkit-mask-image: linear-gradient(to bottom, transparent var(--wipe-top, 100vh), #000 var(--wipe-top, 100vh));
-  mask-image: linear-gradient(to bottom, transparent var(--wipe-top, 100vh), #000 var(--wipe-top, 100vh));
+  -webkit-mask-image: var(--wipe-mask, linear-gradient(transparent, transparent));
+  mask-image: var(--wipe-mask, linear-gradient(transparent, transparent));
+  -webkit-mask-size: 100vw 100vh;
+  mask-size: 100vw 100vh;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: 0 0;
+  mask-position: 0 0;
 }
 
 html.home-wipe .nav.nav-copy {
   clip-path: none;
   animation: none;
-  -webkit-mask-image: linear-gradient(to bottom, #000 var(--wipe-top, 100vh), transparent var(--wipe-top, 100vh));
-  mask-image: linear-gradient(to bottom, #000 var(--wipe-top, 100vh), transparent var(--wipe-top, 100vh));
+  -webkit-mask-image: var(--wipe-mask-off, linear-gradient(#000, #000));
+  mask-image: var(--wipe-mask-off, linear-gradient(#000, #000));
+  -webkit-mask-size: 100vw 100vh;
+  mask-size: 100vw 100vh;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: 0 0;
+  mask-position: 0 0;
 }
 
 /* Only the real dot slides between pages */
