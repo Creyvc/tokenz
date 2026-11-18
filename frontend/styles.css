@@ -1,6 +1,6 @@
-/* Inter: a clean, slightly tight sans-serif close to the reference screenshot.
-   JetBrains Mono: used only on the academic-project notice before the intro */
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Bodoni+Moda:ital,opsz,wght@1,6..96,400;1,6..96,500&family=UnifrakturMaguntia&display=swap");
+/* Inter: a clean, slightly tight sans-serif close to the reference screenshot. The one font for
+   every text on the site */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
 
 * {
   margin: 0;
@@ -618,7 +618,6 @@ html.intro-play .intro.is-playing {
   border: 1px solid #3c3c3c;
   background: #222222;
   color: #EDEDED;
-  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   letter-spacing: 0.02em;
   text-transform: uppercase;
 }
@@ -3198,33 +3197,8 @@ html.home-box-waiting .home-panel {
   font-size: 8.6cqi;
 }
 
-/* Four words, four voices, each word in its own typeface, sized against its line so the two
-   lines still end up about the same width:
-   "Shorter" in Times New Roman, the classic newspaper serif (built into every computer, so
-   nothing to download); "prompts," in UnifrakturMaguntia, Old English blackletter; "Same" a
-   thin, high-contrast italic serif filled with a dark-to-violet gradient; "request." in Fixedsys
-   Excelsior, the old Windows pixel font (public domain, kept in assets/fonts). The second line
-   is pushed in a little */
-@font-face {
-  font-family: "Fixedsys Excelsior";
-  src: url("assets/fonts/fixedsys-excelsior.woff") format("woff");
-  font-display: swap;
-}
-
-.home-headline .hl-times {
-  font-family: "Times New Roman", Times, "Liberation Serif", serif;
-  font-weight: 400;
-  font-size: 1.06em;
-  letter-spacing: -0.035em;
-}
-
-.home-headline .hl-gothic {
-  font-family: "UnifrakturMaguntia", "Old English Text MT", serif;
-  font-weight: 400;
-  font-size: 0.98em;
-  letter-spacing: -0.01em;
-}
-
+/* All four words in the same bold Inter as the rest of the site; "Same" is filled with a
+   dark-to-violet gradient. The second line is pushed in a little */
 .home-headline > span:last-child {
   text-indent: 0.4em;
   /* A little more height, so the two lines' tails and tops don't touch */
@@ -3232,28 +3206,11 @@ html.home-box-waiting .home-panel {
 }
 
 .home-headline .hl-serif {
-  font-family: "Bodoni Moda", "Didot", "Bodoni 72", Georgia, serif;
-  font-style: italic;
-  font-weight: 400;
-  font-size: 1.12em;
-  letter-spacing: -0.03em;
-  /* Room on the right, so the italic's last stroke isn't clipped by its gradient */
-  padding-right: 0.06em;
   background: linear-gradient(100deg, #16171A 0%, #3B3497 45%, #5B4FD6 75%, #8B7FF2 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
   -webkit-text-fill-color: transparent;
-}
-
-.home-headline .hl-pixel {
-  font-family: "Fixedsys Excelsior", ui-monospace, monospace;
-  font-weight: 400;
-  font-size: 0.9em;
-  letter-spacing: -0.02em;
-  /* Crisp pixel edges rather than smoothed ones */
-  -webkit-font-smoothing: none;
-  font-smooth: never;
 }
 
 /* Over the gradient panel the copy stays plain white */
@@ -4407,7 +4364,7 @@ html.home-scroll .measure {
   overflow: hidden;
 }
 
-/* A technical label in JetBrains Mono, led by a small violet square like the counter's */
+/* A technical label in spaced-out capitals, led by a small violet square like the counter's */
 html.home-scroll .measure-title {
   position: absolute;
   top: 44px;
@@ -4415,7 +4372,6 @@ html.home-scroll .measure-title {
   display: flex;
   align-items: center;
   gap: 14px;
-  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 18px;
   font-weight: 500;
   line-height: 1;
@@ -5361,7 +5317,6 @@ html.hw-still .hw-land {
 }
 
 .orb-name {
-  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 13px;
   font-weight: 500;
   letter-spacing: 0.12em;
@@ -5660,7 +5615,6 @@ html.wb-arrive .wb-text-rise {
 
 .qa-num {
   justify-self: center;
-  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 14px;
   letter-spacing: 0.08em;
 }

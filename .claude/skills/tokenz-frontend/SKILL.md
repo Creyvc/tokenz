@@ -129,7 +129,8 @@ grey, and never get the dot.
 
 ## Styles
 
-- Font: Inter everywhere. JetBrains Mono only on the intro's academic-project notice.
+- Font: Inter everywhere, for every text (since 18 November 2026: Home's headline, the intro
+  notice, the labels and numbers too). Don't add another font without asking.
 - Colours are written out, not variables: near-black `#16171A`, body text `#262626`, greys
   `#5c5c5c` / `#8a8a8a` / `#9a9a9a`, light lines `#E5E4DF`, white background.
 - Sidebar is 210px wide and fixed; `.content` leaves `margin-left: 210px` for it. At 800px and
@@ -203,8 +204,7 @@ Don't use any of these to change what's already built. Every existing timing, ea
 and animation was chosen by the owner, and some break their rules on purpose:
 
 - The dot takes 0.6s to travel, with a slight bounce.
-- The intro notice uses a monospace font, and Info/Cookies open as windows. Impeccable's rules
-  discourage both.
+- Info/Cookies open as windows, which Impeccable's rules discourage.
 - The intro, the Info/Cookies windows and the cookie banner keep their current motion.
 
 If one of their rules would improve something existing, suggest it and wait for a yes.
