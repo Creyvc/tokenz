@@ -8,9 +8,7 @@
 // texture: fine ripples drifting over it that catch the light, and tiny air bubbles inside.
 // Hovering a ball breaks it into a cloud of tiny glass beads, each keeping its piece of the
 // colours, which spring outwards, overshoot and bounce back a little, then float round it. When
-// the pointer leaves, it pulls itself back together like a living goo: a small core forms in the
-// middle, shoots a thin, sticky strand out to every bead, and reels them all in, slowly at first
-// and then faster, until they splat back into one wobbling ball.
+// the pointer leaves, they flow smoothly back in and merge into one ball again.
 // - Where each ball lives and how big: the empty square above each name (.orb-spot), so the page's
 //   CSS lays them out (three across, or one above another on a phone). Each stays in its place,
 //   but its shape never rests: big lobes swell and sink round its edge, and it squashes and
@@ -33,11 +31,11 @@
     ["#ffd8a0", "#ff9a3c", "#ff4e1f", "#b0204f", "#5a2aa0"],
     ["#f3eeff", "#b9a6ff", "#6f86ff", "#3d3dd8", "#d07bff"]
   ];
-  var SIZE = 0.36;         // each ball's radius, as a share of its square
+  var SIZE = 0.3;          // each ball's radius, as a share of its square
   var SPEED = 1;           // how fast it all moves (1 = as written)
   var TEXTURE = 1;         // how strong the glass's ripples and bubbles are (0 = smooth glass)
   var BREAK_TIME = 0.22;   // seconds for a ball to break into beads on hover
-  var MERGE_TIME = 0.6;    // seconds for the beads to be reeled back in and merge after
+  var MERGE_TIME = 0.45;   // seconds for the beads to flow back in and merge after
   var DRAMA = 1;          // how wildly each ball changes shape where it sits (0 = a calm wobble)
   var BOUNCE = 0.33;       // how springy the beads are flying out (lower bounces more; 1 = none)
 
@@ -48,7 +46,9 @@
     "#version 300 es",
     "precision highp float;",
     "uniform vec2 u_res; uniform float u_time; uniform vec3 u_orb[3]; uniform vec3 u_pal[15]; uniform float u_tex; uniform float u_burst[3];",
-    "uniform vec4 u_bead[144]; uniform vec2 u_home[48]; uniform vec2 u_goo[3]; uniform float u_talk[3]; uniform float u_drama;",
+    // (the 3 x 96 beads' places come in a block of their own: too many for plain uniforms everywhere)
+    "layout(std140) uniform Beads { vec4 u_bead[288]; };",
+    "uniform vec2 u_home[96]; uniform float u_talk[3]; uniform float u_drama;",
     "out vec4 o;",
     "float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }",
     "float noise(vec2 p) {",
@@ -87,7 +87,7 @@
     "}",
     // A ball's shape, as distance to its surface (in its own radius): the jelly-edged ball, and
     // three drops that pull away from it, drift out, and flow back in to merge. Hovered (burst
-    // towards 1), it gives itself up into 48 tiny beads that spread out round it and float
+    // towards 1), it gives itself up into 96 tiny beads that spread out round it and float
     // (where each bead is, how big, and how firmly it joins, are worked out in JavaScript below).
     // Also gives the nearest piece's size, and how far that piece has moved from where its
     // colours were in the whole ball.
@@ -118,21 +118,10 @@
     "    m = join(m, vec4(length(d - at) - size, 1.0, 0.0, 0.0), 0.22);",
     "  }",
     "  if (burst > 0.001) {",
-    "    vec2 goo = u_goo[k];",
-    "    for (int j = 0; j < 48; j++) {",
-    "      vec4 bd = u_bead[k * 48 + j];",
-    "      m = join(m, vec4(length(d - bd.xy) - bd.z, max(bd.z, 0.02) * 1.2, u_home[j] - bd.xy), bd.w);",
-    // merging: a thin, sticky strand from the middle out to every other bead (as far as it has
-    // reached so far), thicker at both ends than in the middle, bowing gently like something
-    // alive, flowing into the bead and the core
-    "      if (goo.x > 0.0 && j - (j / 2) * 2 == 0) {",
-    "        vec2 tip = bd.xy * goo.y;",
-    "        float hh = clamp(dot(d, tip) / max(dot(tip, tip), 1e-4), 0.0, 1.0);",
-    "        float fj = float(j), arc = sin(3.14159 * hh);",
-    "        vec2 side = vec2(-tip.y, tip.x) * (0.08 * sin(t * 4.0 + fj * 1.7) + 0.025 * sin(hh * 9.0 - t * 7.0 + fj));",
-    "        float w = goo.x * (0.022 - 0.011 * arc);",
-    "        m = join(m, vec4(length(d - tip * hh - side * arc) - w, 0.06, 0.0, 0.0), 0.05);",
-    "      }",
+    "    for (int j = 0; j < 96; j++) {",
+    "      vec4 bd = u_bead[k * 96 + j];",
+    "      float bs = length(d - bd.xy) - bd.z;",
+    "      if (bs - m.x < bd.w) m = join(m, vec4(bs, max(bd.z, 0.01) * 1.2, u_home[j] - bd.xy), bd.w);",
     "    }",
     "  }",
     "  return m;",
@@ -164,12 +153,16 @@
     "    float body = 1.0 - smoothstep(-aa, aa, sd);",
     // Which way the surface faces, from how the shape changes nearby; deeper inside faces you more
     "    float eps = 2.0 / orb.z;",
-    "    vec2 grad = vec2(shape(d + vec2(eps, 0.0), s, t, b, k).x - sd, shape(d + vec2(0.0, eps), s, t, b, k).x - sd) / eps;",
+    // (only worked out on or inside the glass: outside it isn't drawn, which saves most of the
+    // work round a cloud of beads)
+    "    vec2 grad = d;",
+    "    if (sd < 2.0 * aa) grad = vec2(shape(d + vec2(eps, 0.0), s, t, b, k).x - sd, shape(d + vec2(0.0, eps), s, t, b, k).x - sd) / eps;",
     "    float depth = 1.0 + min(sd, 0.0) / m.y;",
     "    float z = sqrt(max(0.0, 1.0 - depth * depth));",
     // (towards the middle, the plain sphere's way out; near the edge, the wobbling shape's and the
-    // drops', which near the very middle would swing wildly; and the beads' own, once it breaks)
-    "    float edgeward = max(smoothstep(0.55, 0.9, r), smoothstep(0.0, 0.15, b));",
+    // drops' and beads', which near the very middle would swing wildly: so it goes by how near
+    // the edge of its own piece each point is; tiny beads always go by their own)
+    "    float edgeward = max(smoothstep(0.55, 0.9, depth), smoothstep(0.25, 0.15, m.y));",
     "    vec2 out_ = normalize(mix(d + 1e-5, normalize(grad + 1e-5), edgeward));",
     "    vec3 n = normalize(vec3(out_ * sqrt(1.0 - z * z), z));",
     // Texture: the surface ripples, which tilt the glass a little here and there, so the light,
@@ -257,9 +250,7 @@
     pal: gl.getUniformLocation(program, "u_pal"),
     tex: gl.getUniformLocation(program, "u_tex"),
     burst: gl.getUniformLocation(program, "u_burst"),
-    bead: gl.getUniformLocation(program, "u_bead"),
     home: gl.getUniformLocation(program, "u_home"),
-    goo: gl.getUniformLocation(program, "u_goo"),
     talk: gl.getUniformLocation(program, "u_talk"),
     drama: gl.getUniformLocation(program, "u_drama")
   };
@@ -310,7 +301,7 @@
   window.addEventListener("blur", function () { pointer = null; });
   // The beads: each one's place inside the whole ball (spread evenly through it, in a sunflower
   // pattern) and its own random delay, distance and size, fixed once
-  var BEADS = 48, beadInfo = [], homes = new Float32Array(BEADS * 2), beads = new Float32Array(3 * BEADS * 4);
+  var BEADS = 96, beadInfo = [], homes = new Float32Array(BEADS * 2), beads = new Float32Array(3 * BEADS * 4);
   function rand(n) { var x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); }
   for (var j = 0; j < BEADS; j++) {
     var a = j * 2.39996, rr = Math.sqrt((j + 0.5) / BEADS);
@@ -323,6 +314,11 @@
     }
   }
   gl.uniform2fv(u.home, homes);
+  var beadBlock = gl.createBuffer();
+  gl.bindBuffer(gl.UNIFORM_BUFFER, beadBlock);
+  gl.bufferData(gl.UNIFORM_BUFFER, beads.byteLength, gl.DYNAMIC_DRAW);
+  gl.uniformBlockBinding(program, gl.getUniformBlockIndex(program, "Beads"), 0);
+  gl.bindBufferBase(gl.UNIFORM_BUFFER, 0, beadBlock);
   function smooth(a, b, x) { x = Math.max(0, Math.min(1, (x - a) / (b - a))); return x * x * (3 - 2 * x); }
   // How far out each bead is (0 home inside the ball, 1 out in the cloud). Breaking, it's a
   // spring: once the ball has broken far enough for it (each goes a little after the last) it
@@ -340,25 +336,18 @@
       }
     }
   }
-  // Merging, it's reeled in (mt, 0 to 1 over MERGE_TIME): first a small core forms in the middle
-  // and the strands shoot out to every bead; then each bead is pulled in, slowly at first and
-  // faster as it comes (each starting a touch after the last), while the core swells with them
-  // into the whole ball. Gives what the ball's breaking (burst) looks like at that moment.
-  var mergeT = [-1, -1, -1], goo = new Float32Array(6);
+  // Merging (mt, 0 to 1 over MERGE_TIME): every bead flows smoothly back to its place inside
+  // the ball (each a touch after the last) while the ball grows back round them. Gives what the
+  // ball's breaking (burst) looks like at that moment.
+  var mergeT = [-1, -1, -1];
   function reel(k, mt) {
     for (var j = 0; j < BEADS; j++) {
       var info = beadInfo[j * 3 + k];
-      var go = 0.2 + info.delay * 0.3;
-      var p = Math.max(0, Math.min(1, (mt - go) / (0.9 - go)));
-      info.x = info.from * (1 - p * p);
+      var go = info.delay * 0.4;
+      info.x = info.from * (1 - smooth(go, go + 0.85, mt));
       info.v = 0;
     }
-    goo[k * 2] = smooth(0.02, 0.18, mt) * (1 - smooth(0.6, 0.9, mt));
-    goo[k * 2 + 1] = smooth(0, 0.22, mt);
-    // the core's radius: from nothing, to a small blob, to the whole ball
-    var core = -0.15 + 0.45 * smooth(0, 0.2, mt);
-    core += (1 - core) * smooth(0.3, 1, mt);
-    return Math.max(0, Math.min(1, (1 - core) / 1.15));
+    return 1 - smooth(0.15, 1, mt);
   }
   // Where each bead is now: out along its spring towards its place in the cloud, drifting there,
   // and joining less firmly the further it has gone
@@ -375,11 +364,12 @@
         beads[i] = hx + (ax - hx) * e;
         beads[i + 1] = hy + (ay - hy) * e;
         // (and while the voice speaks, they throb with it)
-        beads[i + 2] = (0.045 + 0.055 * info.size) * smooth(0, 0.3, e) * (1 + 0.7 * talk[k]);
-        beads[i + 3] = Math.max(0.03, 0.25 - 0.22 * e);
+        beads[i + 2] = (0.022 + 0.03 * info.size) * smooth(0, 0.3, e) * (1 + 0.7 * talk[k]);
+        beads[i + 3] = Math.max(0.015, 0.25 - 0.235 * e);
       }
     }
-    gl.uniform4fv(u.bead, beads);
+    gl.bindBuffer(gl.UNIFORM_BUFFER, beadBlock);
+    gl.bufferSubData(gl.UNIFORM_BUFFER, 0, beads);
   }
   function breakApart(now) {
     var dt = last ? Math.min(0.05, (now - last) / 1000) : 0;
@@ -392,7 +382,6 @@
       }
       // (just hovered: hello.js says this person's hello)
       if (on && !hovered[i]) window.dispatchEvent(new CustomEvent("tokenz:ball-hover", { detail: { index: i } }));
-      if (!on && hovered[i]) window.dispatchEvent(new CustomEvent("tokenz:ball-leave", { detail: { index: i } }));
       hovered[i] = on;
     });
     var busy = false;
@@ -400,7 +389,6 @@
       if (hovered[k]) {
         // breaking (or breaking again, from wherever a merge had got to)
         mergeT[k] = -1;
-        goo[k * 2] = goo[k * 2 + 1] = 0;
         burst[k] = Math.min(1, burst[k] + dt / BREAK_TIME);
         spring(k, dt);
       } else if (burst[k] > 0) {
@@ -410,7 +398,7 @@
         }
         mergeT[k] += dt / MERGE_TIME;
         if (mergeT[k] >= 1) {
-          mergeT[k] = -1; burst[k] = 0; goo[k * 2] = goo[k * 2 + 1] = 0;
+          mergeT[k] = -1; burst[k] = 0;
           for (var j2 = 0; j2 < BEADS; j2++) { beadInfo[j2 * 3 + k].x = 0; beadInfo[j2 * 3 + k].v = 0; }
         } else {
           burst[k] = Math.max(0.002, reel(k, mergeT[k]));
@@ -419,7 +407,6 @@
       if (burst[k] > 0) busy = true;
     }
     gl.uniform1fv(u.burst, burst);
-    gl.uniform2fv(u.goo, goo);
     return busy;
   }
 

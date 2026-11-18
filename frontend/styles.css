@@ -5267,13 +5267,7 @@ html.hw-still .hw-land {
   mix-blend-mode: difference;
 }
 
-/* Each name and, hidden below it in the same place, a hello ("Hello, I'm Vuthy"). Hovering the
-   name, it rises up out of view and the hello rises into its place; leaving, they swap back.
-   The box is as wide as the longer of the two, so nothing beside or under it moves */
 .orb-name {
-  display: grid;
-  overflow: hidden;
-  padding-block: 2px;
   font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 13px;
   font-weight: 500;
@@ -5282,45 +5276,6 @@ html.hw-still .hw-land {
   color: #E9E8E5;   /* shows as #16171A */
   white-space: nowrap;
   cursor: default;
-}
-
-.orb-name > span {
-  grid-area: 1 / 1;
-  justify-self: center;
-  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.orb-name-hello {
-  transform: translateY(110%);
-}
-
-.orb-name:hover .orb-name-real,
-.orb-name.is-saying .orb-name-real {
-  transform: translateY(-110%);
-}
-
-.orb-name:hover .orb-name-hello,
-.orb-name.is-saying .orb-name-hello {
-  transform: none;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .orb-name > span {
-    transition: opacity 0.2s ease;
-    transform: none;
-  }
-
-  .orb-name-hello,
-  .orb-name:hover .orb-name-real,
-  .orb-name.is-saying .orb-name-real {
-    opacity: 0;
-    transform: none;
-  }
-
-  .orb-name:hover .orb-name-hello,
-  .orb-name.is-saying .orb-name-hello {
-    opacity: 1;
-  }
 }
 
 /* Without WebGL2: still, soft gradients in each ball's colours */
@@ -5502,9 +5457,9 @@ html.hw-still .hw-land {
   to { transform: translateX(-100%); }
 }
 
-/* About opens straight on the team, in a column as wide as Compare's so they have room */
+/* About opens straight on the team, in a wide column so the three balls have room between them */
 .content.about:has(.orbs-stage) {
-  --column: 1000px;
+  --column: 1200px;
 }
 
 /* With no visible title, the faces start level with the top of the sidebar's links */

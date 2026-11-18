@@ -1,5 +1,5 @@
 // About: hovering a ball or a name (or tapping either) says that person's hello out loud ("Hello,
-// I'm Timila"), straight away, and shows it in place of their name while the ball is hovered.
+// I'm Timila"), straight away. The hello is only heard, never shown.
 // - The voices are ElevenLabs recordings (data-hello-audio on each name), made once by
 //   tools/make-hellos.py: the page only plays the files, it never talks to ElevenLabs.
 // - While a recording plays, its real loudness is measured many times a second and handed to
@@ -124,7 +124,7 @@
   function speak(name, index) {
     if (!speech) return;
     var kind = name.getAttribute("data-voice");
-    var talk = new SpeechSynthesisUtterance(name.querySelector(".orb-name-hello").textContent);
+    var talk = new SpeechSynthesisUtterance(name.getAttribute("data-hello"));
     var voice = pick(kind);
     if (voice) { talk.voice = voice; talk.lang = voice.lang; }
     // with no matching voice, the default one, pitched up or down to suit
@@ -142,7 +142,7 @@
 
   var current = null;
   function say(name, again) {
-    if (!name.querySelector(".orb-name-hello")) return;
+    if (!name.getAttribute("data-hello")) return;
     // (a click on the name it's already saying doesn't start it over)
     var busy = (playing && playing.name === name) || (live && speech && speech.speaking);
     if (!again && current === name && busy) return;
@@ -156,16 +156,9 @@
     name.addEventListener("click", function () { say(name, false); });
   });
 
-  // Hovering (or tapping) a ball (orbs.js tells us which): its hello, and the hello in place of
-  // the name until the pointer leaves the ball
+  // Hovering (or tapping) a ball (orbs.js tells us which): its hello
   window.addEventListener("tokenz:ball-hover", function (e) {
     var name = names[e.detail.index];
-    if (!name) return;
-    name.classList.add("is-saying");
-    say(name, true);
-  });
-  window.addEventListener("tokenz:ball-leave", function (e) {
-    var name = names[e.detail.index];
-    if (name) name.classList.remove("is-saying");
+    if (name) say(name, true);
   });
 })();
