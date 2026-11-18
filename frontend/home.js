@@ -457,8 +457,8 @@
 
     // From where the FAQ locks to the end of the page, the wheel drags: each turn moves the page
     // DRAG as far as usual while "SCROLL" grows, and DRAG_BARS while the bars fill, so both take
-    // more effort, the bars most
-    var DRAG = 0.4, DRAG_BARS = 0.15;
+    // a little more effort than the rest of the page
+    var DRAG = 0.4, DRAG_BARS = 0.45;
     function wheel(event) {
       if (holding()) { event.preventDefault(); return; }
       if (!endCover || !root.classList.contains("home-scroll") || event.ctrlKey) return;
