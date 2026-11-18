@@ -5207,71 +5207,53 @@ html.hw-still .hw-land {
 }
 
 
-/* About: the head made of particles (head.js) from just under the top to the bottom of the
-   window, where its drips end, with the team as tracker labels either side: a small index, the
-   name in capitals, then their LinkedIn and GitHub; each has a thin line to the head (drawn on
-   the canvas). On a phone the labels sit in a row under it */
-.content.about:has(.head-stage) {
+/* About: the team as three glowing balls (orbs.js), each over its person's name in capitals
+   (a small violet number first) and their LinkedIn and GitHub. The balls are drawn on a canvas
+   behind, each centred in the empty square above its name (.orb-spot). Three across, filling the
+   window below the top; one above another on a phone */
+.content.about:has(.orbs-stage) {
   padding-bottom: 0;
 }
 
-/* The head fills the window below the top padding, so the page doesn't scroll */
-.head-stage {
+.orbs-stage {
   position: relative;
-  height: calc(100vh - 72px);
-  min-height: 480px;
+  display: flex;
+  align-items: center;
+  min-height: calc(100vh - 72px);
 }
 
-.head-canvas {
+.orbs-canvas {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  touch-action: pan-y;
 }
 
-/* The labels' lines, over the points; and the picture itself where WebGL2 can't run */
-.head-lines {
-  pointer-events: none;
-}
-
-.head-fallback {
-  position: absolute;
-  left: 50%;
-  top: 0;
-  height: 72%;
-  transform: translateX(-50%);
-}
-
-.head-names {
-  position: absolute;
-  inset: 0;
-  margin: 0;
+.orbs-team {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  width: 100%;
+  margin: 0 0 6vh;
   padding: 0;
   list-style: none;
-  pointer-events: none;
 }
 
-.head-names li {
-  position: absolute;
-  top: var(--y);
+.orbs-team li {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  pointer-events: auto;
+  align-items: center;
+  gap: 14px;
 }
 
-.head-names li.is-left {
-  left: 0;
-  align-items: flex-start;
+.orb-spot {
+  width: min(100%, 300px);
+  aspect-ratio: 1;
 }
 
-.head-names li.is-right {
-  right: 0;
-  align-items: flex-end;
-}
-
-.head-name {
+.orb-name {
   display: flex;
   align-items: baseline;
   gap: 10px;
@@ -5284,51 +5266,31 @@ html.hw-still .hw-land {
   white-space: nowrap;
 }
 
-.head-name small {
+.orb-name small {
   font-size: 10px;
   color: #8B7FF2;
 }
 
-/* A white backing behind each label, so the vacuum's streaks pass behind it rather than through */
-.head-name,
-.head-names .team-links {
-  padding: 2px 6px;
-  margin: -2px -6px;
-  background: #ffffff;
+/* Without WebGL2: still, soft gradients in each ball's colours */
+.orbs-stage.is-flat .orb-spot {
+  border-radius: 50%;
+  transform: scale(0.72);
+  filter: blur(4px);
 }
 
-@media (max-width: 800px) {
-  .head-stage {
-    height: auto;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
+.orbs-stage.is-flat li:nth-child(1) .orb-spot { background: radial-gradient(circle at 35% 35%, #e6e1f0, #3f8f95 35%, #0e2433 65%, #45307e); }
+.orbs-stage.is-flat li:nth-child(2) .orb-spot { background: radial-gradient(circle at 35% 35%, #ffd8a0, #ff9a3c 35%, #ff4e1f 60%, #5a2aa0); }
+.orbs-stage.is-flat li:nth-child(3) .orb-spot { background: radial-gradient(circle at 65% 40%, #f3eeff, #b9a6ff 35%, #6f86ff 65%, #3d3dd8); }
+
+@media (max-width: 700px) {
+  .orbs-team {
+    grid-template-columns: 1fr;
+    gap: 48px;
+    padding-block: 24px 64px;
   }
 
-  .head-canvas {
-    position: relative;
-    height: 70vh;
-  }
-
-  .head-lines {
-    display: none;
-  }
-
-  .head-names {
-    position: static;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    gap: 20px;
-    padding: 24px 0 48px;
-  }
-
-  .head-names li {
-    position: static;
-  }
-
-  .head-names li.is-right {
-    align-items: flex-start;
+  .orb-spot {
+    width: 240px;
   }
 }
 
@@ -5488,14 +5450,13 @@ html.hw-still .hw-land {
   to { transform: translateX(-100%); }
 }
 
-/* About opens straight on the team (no dive first): the head and their names, in a column as
-   wide as Compare's so they have room */
-.content.about:has(.head-stage) {
+/* About opens straight on the team, in a column as wide as Compare's so they have room */
+.content.about:has(.orbs-stage) {
   --column: 1000px;
 }
 
 /* With no visible title, the faces start level with the top of the sidebar's links */
-.content.about:has(.head-stage) {
+.content.about:has(.orbs-stage) {
   padding-top: 72px;
 }
 
