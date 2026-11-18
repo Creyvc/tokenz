@@ -1227,130 +1227,56 @@ html.intro-play .intro.is-playing {
   }
 }
 
-/* Run: a liquid-glass pill in the strip under the input, saying what it runs, with a chevron in a
-   dark circle at its end. Clear glass with bright rims where the light catches it (the inset
-   shadows), a dark blurred line inside its lower half for depth (::before), a soft white glare
-   on two corners (::after) and a faint inner ring (.wb-send-ring). The layer around it
-   (.wb-send-fx) turns the contrast up, which is what makes the rims and shading read as glass.
-   It sizes to its words. On hover it lifts and the circle grows; pressed, it sinks. Faded until
-   there's something to run */
-.wb-send-fx {
-  display: inline-flex;
-  filter: contrast(3);
-}
-
+/* Run: a plain, solid near-black button with sharp square corners and white text, saying what
+   it runs, with a small chevron after the words. It sizes to its words. On hover it goes a shade
+   lighter and the chevron nudges right; pressed, it sinks a touch. Faded until there's something
+   to run */
 .wb-send {
-  --h: 48px;
-  --tr: 15%;
-  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 14px;
-  height: var(--h);
-  padding: 0 7px 0 22px;
-  border: 1px double rgba(51, 51, 51, 0.08);
-  box-shadow:
-    inset 2px -2px 1px -1px rgba(255, 255, 255, 0.9),
-    inset -2px 2px 1px -1px rgba(255, 255, 255, 0.9),
-    inset 6px -6px 1px -6px rgba(255, 255, 255, 0.55),
-    inset -6px 6px 1px -6px rgba(255, 255, 255, 0.55),
-    inset 0 0 2px rgba(0, 0, 0, 0.8),
-    0 4px 8px rgba(0, 0, 0, 0.2);
-  background: rgba(0, 0, 0, 0.02);
-  -webkit-backdrop-filter: blur(2px);
-  backdrop-filter: blur(2px);
-  filter: brightness(0.9);
+  gap: 12px;
+  height: 44px;
+  padding: 0 18px 0 20px;
+  border: 0;
+  border-radius: 0;
+  background: #16171A;
   font: inherit;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 500;
-  color: #3e3e3e;
+  color: #ffffff;
   white-space: nowrap;
   cursor: pointer;
   user-select: none;
   -webkit-user-select: none;
-  transition: background 0.25s, transform 0.25s, opacity 0.25s;
-}
-
-.wb-send::before {
-  content: "";
-  position: absolute;
-  z-index: 1;
-  top: 35%;
-  left: 8px;
-  right: 8px;
-  height: calc(100% - 16px);
-  border: 1px solid rgba(0, 0, 0, 0.9);
-  filter: blur(8px);
-  pointer-events: none;
-}
-
-.wb-send::after {
-  content: "";
-  position: absolute;
-  z-index: 2;
-  inset: -1px;
-  filter: blur(7px);
-  background: linear-gradient(45deg,
-    rgba(255, 255, 255, 0.8) 0%,
-    transparent var(--tr),
-    transparent calc(100% - var(--tr)),
-    rgba(255, 255, 255, 0.8) 100%);
-  pointer-events: none;
-}
-
-.wb-send-ring {
-  position: absolute;
-  inset: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  filter: blur(1px);
-  pointer-events: none;
-}
-
-.wb-send-text {
-  filter: drop-shadow(0 25px 3px rgba(102, 102, 102, 0.15));
+  transition: background 0.2s ease, transform 0.15s ease, opacity 0.2s ease;
 }
 
 .wb-send-icon {
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
-  background: #3e3e3e;
-  box-shadow: 0 0 6px rgba(0, 0, 0, 0.3);
-  color: #f5f5f5;
-  transition: transform 0.25s;
+  transition: transform 0.2s ease;
 }
 
 .wb-send-icon svg {
-  width: 13px;
-  height: 13px;
+  width: 11px;
+  height: 11px;
   fill: currentColor;
-  filter: drop-shadow(0 25px 3px rgba(102, 102, 102, 0.2));
 }
 
 .wb-send:hover:not(:disabled) {
-  background: rgba(0, 0, 0, 0);
-  transform: translateY(-3px);
+  background: #2c2d31;
 }
 
 .wb-send:hover:not(:disabled) .wb-send-icon {
-  transform: scale(1.1);
+  transform: translateX(3px);
 }
 
 .wb-send:active:not(:disabled) {
-  transform: scale(0.94);
-}
-
-.wb-send:active:not(:disabled) .wb-send-text {
-  color: #000000;
-}
-
-.wb-send:active:not(:disabled) .wb-send-icon {
-  transform: scale(0.94);
+  transform: scale(0.97);
 }
 
 .wb-send:disabled {
-  opacity: 0.45;
+  opacity: 0.35;
   cursor: default;
 }
 
@@ -1372,39 +1298,22 @@ html.intro-play .intro.is-playing {
 
 .wb-send.is-running .wb-send-icon::before {
   content: "";
-  width: 12px;
-  height: 12px;
+  width: 11px;
+  height: 11px;
   border: 2px solid currentColor;
   border-right-color: transparent;
   border-radius: 50%;
   animation: wb-spin 0.8s linear infinite;
 }
 
-/* A little smaller on a phone */
-@media (max-width: 600px) {
-  .wb-send {
-    --h: 44px;
-    gap: 12px;
-    padding-left: 18px;
-    font-size: 14px;
-  }
-
-  .wb-send-icon {
-    width: 30px;
-    height: 30px;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .wb-send,
   .wb-send-icon {
-    transition: opacity 0.25s;
+    transition: opacity 0.2s ease;
   }
 
-  .wb-send:hover:not(:disabled),
-  .wb-send:active:not(:disabled),
   .wb-send:hover:not(:disabled) .wb-send-icon,
-  .wb-send:active:not(:disabled) .wb-send-icon {
+  .wb-send:active:not(:disabled) {
     transform: none;
   }
 }
@@ -1741,6 +1650,28 @@ textarea.wb-input {
 
 .wb-phrases {
   min-height: 96px;
+}
+
+/* Its input is a box like the prompt's (the same light fill and thin line, black while you type
+   in it), and the section's title, with "Optional", sits inside it at the top */
+.wb-phrases-box {
+  padding: 14px 16px 6px;
+  border: 1px solid #E5E4DF;
+  background: #FAFAF9;
+  transition: border-color 0.2s ease;
+}
+
+.wb-phrases-box:focus-within {
+  border-color: #16171A;
+}
+
+.wb-phrases-box .wb-section-title {
+  margin-bottom: 4px;
+}
+
+.wb-phrases-box .wb-phrases {
+  min-height: 84px;
+  padding: 4px 0 8px;
 }
 
 /* Run, with the reason it's greyed out beside it */
@@ -5380,15 +5311,6 @@ html.hw-still .hw-land {
   }
 }
 
-/* Run keeps its round pill shape and round icon inside Compare's square corners */
-.content.workbench .wb-send,
-.content.workbench .wb-send::before,
-.content.workbench .wb-send::after,
-.content.workbench .wb-send-ring,
-.content.workbench .wb-send-icon {
-  border-radius: 9999px;
-}
-
 /* Home: no sidebar over the top of the page; it comes in once the Three Methods arrive and stays
    from there on down (home-nav-hidden, home.js), and fades out going back up. Wider screens only:
    on a phone it's the top bar */
@@ -5487,4 +5409,51 @@ html.hw-still .hw-land {
 /* The form's bottom edge is the line above the result */
 .content.workbench .wb-result {
   border-top: 0;
+}
+
+/* Compare and Results, opened from any page (each other too) or fresh, in two steps:
+   1. Once the page-switch blink is over, the white box alone (.wb-skin, an empty stand-in made
+      by page-transition.js) grows from a point at its top-right corner, which stays where it is, to its
+      full size, down and to the left at once, evenly (0.8s). The real boxes are see-through
+      meanwhile, and nothing inside them grows.
+   2. Then each part inside slides up into place from behind its own mask, one after another
+      (--rise, its place in the order, page-transition.js), like Home's headline.
+   Between Compare and Results the box blinks first, as before (html.wb-arrive is set by
+   page-transition.js), and nothing of this runs with reduced motion */
+html.wb-arrive :is(.content.workbench, .content.results-page) {
+  position: relative;
+  isolation: isolate;
+}
+
+html.wb-arrive .content.workbench :is(.wb, .wb-result, .engine-notice),
+html.wb-arrive .content.results-page [data-results] {
+  border-color: transparent;
+  background: transparent;
+}
+
+.wb-skin {
+  position: absolute;
+  z-index: -1;
+  box-sizing: border-box;
+  border: 1px solid #E5E4DF;
+  background: #ffffff;
+  transform-origin: top right;
+  pointer-events: none;
+  animation: wb-grow 0.8s cubic-bezier(0.65, 0, 0.35, 1) 0.4s backwards;
+}
+
+html.wb-arrive .content.workbench :is(.wb, .wb-result, .engine-notice) > *,
+html.wb-arrive .content.results-page [data-results] > * {
+  animation: wb-rise 0.75s cubic-bezier(0.33, 1, 0.68, 1) calc(1.2s + var(--rise, 0) * 75ms) backwards;
+}
+
+@keyframes wb-grow {
+  from { transform: scale(0); }
+}
+
+/* (moving down by its own height while cut off at the same distance from its bottom, so it
+   always shows only within its own place: rising from behind a mask at its foot) */
+@keyframes wb-rise {
+  from { transform: translateY(100%); clip-path: inset(0 0 100% 0); }
+  to   { transform: none; clip-path: inset(0 0 0 0); }
 }

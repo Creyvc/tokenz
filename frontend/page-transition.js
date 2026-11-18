@@ -26,6 +26,50 @@
     try { sessionStorage.setItem(FLASH, box ? "box" : looksDark() ? "white" : "black"); } catch (e) {}
   });
 
+  // Opening Compare or Results, from anywhere (each other too) or fresh, after the usual blink:
+  // an empty white box the size of the real one(s) grows from its top-right corner, then each
+  // part inside rises into place in turn (html.wb-arrive and .wb-skin, styles.css). Decided
+  // before the first frame; the stand-in is made once the page's own script has filled it, and
+  // when it's all done, the real boxes take over again
+  if (!still && isBoxPage(location.href)) {
+    root.classList.add("wb-arrive");
+    document.addEventListener("DOMContentLoaded", arrive);
+  }
+
+  function arrive() {
+    var main = document.querySelector(".content.workbench, .content.results-page");
+    var boxes = main ? main.querySelectorAll(":scope > :is(.engine-notice, .wb, .wb-result, [data-results]):not([hidden])") : [];
+    if (!boxes.length) { root.classList.remove("wb-arrive"); return; }
+    var area = main.getBoundingClientRect();
+    var top = Infinity, left = Infinity, right = -Infinity, bottom = -Infinity;
+    boxes.forEach(function (box) {
+      var r = box.getBoundingClientRect();
+      top = Math.min(top, r.top); left = Math.min(left, r.left);
+      right = Math.max(right, r.right); bottom = Math.max(bottom, r.bottom);
+    });
+    var skin = document.createElement("div");
+    skin.className = "wb-skin";
+    skin.setAttribute("aria-hidden", "true");
+    skin.style.top = (top - area.top) + "px";
+    skin.style.left = (left - area.left) + "px";
+    skin.style.width = (right - left) + "px";
+    skin.style.height = (bottom - top) + "px";
+    main.prepend(skin);
+    var parts = [];
+    boxes.forEach(function (box) {
+      Array.prototype.forEach.call(box.children, function (part) {
+        if (part.hidden) return;
+        part.style.setProperty("--rise", parts.length);
+        parts.push(part);
+      });
+    });
+    setTimeout(function () {
+      root.classList.remove("wb-arrive");
+      skin.remove();
+      parts.forEach(function (part) { part.style.removeProperty("--rise"); });
+    }, 1200 + parts.length * 75 + 800);
+  }
+
   function isBoxPage(url) {
     return /\/(compare|results)\.html$/.test(new URL(url, location.href).pathname);
   }
