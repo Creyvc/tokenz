@@ -76,6 +76,21 @@
           </div>
         </article>
       </div>
+      <!-- With the scroll effect, the three methods as a row of big names sliding through one
+           bright column, each method's moving gradient under it, its description on the left
+           and a counter at the bottom right (after santalarch.com's services; styles.css .svc-*,
+           home.js). The panels above stay the readable version, for phones and screen readers -->
+      <div class="svc" aria-hidden="true">
+        <span class="svc-line" style="--c: 1"></span><span class="svc-line" style="--c: 2"></span><span class="svc-line" style="--c: 3"></span><span class="svc-line" style="--c: 4"></span>
+        <div class="svc-words"><span>NLP</span><span>TF-IDF</span><span>AI Rewrite</span></div>
+        <div class="svc-words is-ink"><span>NLP</span><span>TF-IDF</span><span>AI Rewrite</span></div>
+        <div class="svc-desc">
+          <p><span class="svc-note">Runs on your computer</span>Tidies the wording: cuts polite openings and repeated sentences. Good for any prompt.</p>
+          <p><span class="svc-note">Runs on your computer</span>Cuts whole sentences that are off-topic. Best for longer prompts with background.</p>
+          <p><span class="svc-note">Sends your prompt to Groq and Google</span>AI models each rewrite the whole prompt shorter. A rewrite that drops a number, a limit or a “not”, or saves no tokens, gets one retry; if that fails too, the original is kept.</p>
+        </div>
+        <p class="svc-count"><span class="svc-count-name">NLP</span><span class="svc-count-num">01</span><span class="svc-count-of">03</span></p>
+      </div>
       <canvas class="home-pixels" aria-hidden="true"></canvas>
     </div>
   </section>

@@ -629,7 +629,8 @@
     var shown = null, shownAt = 0, jump = true;  // where the row is drawn, eased towards the scroll
     function measureSlide() {
       var space = parseFloat(getComputedStyle(row).columnGap) || 0;
-      slide.start = boxes.length ? boxes[0].offsetLeft : 0;
+      // (the title's leaving, before the first method: a window of scrolling)
+      slide.start = window.innerHeight;
       slide.gap = space;
       slide.step = 0.22 * window.innerWidth + space;  // a small panel and the gap after it
       slide.hold = 0.4 * window.innerHeight;
@@ -665,6 +666,59 @@
       return { x: x, sizes: sizes };
     }
 
+    // The services stage (.svc, styles.css): where the row of names is, as a number (0 on the
+    // first method, 1 on the second...; -1 to 0 while the title leaves), on the same schedule as
+    // the old sliding row: each method holds, then hands over to the next
+    var svc = track ? track.querySelector(".svc") : null;
+    var svcRows = svc ? svc.querySelectorAll(".svc-words") : [];
+    var svcDesc = svc ? svc.querySelectorAll(".svc-desc p") : [];
+    var svcName = svc ? svc.querySelector(".svc-count-name") : null;
+    var svcNum = svc ? svc.querySelector(".svc-count-num") : null;
+    var svcOf = svc ? svc.querySelector(".svc-count-of") : null;
+    var svcIntro = row ? row.querySelector(".home-next-intro") : null;
+    function serviceAt(at) {
+      if (at < slide.start) return -1 + ease(Math.max(0, at) / slide.start);
+      var rest = at - slide.start, each = slide.hold + slide.move;
+      var i = Math.min(Math.floor(rest / each), boxes.length - 1);
+      var into = rest - i * each;
+      if (i >= boxes.length - 1 || into < slide.hold) return i;
+      return i + ease((into - slide.hold) / slide.move);
+    }
+    function placeServices(t) {
+      if (!svc || !svcRows.length) return;
+      var words = svcRows[0].children, n = words.length;
+      // The row is placed so the current name's left edge sits at the bright column's left edge
+      var col = (window.innerWidth - 218 - 40) / 4, spot = 218 + 2 * col;
+      var k = Math.max(0, Math.min(n - 1, t)), i = Math.min(n - 2, Math.floor(k)), f = k - i;
+      if (n < 2) { i = 0; f = 0; }
+      var at = words[i].offsetLeft + (n > 1 ? f * (words[i + 1].offsetLeft - words[i].offsetLeft) : 0);
+      // (before the first, it slides in from the right as the title leaves)
+      var x = spot - at + (t < 0 ? -t * 0.9 * window.innerWidth : 0);
+      svc.style.setProperty("--svc-x", x.toFixed(1) + "px");
+      var arrive = clamp(t + 1);
+      svc.style.setProperty("--svc-in", ease(clamp((t + 0.75) / 0.6)).toFixed(3));
+      if (svcIntro) {
+        svcIntro.style.setProperty("--svc-out", (ease(arrive) * 0.6 * window.innerWidth).toFixed(1) + "px");
+        svcIntro.style.setProperty("--svc-stay", (1 - ease(clamp(arrive / 0.7))).toFixed(3));
+      }
+      // Its description and note fade up, the others away
+      Array.prototype.forEach.call(svcDesc, function (p, j) {
+        p.style.setProperty("--o", clamp(1 - Math.abs(t - j) * 2.2).toFixed(3));
+      });
+      // Each gradient wipes in from the right over the last: the first as the row arrives, the
+      // others as their name comes into the column
+      boxes.forEach(function (box, j) {
+        box.style.setProperty("--wipe", (j === 0 ? ease(clamp((t + 0.6) / 0.6)) : clamp(t - (j - 1))).toFixed(4));
+      });
+      // The counter: the name and number of the one in the column
+      var now = Math.max(0, Math.min(n - 1, Math.round(t)));
+      if (svcName && svcName.textContent !== words[now].textContent) {
+        svcName.textContent = words[now].textContent;
+        svcNum.textContent = ("0" + (now + 1)).slice(-2);
+        svcOf.textContent = ("0" + n).slice(-2);
+      }
+    }
+
     function update() {
       frame = 0;
       var on = wide.matches && !still;
@@ -686,7 +740,8 @@
         if (navCopy) navCopy.remove();
         if (next) next.style.height = "";
         if (row) row.style.transform = "";
-        boxes.forEach(function (box) { box.style.removeProperty("--box"); box.style.removeProperty("--clear"); });
+        boxes.forEach(function (box) { ["--box", "--clear", "--wipe"].forEach(function (name) { box.style.removeProperty(name); }); });
+        if (svcIntro) { svcIntro.style.removeProperty("--svc-out"); svcIntro.style.removeProperty("--svc-stay"); }
         if (pixels) drawPixels(0);
         root.style.removeProperty("--dark");
         root.classList.remove("home-dark");
@@ -832,19 +887,7 @@
           shownAt = now;
           jump = false;
           if (shown !== target) soon();
-          var spot = place(shown);
-          row.style.transform = "translate3d(" + (-spot.x).toFixed(2) + "px, 0, 0)";
-          // Each panel's left edge in the window, worked out from the sizes (no measuring). Where it
-          // reaches under the sidebar, its contents move right by that much (--clear), so they
-          // start just past the sidebar's fade instead of hiding under it
-          var small = 0.22 * window.innerWidth, big = window.innerWidth, edge = slide.start - spot.x;
-          boxes.forEach(function (box, i) {
-            var width = small + (big - small) * spot.sizes[i];
-            var clear = Math.min(Math.max(0, CLEAR - edge), width / 2);
-            box.style.setProperty("--box", spot.sizes[i].toFixed(4));
-            box.style.setProperty("--clear", clear.toFixed(2) + "px");
-            edge += width + slide.gap;
-          });
+          placeServices(serviceAt(shown));
           // The black squares come in over the tail, from a third of a window in to its last half
           // window, which is all black; the purple under them stops drawing once it's covered
           var H = window.innerHeight;

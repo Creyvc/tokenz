@@ -5702,3 +5702,144 @@ html.home-scroll .faq {
 html.home-scroll .home-cover {
   margin-top: -50vh;
 }
+
+/* Three Methods, with the scroll effect, after santalarch.com's services: four columns past the
+   sidebar, parted by thin lines. A row of the three names, big, slides right to left as you
+   scroll; they're light grey, and black only inside the third column, the bright one, where the
+   current method sits. Under it, in the same column, each method's moving gradient (its panel
+   from above), the next wiping in from the right over the last. On the left, the current
+   method's description with a small note above it; at the bottom right, its name and number.
+   --svc-t (home.js) is where the row is: 0 on NLP, 1 on TF-IDF, 2 on AI Rewrite, below 0 while
+   the title is still leaving. The panels' own text is hidden: the stage tells it instead */
+.svc {
+  display: none;
+}
+
+html.home-scroll .svc {
+  --left: 218px;
+  --col: calc((100vw - var(--left) - 40px) / 4);
+  --spot: calc(var(--left) + 2 * var(--col));
+  display: block;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: var(--svc-in, 0);
+}
+
+.svc-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--left) + (var(--c) - 1) * var(--col));
+  width: 1px;
+  background: #ECEBE7;
+}
+
+.svc-words {
+  position: absolute;
+  top: 34vh;
+  left: 0;
+  display: flex;
+  gap: calc(var(--col) * 0.55);
+  white-space: nowrap;
+  font-size: calc(var(--col) / 4.6);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.045em;
+  color: #D9D8D3;
+  transform: translate3d(var(--svc-x, 0px), 0, 0);
+  will-change: transform;
+}
+
+/* The black copy, seen only inside the bright column */
+.svc-words.is-ink {
+  color: #16171A;
+  /* (the column is fixed in the window and the row moves under it, so its edges are taken back
+     by how far the row has moved) */
+  clip-path: polygon(calc(var(--spot) - var(--svc-x, 0px)) -50%, calc(var(--spot) + var(--col) - var(--svc-x, 0px)) -50%, calc(var(--spot) + var(--col) - var(--svc-x, 0px)) 150%, calc(var(--spot) - var(--svc-x, 0px)) 150%);
+}
+
+.svc-desc {
+  position: absolute;
+  top: 34vh;
+  left: calc(var(--left) + 8px);
+  width: calc(var(--col) * 1.6);
+  margin-top: calc(var(--col) / 4.6 + 4.5vh);
+}
+
+.svc-desc p {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  font-size: clamp(15px, 1.3vw, 20px);
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: -0.015em;
+  color: #16171A;
+  opacity: var(--o, 0);
+  transform: translateY(calc((1 - var(--o, 0)) * 14px));
+}
+
+.svc-note {
+  display: block;
+  margin-bottom: 14px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #5B4FD6;
+}
+
+.svc-count {
+  position: absolute;
+  right: 40px;
+  bottom: 32px;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #16171A;
+}
+
+.svc-count-num,
+.svc-count-of {
+  font-variant-numeric: tabular-nums;
+}
+
+.svc-count-of {
+  padding-left: 12px;
+  border-left: 1px solid #D9D8D3;
+  color: #8a8a8a;
+}
+
+/* The row of panels no longer slides: the title and its sentence leave to the left (--svc-out,
+   home.js), and the three panels stack in the bright column, under the names, as its pictures */
+html.home-scroll .home-row {
+  transform: none !important;
+}
+
+html.home-scroll .home-next-intro {
+  transform: translate3d(calc(-1 * var(--svc-out, 0px)), 0, 0);
+  opacity: var(--svc-stay, 1);
+}
+
+html.home-scroll .home-method {
+  position: absolute;
+  top: calc(34vh + (100vw - 258px) / 4 / 4.6 + 4.5vh);
+  bottom: 0;
+  left: calc(218px + 2 * (100vw - 258px) / 4);
+  width: calc((100vw - 258px) / 4);
+  height: auto;
+  border-radius: 0;
+  /* Each wipes in from the right over the one before (--wipe 0 to 1, home.js) */
+  clip-path: inset(0 0 0 calc((1 - var(--wipe, 0)) * 100%));
+}
+
+html.home-scroll .home-method-top,
+html.home-scroll .home-method-body {
+  display: none;
+}
+
