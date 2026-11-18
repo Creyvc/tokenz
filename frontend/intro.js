@@ -513,7 +513,13 @@
     svg.appendChild(veil);
     svg.appendChild(group);
 
-    // The logo mark, drawn in its own 64 × 64 units and centred on the screen
+    // The logo mark, drawn in its own 64 × 64 units and centred on the screen. Its diamond starts
+    // violet (below)
+    var DIAMOND_VIOLET = [91, 79, 214];
+    function mixInk(rgb, k) {
+      var ink = [22, 23, 26];
+      return "rgb(" + rgb.map(function (c, i) { return Math.round(c + (ink[i] - c) * k); }).join(",") + ")";
+    }
     var logo = document.createElementNS(SVG_NS, "g");
     logo.setAttribute("fill", INK);
     logo.innerHTML =
@@ -575,6 +581,9 @@
         logoParts[2].style.display = "none";
       } else {
         logoParts[2].setAttribute("transform", "translate(32,32) rotate(" + turn + ") scale(" + Math.max(squareSize, 0.001) + ") translate(-32,-32)");
+        // Violet, like every logo's diamond, turning ink as it grows to a box's size, so it
+        // hands over to the six ink boxes without a jump
+        logoParts[2].setAttribute("fill", mixInk(DIAMOND_VIOLET, easeInOut(Math.max(0, (spinning - 0.4) / 0.6))));
       }
 
       // How far out from the centre the shapes between the chevrons reach, in pixels: the

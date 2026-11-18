@@ -119,9 +119,12 @@
   // is-lit turns the title in the panel white once the gradient is behind it. heroBackground is
   // kept so the scroll effect can pause it while the white page covers it
   var heroBackground = null;
+  // The first screen kept plain for now (index.html, .is-bare): no gradient or pause there
+  // (asked when needed: this script runs before the page's body is there)
+  function bare() { return !!document.querySelector(".content.home.is-bare"); }
   function mountBackground() {
     var panel = document.querySelector(".home-panel");
-    if (!panel || !window.Grainient) return;
+    if (!panel || !window.Grainient || bare()) return;
     var background = heroBackground = window.Grainient(panel, {
       colors: ["#120f17", "#2a0f0a", "#9a3412", "#f97316", "#fed7aa"],
       angle: 55,
@@ -784,6 +787,8 @@
       if (!navCopy && nav) {
         navCopy = nav.cloneNode(true);
         navCopy.classList.add("nav-copy");
+        // (its logo in white, the diamond still violet)
+        navCopy.querySelectorAll(".logo img").forEach(function (img) { img.src = "assets/logo-mark-white.svg"; });
         navCopy.setAttribute("aria-hidden", "true");
         navCopy.inert = true;
         nav.after(navCopy);
@@ -817,7 +822,7 @@
       growAt = nowGrow;
       if (growShown !== growTo) soon();
       var gone = holding() ? textGone : y > gate;
-      if (textGone !== null && gone !== textGone) {
+      if (textGone !== null && gone !== textGone && !bare()) {
         // (going down, the hold also waits for the box to finish growing)
         hold(gone ? gate + 1 : gate - 1, gone && growShown < 1 ? (1 - growShown) * GROW_TIME + RISE + 2 * STEP : null);
         y = holdAt;
@@ -841,12 +846,15 @@
       var grow = ease(growShown);
       root.style.setProperty("--grow", grow.toFixed(4));
       // The gradient's left edge, matching the panel's clip (60% of the window, shrinking to 0)
-      root.style.setProperty("--edge", (0.6 * window.innerWidth * (1 - grow)).toFixed(1) + "px");
+      // (with no gradient on an empty first screen, the sidebar shows whole)
+      root.style.setProperty("--edge", bare() ? "9999px" : (0.6 * window.innerWidth * (1 - grow)).toFixed(1) + "px");
       // Each moves 47% of the gap, so they end close but not touching, and together they move to
       // the middle of the window
-      root.style.setProperty("--pull", (grow * gap * 0.47).toFixed(1) + "px");
-      root.style.setProperty("--shift-x", (grow * toCentre.x).toFixed(1) + "px");
-      root.style.setProperty("--shift-y", (grow * toCentre.y).toFixed(1) + "px");
+      // (on the empty white first screen the text stays in its corners)
+      var still0 = bare() ? 0 : 1;
+      root.style.setProperty("--pull", (still0 * grow * gap * 0.47).toFixed(1) + "px");
+      root.style.setProperty("--shift-x", (still0 * grow * toCentre.x).toFixed(1) + "px");
+      root.style.setProperty("--shift-y", (still0 * grow * toCentre.y).toFixed(1) + "px");
       // The text masks out once the box fills the window
       var textOut = gone && growShown >= 1;
       if (textOut && !unmask && copy) unmask = maskCopy();

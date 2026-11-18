@@ -271,6 +271,12 @@ h1, h2, h3 {
   fill: #ffffff;
 }
 
+/* Every logo's middle diamond is violet: the lighter violet on black */
+.tz-lockup svg path:last-child,
+.intro-warning-brand svg path:last-child {
+  fill: #8B7FF2;
+}
+
 /* Each piece of text is turned to read bottom to top, so they're stacked in reverse:
    Token saver at the top, then the bar, then Tokenz at the bottom */
 .tz-word,
@@ -1206,10 +1212,19 @@ html.intro-play .intro.is-playing {
 
 /* Squeezed small and violet, then a pop as it's let go, fading back to the mark's black */
 @keyframes wb-mark-core {
-  0%, 16% { transform: scale(1); fill: #16171A; animation-timing-function: cubic-bezier(0.7, 0, 0.84, 0); }
-  36%, 46% { transform: scale(0.45); fill: #8467DD; animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1); }
-  60% { transform: scale(1.5); fill: #8467DD; animation-timing-function: ease-in-out; }
-  82%, 100% { transform: scale(1); fill: #16171A; }
+  0%, 16% { transform: scale(1); fill: #5B4FD6; animation-timing-function: cubic-bezier(0.7, 0, 0.84, 0); }
+  36%, 46% { transform: scale(0.45); fill: #8B7FF2; animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1); }
+  60% { transform: scale(1.5); fill: #8B7FF2; animation-timing-function: ease-in-out; }
+  82%, 100% { transform: scale(1); fill: #5B4FD6; }
+}
+
+/* (the mark's diamond is violet, like every logo's) */
+.wb-mark .wb-mark-d {
+  fill: #5B4FD6;
+}
+
+.wb-send-mark .wb-mark-d {
+  fill: #8B7FF2;
 }
 
 /* With reduced motion the mark only fades gently while it runs */
@@ -1366,10 +1381,10 @@ html.intro-play .intro.is-playing {
 }
 
 @keyframes wb-send-core {
-  0%, 16% { transform: scale(1); fill: #ffffff; animation-timing-function: cubic-bezier(0.7, 0, 0.84, 0); }
+  0%, 16% { transform: scale(1); fill: #8B7FF2; animation-timing-function: cubic-bezier(0.7, 0, 0.84, 0); }
   36%, 46% { transform: scale(0.45); fill: #B9A6FF; animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1); }
   60% { transform: scale(1.5); fill: #B9A6FF; animation-timing-function: ease-in-out; }
-  82%, 100% { transform: scale(1); fill: #ffffff; }
+  82%, 100% { transform: scale(1); fill: #8B7FF2; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -3411,6 +3426,56 @@ html.home-text-on .home-intro .mask-rise {
   transition: transform 0.75s cubic-bezier(0.33, 1, 0.68, 1);
 }
 
+/* Home's first screen, plain white for now (.is-bare on it, index.html): TOKENZ and the gradient
+   box are hidden, and so is the sidebar until Three Methods. The headline sits small in the
+   bottom-left corner of the window, and the sentence small in the bottom-right corner, a little
+   lower. They still rise in from
+   their masks, and mask out as you scroll; Three Methods and everything after are as ever */
+.content.home.is-bare .home-panel {
+  display: none;
+}
+
+.content.home.is-bare .home-intro,
+html.home-scroll .content.home.is-bare .home-intro {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: auto;
+  padding: 0;
+  display: block;
+  container-type: normal;
+}
+
+.content.home.is-bare .home-headline {
+  position: absolute;
+  left: 40px;
+  bottom: 40px;
+  margin: 0;
+}
+
+.content.home.is-bare .home-headline > span {
+  font-size: clamp(30px, 3.6vw, 60px);
+}
+
+.content.home.is-bare .home-lede {
+  position: absolute;
+  right: 40px;
+  bottom: 26px;
+  max-width: 24em;
+  margin: 0;
+  font-size: clamp(14px, 1.2vw, 18px);
+  line-height: 1.3;
+  letter-spacing: -0.015em;
+  text-indent: 2em;
+}
+
+/* (they keep their corners while scrolling: no drawing together) */
+html.home-scroll .content.home.is-bare .home-lede,
+html.home-scroll .content.home.is-bare .home-headline {
+  transform: none;
+}
+
 /* Home's scroll effect (home.js, wider screens only, not for reduced motion). --grow runs from 0
    to 1 across the first screen of scrolling; a little further, the text masks out. The panel is drawn the size of the whole
    window from the start and shown through a clip the shape of the box, which widens to the full
@@ -4866,9 +4931,8 @@ html.home-wipe .nav.nav-copy {
   background: #ffffff;
 }
 
-.nav-copy .logo img {
-  filter: invert(1);
-}
+/* (the white copy's logo is its own white file, logo-mark-white.svg, set by home.js, so its
+   diamond stays violet) */
 
 .nav-copy .nav-links a,
 .nav-copy .nav-links a.active {
@@ -4886,6 +4950,10 @@ html.home-wipe .nav.nav-copy {
 
 .nav-copy .tz-lockup svg path {
   fill: #16171A;
+}
+
+.nav-copy .tz-lockup svg path:last-child {
+  fill: #5B4FD6;
 }
 
 .nav-copy .tz-word {

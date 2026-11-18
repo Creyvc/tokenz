@@ -57,6 +57,9 @@ backend's own files belong to the friend: keep changes there small, tested and r
 - `assets/logo-mark.svg` (sidebar logo) and `assets/favicon.svg` (browser tab icon, cropped
   tighter so the mark looks bigger in the tab). Same artwork; change them separately.
   `favicon.svg` is black, and white when the browser is in dark mode (a media query inside it).
+  In every copy of the logo the middle diamond is violet: `#5B4FD6` on white, `#8B7FF2` on black
+  (since 19 November 2026). `logo-mark-white.svg` is the white version, for Home's white copy of
+  the sidebar.
 
 ## Scripts and what each page loads
 
