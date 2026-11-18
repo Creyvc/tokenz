@@ -666,7 +666,7 @@
         riseTitle(null);
         root.classList.remove("home-tokenz-out", "home-text-out", "home-covered");
         if (heroBackground) heroBackground.hold(false);
-        ["--grow", "--pull", "--edge", "--shift-x", "--shift-y", "--cover", "--sheet"].forEach(function (name) { root.style.removeProperty(name); });
+        ["--grow", "--pull", "--edge", "--shift-x", "--shift-y", "--cover", "--sheet", "--compare-fill"].forEach(function (name) { root.style.removeProperty(name); });
         if (copy) copy.remove();
         if (navCopy) navCopy.remove();
         if (next) next.style.height = "";
@@ -885,6 +885,7 @@
             if (barsUp > 0.995) barsUp = 1;  // the page's last pixel of scroll can fall a hair short
             if (outro >= 1) layBars();
             growBars(outro >= 1 ? barsUp : 0);
+            root.style.setProperty("--compare-fill", (outro >= 1 ? barsUp : 0).toFixed(3));
             var comparing = barsUp > 0;
             root.classList.toggle("home-compare", comparing);
             // (the link can only be tabbed to while it's showing)

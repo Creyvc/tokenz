@@ -4544,6 +4544,15 @@ html.home-scroll .faq-bar {
   background: #16171A;
 }
 
+/* COMPARE comes in light grey and fills to near-black a letter at a time, left to right, as the
+   bars fill (--compare-fill, 0 to 1, home.js): all black just as the last bar reaches it */
+html.home-scroll .faq-word.is-compare span {
+  --ink: clamp(0, var(--compare-fill, 0) * 7 - var(--i), 1);
+  color: color-mix(in srgb, #16171A calc(var(--ink) * 100%), #C9C8C4);
+  transition: transform 0.6s cubic-bezier(0.33, 1, 0.68, 1), color 0.15s linear;
+  transition-delay: calc(var(--i) * 50ms), 0s;
+}
+
 @media (max-width: 800px) {
   .measure {
     grid-template-columns: 1fr;
