@@ -159,6 +159,7 @@
       var track = make("span", "rs-bar-track");
       var fill = make("span", "rs-bar-fill");
       fill.style.width = (100 * bar.tokens / top) + "%";
+      fill.style.setProperty("--bar", bars.indexOf(bar));  // its turn to slide in (styles.css)
       track.append(fill);
       row.append(make("span", "rs-bar-label", bar.label), track, make("span", "rs-bar-value", String(bar.tokens)));
       ["pointerenter", "focus"].forEach(function (type) {

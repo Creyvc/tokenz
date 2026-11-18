@@ -2500,6 +2500,28 @@ textarea.wb-input {
   background: #C9C8C3;
 }
 
+/* Every time the chart shows, each bar slides out from the left to its length, one after the
+   other from the top (--bar, results.js). When the page opens with its box growing in
+   (html.wb-arrive), they wait until the chart has risen into place */
+.rs-bar-fill {
+  transform-origin: left center;
+  animation: rs-bar-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) calc(0.15s + var(--bar, 0) * 0.1s) backwards;
+}
+
+html.wb-arrive .rs-bar-fill {
+  animation-delay: calc(1.7s + var(--bar, 0) * 0.1s);
+}
+
+@keyframes rs-bar-in {
+  from { transform: scaleX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rs-bar-fill {
+    animation: none;
+  }
+}
+
 .rs-bar-value {
   font-variant-numeric: tabular-nums;
   text-align: right;

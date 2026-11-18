@@ -1286,25 +1286,4 @@
   render();
   if (runs[state.method] && runs[state.method].signature === signature(state.method)) showResult(runs[state.method]);
   checkEngine();
-
-  // Any button pressed on the page flashes, like the box when switching to Results: it turns to
-  // its negative and back, twice (.wb-flash in styles.css). The method tabs and Strength tiles
-  // count as buttons; the flash goes on the part you see
-  var PRESSABLE = "button, .wb-segmented label, .wb-steps label";
-  document.querySelector(".content.workbench").addEventListener("click", function (event) {
-    // (clicking a label also clicks its radio button: one flash is enough)
-    if (event.target.matches("input")) return;
-    var pressed = event.target.closest(PRESSABLE);
-    if (!pressed) return;
-    var face = pressed.matches("label") ? pressed.querySelector(":scope > span") : pressed;
-    face.classList.remove("wb-flash");
-    void face.offsetWidth;  // starts it again on a quick second press
-    face.classList.add("wb-flash");
-  });
-  // (also when it's cut short, as when switching method hides the Strength tiles mid-flash)
-  ["animationend", "animationcancel"].forEach(function (type) {
-    document.addEventListener(type, function (event) {
-      if (/^wb-flash/.test(event.animationName)) event.target.classList.remove("wb-flash");
-    });
-  });
 })();

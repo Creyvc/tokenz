@@ -366,19 +366,21 @@
   var TO_LETTERS = 750;  // boxes become T O K E N Z with square corners, from the middle outwards
   var LETTER_STAGGER = 80;
   var MORPH_TIME = 650;
-  var WORD_HOLD = 700;   // TOKENZ holds still this long once spelt out (about 250ms on screen at SPEED 2.8)
+  var WORD_HOLD = 300;   // TOKENZ is fully spelt out this long, a short beat to read it (about 110ms on screen at SPEED 2.8)
   var ROUND = TO_LETTERS + 2 * LETTER_STAGGER + MORPH_TIME + WORD_HOLD; // then all the letters soften into a rounded font together
   var ROUND_TIME = 500;   // (about 180ms on screen at SPEED 2.8)
   var ROUNDED = 0.75;    // how round they get: each corner's radius, as a share of the stroke thickness
                          // (0.5 or more makes every stroke end a full round cap)
-  var ROUND_HOLD = 300;  // the rounded word holds still this long (about 110ms on screen at SPEED 2.8)
+  var ROUND_HOLD = -150; // (negative: the T and Z start turning before the rounding has quite finished)
   var TO_OS = ROUND + ROUND_TIME + ROUND_HOLD; // then the T and Z become wide O's
-  var MERGE = TO_OS + MORPH_TIME;        // Venom-style merge: tendrils shoot out from every letter to the middle...
+  var MERGE = TO_OS + MORPH_TIME - 200;  // Venom-style merge: tendrils shoot out from every letter to the middle, as the O's land...
   var REACH_TIME = 350;
-  var PULL = MERGE + 250;                // ...then drag the letters in, from the outside first, and they melt into one O
+  var PULL = MERGE + 200;                // ...then drag the letters in, from the outside first, and they melt into one O
   var MERGE_TIME = 800;
   var SETTLE = PULL + 150 + MERGE_TIME;  // the O wobbles like jelly as it settles
-  var GROW = SETTLE + 150;               // the O grows until its hole uncovers the page, while still wobbling
+  var GROW = SETTLE + 50;                // the O grows until its hole uncovers the page, while still wobbling
+  var DRIFT = 0.08;      // from the letters to the zoom, the whole word slowly comes closer (8% bigger), so
+                         // nothing ever stands still and the steps read as one continuous motion
   var GROW_TIME = 1200;
   var SPEED = 2.8;   // plays the whole timeline above this much faster (1 = as written)
 
@@ -632,17 +634,19 @@
       items.forEach(function (item) {
         var i = item.index;
         var shape = item.box;
+        // Each change starts from whatever shape the letter has at that moment, so changes that
+        // overlap hand over smoothly instead of jumping.
         // Middle letters first, carrying on the outward motion of the row opening
         var lettering = progress(now, TO_LETTERS + (Math.abs(i - 2.5) - 0.5) * LETTER_STAGGER, MORPH_TIME);
-        if (lettering > 0) shape = blend(item.box, item.letter, easeInOut(lettering));
+        if (lettering > 0) shape = blend(shape, item.letter, easeInOut(lettering));
         // Then every corner rounds off, the sharp letters turning into a rounded font
         var rounding = progress(now, ROUND, ROUND_TIME);
-        if (rounding > 0) shape = blend(item.letter, item.round, easeInOut(rounding));
+        if (rounding > 0) shape = blend(shape, item.round, easeInOut(rounding));
         var toO = item.becomesO ? progress(now, TO_OS, MORPH_TIME) : 0;
-        if (toO > 0) shape = blend(item.round, item.beforeMerge, easeInOut(toO));
+        if (toO > 0) shape = blend(shape, item.beforeMerge, easeInOut(toO));
         // The outside letters get dragged first, so the row folds in towards the middle
         var merging = progress(now, PULL + Math.abs(2.5 - i) * 60, MERGE_TIME);
-        if (merging > 0) shape = squirm(blend(item.beforeMerge, item.merged, easeInOut(merging)), merging, i, now);
+        if (merging > 0) shape = squirm(blend(shape, item.merged, easeInOut(merging)), merging, i, now);
         item.el.setAttribute("d", toPath(shape));
 
         // Tendrils from the letter towards the middle: they shoot out arching over and under,
@@ -711,10 +715,15 @@
         document.dispatchEvent(new Event("tokenz:intro-opening"));
       }
 
+      // The slow drift closer, from the letters to the zoom, which then carries straight on
+      var drift = 1 + DRIFT * progress(now, TO_LETTERS, GROW - TO_LETTERS);
       // Growing by the same ratio each moment reads as a steady zoom, eased at both ends
       var growing = easeInOut(progress(now, GROW, GROW_TIME));
+      if (growing <= 0 && drift > 1) {
+        group.setAttribute("transform", "translate(" + cx + "," + cy + ") scale(" + drift.toFixed(4) + ") translate(" + -cx + "," + -cy + ")");
+      }
       if (growing > 0) {
-        var scale = Math.pow(grow, growing);
+        var scale = drift * Math.pow(grow, growing);
         group.setAttribute("transform", "translate(" + cx + "," + cy + ") scale(" + scale + ") translate(" + -cx + "," + -cy + ")");
         var rx = holeRx * scale;
         var ry = holeRy * scale;

@@ -192,6 +192,30 @@
     });
   });
 
+  // On every page, any button pressed flashes, like the box when switching between Compare and
+  // Results: it turns to its negative and back, twice (.wb-flash in styles.css). Button-looking
+  // links (Results' "Go to Compare"), Compare's method tabs and Strength tiles count too; the
+  // flash goes on the part you see. Not with reduced motion (styles.css)
+  var PRESSABLE = "button, [role='button'], a.wb-primary, a.wb-secondary, .wb-segmented label, .wb-steps label";
+  document.addEventListener("click", function (event) {
+    var target = event.target;
+    if (!(target instanceof Element)) return;
+    // (clicking a label also clicks its radio button: one flash is enough)
+    if (target.matches("input")) return;
+    var pressed = target.closest(PRESSABLE);
+    if (!pressed || pressed.disabled) return;
+    var face = pressed.matches("label") ? pressed.querySelector(":scope > span") || pressed : pressed;
+    face.classList.remove("wb-flash");
+    void face.offsetWidth;  // starts it again on a quick second press
+    face.classList.add("wb-flash");
+  });
+  // (also when it's cut short, as when switching method hides the Strength tiles mid-flash)
+  ["animationend", "animationcancel"].forEach(function (type) {
+    document.addEventListener(type, function (event) {
+      if (/^wb-flash/.test(event.animationName)) event.target.classList.remove("wb-flash");
+    });
+  });
+
   window.TokenzTransition = {
     go: function (url) { window.location.assign(url); }
   };
