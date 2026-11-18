@@ -323,9 +323,9 @@
     // The measures, one at a time (after nickho-motorsports.nl's story section): see styles.css
     var measureItems = end ? Array.prototype.slice.call(end.querySelectorAll(".measure-item")) : [];
     var measureNow = end ? end.querySelector(".measure-count-now") : null;
-    var MEASURE_STEP = 1.2;  // windows of scrolling from one measure to the next
-    var MEASURE_TAIL = 0.8;  // windows of scrolling with the last one shown, before the white comes
-    var MEASURE_WIPE = 1.2;  // windows of scrolling for the white half circle to fill the window
+    var MEASURE_STEP = 2;    // windows of scrolling from one measure to the next
+    var MEASURE_TAIL = 1.2;  // windows of scrolling with the last one shown, before the white comes
+    var MEASURE_WIPE = 1.2;  // windows of scrolling for the white to rise and fill the window
     var measureWipe = end ? end.querySelector(".measure-wipe") : null;
     var measureAt = null, measureAtTime = 0;  // which measure is in the middle (0 to 3), eased
     var activeMeasure = -1, playedMeasure = -1;
@@ -677,9 +677,9 @@
         root.classList.remove("home-dark");
         if (end) end.style.removeProperty("top");
         if (end) end.style.removeProperty("height");
-        if (measureWipe) measureWipe.style.removeProperty("--wipe");
+        if (wipeCtx) { wipeCtx.setTransform(1, 0, 0, 1, 0, 0); wipeCtx.clearRect(0, 0, wipeCanvas.width, wipeCanvas.height); wipeShown = null; }
         root.classList.remove("home-wipe");
-        ["--wipe-r", "--wipe-x", "--wipe-y"].forEach(function (name) { root.style.removeProperty(name); });
+        root.style.removeProperty("--wipe-top");
         measureItems.forEach(function (item) {
           item.classList.remove("is-active");
           item.style.removeProperty("--y");
@@ -912,26 +912,81 @@
     // a column that moves up with the scroll (--y), the one in the middle bright and the rest
     // dimmed (--o). The one nearest the middle is the current one (is-active): its name and
     // description show as it takes over, the name rising from behind masks and the description
+    // The rising white with its pixel edge (.measure-wipe, styles.css). Squares about an 18th of
+    // the window tall; the edge's band is four rows deep: in the two rows just above the edge
+    // some white squares poke up into the black, in the two just below some black squares are
+    // left in the white, and a few in each are violet. Which squares, it picks again every
+    // quarter of a square the edge moves, so the boxes flick up and down as it climbs. Returns
+    // where the edge is, from the top of the window
+    var wipeCanvas = measureWipe ? measureWipe.querySelector("canvas") : null;
+    var wipeCtx = wipeCanvas ? wipeCanvas.getContext("2d") : null;
+    var wipeShown = null;
+    function cellHash(a, b, c) {
+      var x = Math.sin(a * 127.1 + b * 311.7 + c * 74.7) * 43758.5453;
+      return x - Math.floor(x);
+    }
+    function drawPixelWipe(amount) {
+      var W = window.innerWidth, H = window.innerHeight;
+      var size = Math.max(28, Math.round(H / 18));
+      var band = 2 * size;
+      // From just under the bottom (band and all) to just over the top
+      var edge = H + band - amount * (H + 2 * band);
+      if (!wipeCtx) return edge;
+      var dpr = Math.min(2, window.devicePixelRatio || 1);
+      var cw = Math.round(W * dpr), ch = Math.round(H * dpr);
+      if (wipeCanvas.width !== cw || wipeCanvas.height !== ch) {
+        wipeCanvas.width = cw;
+        wipeCanvas.height = ch;
+        wipeShown = null;
+      }
+      var key = amount.toFixed(4) + "/" + cw + "x" + ch;
+      if (key === wipeShown) return edge;
+      wipeShown = key;
+      var ctx = wipeCtx;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, W, H);
+      if (amount <= 0) return edge;
+      // Snapped to the grid, so the squares stay put and only flick on and off
+      var row0 = Math.floor(edge / size);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, (row0 + 2) * size, W, H);
+      var shuffle = Math.floor(edge / (size / 4));
+      var cols = Math.ceil(W / size);
+      for (var r = row0 - 2; r < row0 + 2; r++) {
+        if ((r + 1) * size < 0 || r * size > H) continue;
+        var below = r >= row0;  // in the white, or above it in the black
+        // nearer the edge, more of them
+        var near = below ? (r === row0 ? 0.55 : 0.25) : (r === row0 - 1 ? 0.5 : 0.18);
+        for (var c = 0; c < cols; c++) {
+          var pick = cellHash(c, r, shuffle);
+          var color = null;
+          if (below) {
+            if (pick < near) color = pick < near * 0.18 ? "#5B4FD6" : pick < near * 0.3 ? "#8B7FF2" : "#000000";
+            else color = "#ffffff";
+          } else if (pick < near) {
+            color = pick < near * 0.15 ? "#5B4FD6" : pick < near * 0.3 ? "#8B7FF2" : "#ffffff";
+          }
+          if (!color) continue;
+          ctx.fillStyle = color;
+          ctx.fillRect(c * size, r * size, size, size);
+        }
+      }
+      return edge;
+    }
+
     // decrypting in, and the counter shows its number
     function placeMeasures() {
       var H = window.innerHeight, count = measureItems.length;
       end.style.height = Math.round(H * (1 + MEASURE_STEP * (count - 1) + MEASURE_TAIL + MEASURE_WIPE)) + "px";
       var top = end.getBoundingClientRect().top;
-      // Then a white half circle rises from the middle of the bottom edge and grows until the
-      // whole window is white (--wipe 0 to 1 scales it to just past the farthest corner)
-      var W = window.innerWidth;
+      // Then the white rises from the bottom of the window, its top edge a band of pixels, until
+      // the whole window is white
       var wipe = clamp((-top - (MEASURE_STEP * (count - 1) + MEASURE_TAIL) * H) / (MEASURE_WIPE * H));
-      var wipeMax = 1.02 * Math.hypot(W / 2, H);
-      if (measureWipe) {
-        measureWipe.style.setProperty("--wipe-size", (2 * wipeMax).toFixed(0) + "px");
-        measureWipe.style.setProperty("--wipe", ease(wipe).toFixed(4));
-      }
-      // The sidebar stays where it is and changes colour exactly where the white touches it: dark
-      // inside the circle, white outside it (home-wipe, styles.css)
+      var edge = drawPixelWipe(ease(wipe));
+      // The sidebar stays where it is and changes colour where the white has reached: dark below
+      // the edge, white above it (home-wipe, styles.css)
       root.classList.toggle("home-wipe", wipe > 0);
-      root.style.setProperty("--wipe-r", (ease(wipe) * wipeMax).toFixed(1) + "px");
-      root.style.setProperty("--wipe-x", (W / 2).toFixed(1) + "px");
-      root.style.setProperty("--wipe-y", H + "px");
+      root.style.setProperty("--wipe-top", edge.toFixed(1) + "px");
       var target = Math.min(count - 1, Math.max(0, -top / (MEASURE_STEP * H)));
       // (with the same short ease as the methods' row, so the steps of a mouse wheel blend)
       var now = performance.now();

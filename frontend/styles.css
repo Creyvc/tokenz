@@ -4506,24 +4506,26 @@ html.home-scroll .measure-count {
   fill: #8B7FF2;
 }
 
-/* After the last measure, a white half circle rises from the middle of the bottom edge and grows
-   until the whole window is white (--wipe 0 to 1, home.js; drawn at full size and scaled down) */
+/* After the last measure, the white rises from the bottom of the window until it fills it, its
+   top edge a band of square pixels (after transform9.com): black squares hang down into the white,
+   white ones poke up into the black, a few in violet, and they shuffle as you scroll, so the boxes
+   flick up and down as it climbs. Drawn on a canvas covering the window (home.js) */
 .measure-wipe {
   display: none;
 }
 
 html.home-scroll .measure-wipe {
   position: absolute;
-  top: 100%;
-  left: 50%;
+  inset: 0;
   z-index: 2;
   display: block;
-  width: var(--wipe-size, 200vmax);
-  height: var(--wipe-size, 200vmax);
-  border-radius: 50%;
-  background: #ffffff;
-  transform: translate(-50%, -50%) scale(var(--wipe, 0));
   pointer-events: none;
+}
+
+.measure-wipe canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 /* The frame's fourth corner. In the plain list the number stands in its place; with the scroll
@@ -4861,20 +4863,20 @@ html.home-dark .nav.nav-copy {
   from { opacity: 0; }
 }
 
-/* While the white half circle at the end of "What We Measure" grows (and after, over the white
-   FAQ), the sidebar stays put and changes colour exactly where the white touches it: the real,
-   dark one shows inside the circle, and the white copy outside it (--wipe-r, -x, -y, home.js) */
+/* While the white rises at the end of "What We Measure" (and after, over the white FAQ), the
+   sidebar stays put and changes colour where the white has reached: the real, dark one shows
+   below the white's edge, and the white copy above it (--wipe-top, home.js) */
 html.home-wipe .nav:not(.nav-copy) {
   opacity: 1;
-  -webkit-mask-image: radial-gradient(circle var(--wipe-r, 0px) at var(--wipe-x, 50%) var(--wipe-y, 100%), #000 100%, transparent 100%);
-  mask-image: radial-gradient(circle var(--wipe-r, 0px) at var(--wipe-x, 50%) var(--wipe-y, 100%), #000 100%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent var(--wipe-top, 100vh), #000 var(--wipe-top, 100vh));
+  mask-image: linear-gradient(to bottom, transparent var(--wipe-top, 100vh), #000 var(--wipe-top, 100vh));
 }
 
 html.home-wipe .nav.nav-copy {
   clip-path: none;
   animation: none;
-  -webkit-mask-image: radial-gradient(circle var(--wipe-r, 0px) at var(--wipe-x, 50%) var(--wipe-y, 100%), transparent 100%, #000 100%);
-  mask-image: radial-gradient(circle var(--wipe-r, 0px) at var(--wipe-x, 50%) var(--wipe-y, 100%), transparent 100%, #000 100%);
+  -webkit-mask-image: linear-gradient(to bottom, #000 var(--wipe-top, 100vh), transparent var(--wipe-top, 100vh));
+  mask-image: linear-gradient(to bottom, #000 var(--wipe-top, 100vh), transparent var(--wipe-top, 100vh));
 }
 
 /* Only the real dot slides between pages */
