@@ -1,11 +1,16 @@
-// About: the team as three soft, iridescent balls (after a set of record sleeves with glowing
-// spheres on pale grey), one above each person's name, drawn on the graphics card (WebGL2).
-// Each ball stays where it is, but it's alive: its outline wobbles like jelly, its colours flow
-// slowly round inside it like liquid, and its edge glows, with a thin rainbow fringe and a faint
-// halo of its own colour, with a fine film grain on it.
+// About: the team as three balls of coloured liquid glass (after a set of record sleeves with
+// glowing spheres on pale grey), one above each person's name, drawn on the graphics card (WebGL2).
+// Each ball stays where it is, but it's alive: its outline wobbles like jelly, drops pull away
+// from it, drift out and flow back in to merge, and its colours flow round inside it like
+// liquid, in marbled bands, bent towards the rim as through glass. It's lit like a glass sphere by
+// a light that wanders freely round it, so its sheen, highlight and coloured glint glide over the
+// glass; with a crisp edge, a thin rainbow fringe and a faint shadow of its colour.
 // - Where each ball sits and how big: the empty square above each name (.orb-spot), so the page's
 //   CSS lays them out (three across, or one above another on a phone).
 // - Each ball's colours: five, from light to dark and back to an accent (PALETTES below).
+// - The canvas covers the whole window and is see-through: only the balls and their glow are
+//   drawn, so the page's own white shows everywhere else, and no glow is cut off at an edge.
+// - As sharp as the screen allows (up to 2 pixels per CSS pixel).
 // - Reduced motion: the balls stand still. Without WebGL2: still CSS gradients (styles.css).
 (function () {
   var stage = document.querySelector("[data-orbs]");
@@ -23,7 +28,7 @@
   var SIZE = 0.36;         // each ball's radius, as a share of its square
   var SPEED = 1;           // how fast it all moves (1 = as written)
 
-  var gl = canvas.getContext("webgl2", { antialias: false, alpha: false });
+  var gl = canvas.getContext("webgl2", { antialias: false, alpha: true, premultipliedAlpha: true });
   if (!gl) { stage.classList.add("is-flat"); return; }
 
   var FRAGMENT = [
@@ -43,6 +48,27 @@
     "  int i = int(floor(x)); float f = fract(x); f = f * f * (3.0 - 2.0 * f);",
     "  return mix(u_pal[k * 5 + min(i, 4)], u_pal[k * 5 + min(i + 1, 4)], f);",
     "}",
+    // Rounded join of two shapes (the drops flowing into the ball)
+    "float smin(float a, float b, float k) { float h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0); return mix(b, a, h) - k * h * (1.0 - h); }",
+    // A ball's shape, as distance to its surface (in its own radius): the jelly-edged ball, and
+    // three drops that pull away from it, drift out, and flow back in to merge
+    "float shape(vec2 d, float s, float t) {",
+    "  float r = length(d), ang = atan(d.y, d.x);",
+    "  float wob = 0.026 * sin(3.0 * ang + t * 1.1 + s) + 0.018 * sin(5.0 * ang - t * 1.5 + s * 2.0)",
+    "    + 0.015 * sin(2.0 * ang + t * 0.7 + s * 3.0)",
+    "    + 0.03 * (fbm(vec2(cos(ang), sin(ang)) * 1.5 + t * 0.25 + s) - 0.5);",
+    "  float sd = r - (1.0 + wob);",
+    "  for (int j = 0; j < 3; j++) {",
+    "    float fj = float(j);",
+    "    float a = s * 3.0 + fj * 2.1 + t * 0.15 + 0.5 * sin(t * 0.3 + fj * 1.7 + s);",
+    "    float out_ = 0.5 - 0.5 * cos(t * (0.45 + 0.13 * fj) + fj * 2.4 + s * 1.3);",
+    "    out_ = out_ * out_ * (3.0 - 2.0 * out_);",
+    "    float size = 0.1 + 0.05 * sin(t * 0.7 + fj * 3.1 + s);",
+    "    vec2 at = vec2(cos(a), sin(a)) * (0.82 + 0.78 * out_);",
+    "    sd = smin(sd, length(d - at) - size, 0.22);",
+    "  }",
+    "  return sd;",
+    "}",
     "void main() {",
     "  vec2 px = gl_FragCoord.xy;",
     "  vec3 col = vec3(1.0);",
@@ -53,33 +79,63 @@
     "    float s = float(k) * 2.17 + 0.7;",
     "    vec2 d = (px - orb.xy) / orb.z;",
     "    float r = length(d);",
-    "    if (r > 2.6) continue;",
+    "    if (r > 2.4) continue;",
     "    float ang = atan(d.y, d.x);",
-    // The jelly outline: a few slow waves round the edge, and a little wandering noise
-    "    float wob = 0.026 * sin(3.0 * ang + t * 1.1 + s) + 0.018 * sin(5.0 * ang - t * 1.5 + s * 2.0)",
-    "      + 0.015 * sin(2.0 * ang + t * 0.7 + s * 3.0)",
-    "      + 0.03 * (fbm(vec2(cos(ang), sin(ang)) * 1.5 + t * 0.25 + s) - 0.5);",
-    "    float edge = 1.0 + wob;",
-    "    float body = 1.0 - smoothstep(edge - 0.09, edge + 0.06, r);",
-    // Inside: its colours flowing round, warped by slow swirls
-    "    vec2 q = d + 0.4 * vec2(fbm(d * 1.3 + vec2(t * 0.12, s)), fbm(d * 1.3 + vec2(s, -t * 0.1))) - 0.2;",
+    "    float sd = shape(d, s, t);",
+    // A crisp, smooth edge: about a pixel and a half of softening, whatever the ball's size
+    "    float aa = 1.5 / orb.z;",
+    "    float body = 1.0 - smoothstep(-aa, aa, sd);",
+    // Which way the surface faces, from how the shape changes nearby; deeper inside faces you more
+    "    float eps = 2.0 / orb.z;",
+    "    vec2 grad = vec2(shape(d + vec2(eps, 0.0), s, t) - sd, shape(d + vec2(0.0, eps), s, t) - sd) / eps;",
+    "    float depth = 1.0 + min(sd, 0.0);",
+    "    float z = sqrt(max(0.0, 1.0 - depth * depth));",
+    // (towards the middle, the plain sphere's way out; near the edge, the wobbling shape's and the
+    // drops', which near the very middle would swing wildly)
+    "    vec2 out_ = normalize(mix(d + 1e-5, normalize(grad + 1e-5), smoothstep(0.55, 0.9, r)));",
+    "    vec3 n = normalize(vec3(out_ * sqrt(1.0 - z * z), z));",
+    // The light wanders freely round each ball, so its sheen and highlight glide over the glass
+    "    vec3 light = normalize(vec3(",
+    "      0.85 * sin(t * 0.37 + s * 1.3) + 0.3 * sin(t * 0.91 + s),",
+    "      0.85 * cos(t * 0.29 + s * 2.1) + 0.3 * cos(t * 0.73 + s * 0.5),",
+    "      0.7 + 0.25 * sin(t * 0.5 + s)));",
+    // Inside: the colours flowing round like liquid, bent more towards the rim as through glass,
+    // with marbled bands winding through them
+    "    vec2 bent = d + n.xy * 0.35 * (1.0 - z);",
+    "    vec2 q = bent + 0.45 * vec2(fbm(bent * 0.8 + vec2(t * 0.1, s)), fbm(bent * 0.8 + vec2(s, -t * 0.08))) - 0.225;",
     "    vec2 way = vec2(cos(s + t * 0.06), sin(s + t * 0.06));",
-    "    float g = dot(q, way) * 0.5 + 0.5 + 0.3 * (fbm(q * 1.8 - t * 0.08 + s) - 0.5);",
+    "    float swirl = fbm(q * 1.4 + vec2(-t * 0.07, t * 0.05) + s);",
+    "    float g = dot(q, way) * 0.5 + 0.5 + 0.16 * (swirl - 0.5) + 0.05 * sin(swirl * 18.0 + t * 0.6);",
     "    vec3 inner = palette(k, g);",
-    "    inner = mix(inner, inner * 0.82, smoothstep(0.3, 1.0, r) * 0.35);",
-    // Round the edge: a thin rainbow fringe, then a soft halo of its own colour fading out
-    "    float ring = exp(-pow((r - edge) / 0.07, 2.0));",
+    "    float bands = 0.5 + 0.5 * sin(swirl * 26.0 - t * 0.5 + dot(q, way) * 6.0);",
+    "    inner *= 0.9 + 0.12 * bands;",
+    // Lit like glass by that moving light: shaded away from it, a bright rim, a coloured glint
+    // on the side opposite the light, a broad sheen and a softer highlight
+    "    inner *= 0.8 + 0.26 * max(dot(n, light), 0.0);",
+    "    float rim = pow(1.0 - z, 3.0);",
+    "    inner = mix(inner, vec3(1.0), rim * 0.4);",
     "    vec3 fringe = 0.55 + 0.45 * cos(6.283 * (ang / 6.283 + t * 0.03 + vec3(0.0, 0.33, 0.67)) + s);",
-    "    float glow = exp(-pow(max(r - edge, 0.0) / 0.38, 2.0)) * (1.0 - body);",
+    "    inner += fringe * pow(1.0 - z, 2.0) * max(dot(n.xy, -light.xy), 0.0) * 0.3;",
+    "    vec3 mirror = reflect(-light, n);",
+    "    float sheen = pow(max(mirror.z, 0.0), 5.0) * 0.2;",
+    "    float spark = pow(max(mirror.z, 0.0), 36.0) * 0.55;",
+    "    inner += vec3(sheen + spark);",
+    // Round the edge: a thin rainbow fringe just outside, and a faint shadow of its own colour
+    "    float ring = exp(-pow((sd - aa) / 0.025, 2.0)) * (1.0 - body);",
+    "    float glow = exp(-pow(max(sd, 0.0) / 0.22, 2.0)) * (1.0 - body);",
     "    vec3 glowCol = palette(k, 0.5 + 0.45 * sin(ang + s + t * 0.1));",
-    "    col = mix(col, glowCol, glow * 0.22);",
-    "    col = mix(col, fringe, ring * 0.3 * (1.0 - body * 0.6));",
-    "    col = mix(col, inner, body);",
-    "    cover = max(cover, max(body, glow * 0.6));",
+    "    col = mix(col, glowCol, glow * 0.12);",
+    "    col = mix(col, fringe, ring * 0.35);",
+    "    col = mix(col, clamp(inner, 0.0, 1.0), body);",
+    "    cover = max(cover, max(body, glow * 0.4));",
     "  }",
-    // A fine film grain over the balls and their glow (not the white round them, which it would grey)
-    "  col += (hash(px + fract(t * 7.3) * 100.0) - 0.5) * 0.035 * cover;",
-    "  o = vec4(col, 1.0);",
+    // A light film grain over the balls and their glow
+    "  col += (hash(px + fract(t * 7.3) * 100.0) - 0.5) * 0.02 * cover;",
+    "  col = clamp(col, 0.0, 1.0);",
+    // See-through: what's drawn is this colour laid over white, given as the least coverage that
+    // gives it, so where it's white nothing is drawn at all and the page shows through
+    "  float a = 1.0 - min(min(col.r, col.g), col.b);",
+    "  o = vec4(col - (1.0 - a), a);",
     "}"
   ].join("\n");
 
@@ -118,28 +174,33 @@
   });
   gl.uniform3fv(u.pal, colours);
 
-  // The balls are soft, so the canvas needn't be sharper than 1.5 pixels per CSS pixel
+  // The canvas is the window; the balls follow their squares (each frame, so scrolling on a phone
+  // carries them along)
   var dpr = 1, orbs = new Float32Array(9);
   function layout() {
-    dpr = Math.min(1.5, window.devicePixelRatio || 1);
-    var at = stage.getBoundingClientRect();
-    canvas.width = Math.max(1, Math.round(at.width * dpr));
-    canvas.height = Math.max(1, Math.round(at.height * dpr));
+    dpr = Math.min(2, window.devicePixelRatio || 1);
+    canvas.width = Math.max(1, Math.round(window.innerWidth * dpr));
+    canvas.height = Math.max(1, Math.round(window.innerHeight * dpr));
     gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.uniform2f(u.res, canvas.width, canvas.height);
+  }
+  function place() {
     spots.forEach(function (spot, i) {
       if (i > 2) return;
       var r = spot.getBoundingClientRect();
-      orbs[i * 3] = (r.left + r.width / 2 - at.left) * dpr;
-      orbs[i * 3 + 1] = canvas.height - (r.top + r.height / 2 - at.top) * dpr;
+      orbs[i * 3] = (r.left + r.width / 2) * dpr;
+      orbs[i * 3 + 1] = canvas.height - (r.top + r.height / 2) * dpr;
       orbs[i * 3 + 2] = r.width * SIZE * dpr;
     });
-    gl.uniform2f(u.res, canvas.width, canvas.height);
     gl.uniform3fv(u.orb, orbs);
   }
 
   var start = performance.now(), running = false, visible = true;
   function draw(now) {
+    place();
     gl.uniform1f(u.time, still ? 12 : (now - start) / 1000 * SPEED);
+    gl.clearColor(0, 0, 0, 0);
+    gl.clear(gl.COLOR_BUFFER_BIT);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   }
   function loop(now) {
@@ -156,7 +217,8 @@
 
   layout();
   run(true);
-  new ResizeObserver(function () { layout(); if (still) run(true); }).observe(stage);
+  window.addEventListener("resize", function () { layout(); if (still) run(true); });
+  if (still) window.addEventListener("scroll", function () { run(true); }, { passive: true });
   document.addEventListener("visibilitychange", function () { run(visible && !document.hidden); });
   if (window.IntersectionObserver) {
     new IntersectionObserver(function (entries) {
