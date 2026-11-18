@@ -5738,5 +5738,13 @@ html.home-scroll .faq {
    meets the bottom of the window, then holds there (its top set by home.js), with room under
    the answers for "SCROLL" to grow into */
 html.home-scroll .faq {
+  padding-top: 0;
   padding-bottom: 26vh;
+}
+
+/* The FAQ's page starts coming up half a window early, under the rising white (the white's
+   edge climbs faster than the page does, so the page's straight top edge never shows above it),
+   so the questions follow straight on from the pixels */
+html.home-scroll .home-cover {
+  margin-top: -50vh;
 }
