@@ -1,0 +1,37 @@
+<!--
+  Home's FAQ, taken off the page on 18 November 2026 and kept here unchanged.
+
+  To put it back: paste everything below into frontend/index.html, inside <div class="faq">,
+  just before <span class="faq-line" aria-hidden="true"></span>. Its styles are still in
+  frontend/styles.css (.faq-intro, .faq-label, .faq-list, .faq-item, .faq-question,
+  .faq-chevron, .faq-answer), and home.js still sizes "SCROLL" around the list when it's there.
+-->
+      <div class="faq-intro">
+        <h2 class="faq-label"><span>FAQ</span></h2>
+      </div>
+      <div class="faq-list">
+        <details class="faq-item">
+          <summary class="faq-question"><span>What does Tokenz actually do?</span><svg class="faq-chevron" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 9L12 15L18 9"/></svg></summary>
+          <p class="faq-answer">It shortens a prompt before you send it to an AI, taking out the words that don't change what you're asking. The model reads fewer tokens, and the request stays the same.</p>
+        </details>
+        <details class="faq-item">
+          <summary class="faq-question"><span>What is a token?</span><svg class="faq-chevron" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 9L12 15L18 9"/></svg></summary>
+          <p class="faq-answer">A token is a piece of a word: the unit AI models read, and charge by. Tokenz counts them with the same tokenizer GPT-4o uses, so a short common word is usually one token and a long or unusual one can be several.</p>
+        </details>
+        <details class="faq-item">
+          <summary class="faq-question"><span>Which of the three methods should I use?</span><svg class="faq-chevron" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 9L12 15L18 9"/></svg></summary>
+          <p class="faq-answer">NLP for any prompt: it tidies the wording, cutting polite openings and repeated sentences. TF-IDF for longer prompts with a lot of background, since it drops the sentences that are off-topic. AI Rewrite when you want the shortest version and don't mind your prompt being sent out to be rewritten.</p>
+        </details>
+        <details class="faq-item">
+          <summary class="faq-question"><span>Does my prompt leave my computer?</span><svg class="faq-chevron" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 9L12 15L18 9"/></svg></summary>
+          <p class="faq-answer">Not with NLP or TF-IDF: both run on your own computer. AI Rewrite sends your prompt to Groq and Google, so their models can write a shorter version.</p>
+        </details>
+        <details class="faq-item">
+          <summary class="faq-question"><span>Can a shorter prompt get a worse answer?</span><svg class="faq-chevron" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 9L12 15L18 9"/></svg></summary>
+          <p class="faq-answer">It can, so we check. AI Rewrite rejects any rewrite that drops a number, a limit, a “not”, quoted text or a name like JSON, or saves no tokens. It retries once, and keeps your original if the retry fails too. Still, read the result once before you send it: the checks can't prove the meaning is exactly the same.</p>
+        </details>
+        <details class="faq-item">
+          <summary class="faq-question"><span>Why did I get my prompt back unchanged?</span><svg class="faq-chevron" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 9L12 15L18 9"/></svg></summary>
+          <p class="faq-answer">Because nothing could be cut safely. “Original kept” means every shorter version would have lost something you asked for, or saved no tokens, so your prompt comes back as it was. That's a valid result, not an error.</p>
+        </details>
+      </div>

@@ -316,7 +316,7 @@
     // "What We Measure", and the black page that comes up over it once it's done
     var end = document.querySelector(".home-end");
     var endCover = document.querySelector(".home-cover");
-    var faqList = endCover ? endCover.querySelector(".faq-list") : null;
+    var faqList = endCover ? endCover.querySelector(".qa-list, .faq-list") : null;
     var faqWord = endCover ? endCover.querySelector(".faq-scroll") : null;
     var faqLine = endCover ? endCover.querySelector(".faq-line") : null;
     var compareLink = endCover ? endCover.querySelector(".faq-word.is-compare") : null;
@@ -324,9 +324,10 @@
     var measureItems = end ? Array.prototype.slice.call(end.querySelectorAll(".measure-item")) : [];
     var measureNow = end ? end.querySelector(".measure-count-now") : null;
     var MEASURE_STEP = 2;    // windows of scrolling from one measure to the next
-    var MEASURE_TAIL = 2;    // windows of scrolling with the last one shown, before the white comes:
-                             // its drawing keeps moving up with the scroll till it meets the top
-    var MEASURE_WIPE = 1.2;  // windows of scrolling for the white to rise and fill the window
+    var MEASURE_TAIL = 1.2;  // windows of scrolling with the last one shown, before the white comes:
+                             // its drawing keeps moving up with the scroll till the top of the
+                             // window cuts it in half
+    var MEASURE_WIPE = 0.8;  // windows of scrolling for the white to rise and fill the window
     var measureWipe = end ? end.querySelector(".measure-wipe") : null;
     var measureAt = null, measureAtTime = 0;  // which measure is in the middle (0 to 3), eased
     var activeMeasure = -1, playedMeasure = -1;
@@ -1009,14 +1010,14 @@
       // the edge, white above it (home-wipe, styles.css)
       root.classList.toggle("home-wipe", wipe > 0);
       root.style.setProperty("--wipe-top", edge.toFixed(1) + "px");
-      // Past the last one, its drawing carries on up with the scroll until the top of its frame
-      // meets the top of the window, just as the white begins (--y beyond the last measure)
+      // Past the last one, its drawing carries on up with the scroll until the top of the window
+      // cuts it in half, just as the white begins (--y beyond the last measure)
       var card = Math.min(0.38 * H, 0.24 * window.innerWidth);
       var pitch = card + 0.25 * H;
       var last = measureItems[count - 1];
       var lastMark = last.querySelector(".measure-mark") || last;
       var restTop = lastMark.getBoundingClientRect().top - (parseFloat(last.style.getPropertyValue("--y")) || 0);
-      var beyond = Math.max(0, restTop) / pitch;
+      var beyond = Math.max(0, restTop + card / 2) / pitch;
       var tail = clamp((-top - MEASURE_STEP * (count - 1) * H) / (MEASURE_TAIL * H));
       var target = Math.min(count - 1, Math.max(0, -top / (MEASURE_STEP * H))) + beyond * tail;
       // (with the same short ease as the methods' row, so the steps of a mouse wheel blend)
