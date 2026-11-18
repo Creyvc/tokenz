@@ -317,6 +317,17 @@
     var end = document.querySelector(".home-end");
     var endCover = document.querySelector(".home-cover");
     var faqList = endCover ? endCover.querySelector(".qa-list, .faq-list") : null;
+    // The FAQ can be taller than the window: it scrolls up until its bottom meets the bottom of
+    // the window, and only then holds, so everything that waits for its lock waits that much
+    // longer (faqExtra), and its page is that much longer for the bars
+    var faqBox = endCover ? endCover.querySelector(".faq") : null;
+    function faqExtra() {
+      if (!faqBox || !root.classList.contains("home-scroll")) return 0;
+      var extra = Math.max(0, faqBox.offsetHeight - window.innerHeight);
+      faqBox.style.top = -extra + "px";
+      endCover.style.minHeight = (4 * window.innerHeight + extra) + "px";
+      return extra;
+    }
     var faqWord = endCover ? endCover.querySelector(".faq-scroll") : null;
     var faqLine = endCover ? endCover.querySelector(".faq-line") : null;
     var compareLink = endCover ? endCover.querySelector(".faq-word.is-compare") : null;
@@ -464,10 +475,11 @@
     function wheel(event) {
       if (holding()) { event.preventDefault(); return; }
       if (!endCover || !root.classList.contains("home-scroll") || event.ctrlKey) return;
-      if (window.scrollY < endCover.offsetTop) return;
+      var lock = endCover.offsetTop + faqExtra();
+      if (window.scrollY < lock) return;
       var unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? window.innerHeight : 1;
       // (the bars start a window past the lock, once "SCROLL" is full size)
-      var drag = window.scrollY - endCover.offsetTop >= window.innerHeight ? DRAG_BARS : DRAG;
+      var drag = window.scrollY - lock >= window.innerHeight ? DRAG_BARS : DRAG;
       event.preventDefault();
       window.scrollBy({ top: event.deltaY * unit * drag, behavior: "instant" });
     }
@@ -669,6 +681,7 @@
         root.classList.remove("home-tokenz-out", "home-text-out", "home-covered");
         if (heroBackground) heroBackground.hold(false);
         ["--grow", "--pull", "--edge", "--shift-x", "--shift-y", "--cover", "--sheet", "--compare-fill"].forEach(function (name) { root.style.removeProperty(name); });
+        if (faqBox) { faqBox.style.top = ""; endCover.style.minHeight = ""; }
         if (copy) copy.remove();
         if (navCopy) navCopy.remove();
         if (next) next.style.height = "";
@@ -753,7 +766,7 @@
         var slideStart = next.offsetTop;
         // Arriving at the FAQ's lock on the way down, the page holds with "SCROLL" still small
         if (end && endCover) {
-          var lockAt = endCover.offsetTop;
+          var lockAt = endCover.offsetTop + faqExtra();
           var locked = holding() ? faqLocked : y > lockAt;
           if (faqLocked === false && locked) {
             hold(lockAt + 1, FAQ_HOLD);
@@ -865,14 +878,15 @@
           // Then the FAQ locks in the middle of the window. Over the next window "SCROLL" grows
           // from small in the corner to big (--outro 0 to 1, styles.css), and over the last one
           // the bars grow in under it, left to right
-          var pastLock = Math.max(0, -coverTop);
+          var extra = faqExtra();
+          var pastLock = Math.max(0, -coverTop - extra);
           var outro = clamp(pastLock / window.innerHeight);
           root.style.setProperty("--outro", outro.toFixed(4));
           // At its biggest it's 9% of the window wide, and never closer than 48px to the last
           // question (or an open answer): its letters are about 0.8 of its size tall
           if (faqList) {
             // (where the list's bottom will be once the FAQ has locked at the top)
-            var listBottom = faqList.getBoundingClientRect().bottom - Math.max(0, coverTop);
+            var listBottom = faqList.getBoundingClientRect().bottom - Math.max(0, coverTop + extra);
             var below = window.innerHeight - 28 - listBottom - 48;
             var biggest = Math.max(13, Math.min(0.09 * window.innerWidth, below / 0.8));
             root.style.setProperty("--outro-max", biggest.toFixed(1) + "px");

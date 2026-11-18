@@ -114,36 +114,54 @@
   </section>
   <section class="home-cover">
     <div class="faq">
-      <!-- The FAQ (styles.css, .qa-*): a big headline on the left; on the right six numbered
-           questions, each with its answer, in two columns. The old list is kept in
-           docs/home-faq.html -->
+      <!-- The FAQ (styles.css, .qa-*): a big headline on the left; on the right the six
+           questions, one under another, each with its number in the middle and its question and
+           answer to the right. The old list is kept in docs/home-faq.html -->
       <div class="qa-head">
         <h2 class="qa-title">Questions,<br>answered.</h2>
       </div>
       <div class="qa-list">
         <article class="qa-item">
-          <h3 class="qa-q"><span class="qa-num">01</span><span class="qa-text">What does Tokenz actually do?</span></h3>
-          <p class="qa-a">It shortens a prompt before you send it to an AI, taking out the words that don't change what you're asking. The model reads fewer tokens, and the request stays the same.</p>
+          <span class="qa-num">01</span>
+          <div class="qa-body">
+            <h3 class="qa-q"><span>What does Tokenz actually do?</span></h3>
+            <p class="qa-a"><span>It shortens a prompt before you send it to an AI, taking out the words that don't change what you're asking. The model reads fewer tokens, and the request stays the same.</span></p>
+          </div>
         </article>
         <article class="qa-item">
-          <h3 class="qa-q"><span class="qa-num">02</span><span class="qa-text">What is a token?</span></h3>
-          <p class="qa-a">A token is a piece of a word: the unit AI models read, and charge by. Tokenz counts them with the same tokenizer GPT-4o uses, so a short common word is usually one token and a long or unusual one can be several.</p>
+          <span class="qa-num">02</span>
+          <div class="qa-body">
+            <h3 class="qa-q"><span>What is a token?</span></h3>
+            <p class="qa-a"><span>A token is a piece of a word: the unit AI models read, and charge by. Tokenz counts them with the same tokenizer GPT-4o uses, so a short common word is usually one token and a long or unusual one can be several.</span></p>
+          </div>
         </article>
         <article class="qa-item">
-          <h3 class="qa-q"><span class="qa-num">03</span><span class="qa-text">Which of the three methods should I use?</span></h3>
-          <p class="qa-a">NLP for any prompt: it tidies the wording, cutting polite openings and repeated sentences. TF-IDF for longer prompts with a lot of background, since it drops the sentences that are off-topic. AI Rewrite when you want the shortest version and don't mind your prompt being sent out to be rewritten.</p>
+          <span class="qa-num">03</span>
+          <div class="qa-body">
+            <h3 class="qa-q"><span>Which of the three methods should I use?</span></h3>
+            <p class="qa-a"><span>NLP for any prompt: it tidies the wording, cutting polite openings and repeated sentences. TF-IDF for longer prompts with a lot of background, since it drops the sentences that are off-topic. AI Rewrite when you want the shortest version and don't mind your prompt being sent out to be rewritten.</span></p>
+          </div>
         </article>
         <article class="qa-item">
-          <h3 class="qa-q"><span class="qa-num">04</span><span class="qa-text">Does my prompt leave my computer?</span></h3>
-          <p class="qa-a">Not with NLP or TF-IDF: both run on your own computer. AI Rewrite sends your prompt to Groq and Google, so their models can write a shorter version.</p>
+          <span class="qa-num">04</span>
+          <div class="qa-body">
+            <h3 class="qa-q"><span>Does my prompt leave my computer?</span></h3>
+            <p class="qa-a"><span>Not with NLP or TF-IDF: both run on your own computer. AI Rewrite sends your prompt to Groq and Google, so their models can write a shorter version.</span></p>
+          </div>
         </article>
         <article class="qa-item">
-          <h3 class="qa-q"><span class="qa-num">05</span><span class="qa-text">Can a shorter prompt get a worse answer?</span></h3>
-          <p class="qa-a">It can, so we check. AI Rewrite rejects any rewrite that drops a number, a limit, a “not”, quoted text or a name like JSON, or saves no tokens. It retries once, and keeps your original if the retry fails too. Still, read the result once before you send it: the checks can't prove the meaning is exactly the same.</p>
+          <span class="qa-num">05</span>
+          <div class="qa-body">
+            <h3 class="qa-q"><span>Can a shorter prompt get a worse answer?</span></h3>
+            <p class="qa-a"><span>It can, so we check. AI Rewrite rejects any rewrite that drops a number, a limit, a “not”, quoted text or a name like JSON, or saves no tokens. It retries once, and keeps your original if the retry fails too. Still, read the result once before you send it: the checks can't prove the meaning is exactly the same.</span></p>
+          </div>
         </article>
         <article class="qa-item">
-          <h3 class="qa-q"><span class="qa-num">06</span><span class="qa-text">Why did I get my prompt back unchanged?</span></h3>
-          <p class="qa-a">Because nothing could be cut safely. “Original kept” means every shorter version would have lost something you asked for, or saved no tokens, so your prompt comes back as it was. That's a valid result, not an error.</p>
+          <span class="qa-num">06</span>
+          <div class="qa-body">
+            <h3 class="qa-q"><span>Why did I get my prompt back unchanged?</span></h3>
+            <p class="qa-a"><span>Because nothing could be cut safely. “Original kept” means every shorter version would have lost something you asked for, or saved no tokens, so your prompt comes back as it was. That's a valid result, not an error.</span></p>
+          </div>
         </article>
       </div>
       <span class="faq-line" aria-hidden="true"></span>
