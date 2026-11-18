@@ -1285,25 +1285,102 @@ html.intro-play .intro.is-playing {
   outline-offset: 3px;
 }
 
-/* While it runs it stays clear (it's working, not switched off), and the chevron becomes a small
-   turning ring */
+/* While it runs it stays clear (it's working, not switched off), and the chevron gives way to
+   the logo in white, playing the same squeeze loop as the one in the prompt box (wb-mark-*,
+   above), its diamond flashing light violet as it's squeezed */
 .wb-send.is-running {
   opacity: 1;
   cursor: progress;
 }
 
-.wb-send.is-running .wb-send-icon svg {
+/* "Running" and its dots, counting 1, 2, 3 then 3, 2, 1, over and over, in time with the logo's
+   squeeze (1.4s a round); room is kept for all three so nothing shifts */
+.wb-send-dots {
+  display: none;
+  margin-left: -12px;
+  letter-spacing: 0.04em;
+}
+
+.wb-send.is-running .wb-send-dots {
+  display: inline;
+}
+
+.wb-send-dots i {
+  font-style: normal;
+}
+
+.wb-send.is-running .wb-send-dots i:nth-child(2) {
+  animation: wb-dot-two 1.4s step-end infinite;
+}
+
+.wb-send.is-running .wb-send-dots i:nth-child(3) {
+  animation: wb-dot-three 1.4s step-end infinite;
+}
+
+/* Six beats: 1 · 2 · 3 · 3 · 2 · 1 */
+@keyframes wb-dot-two {
+  0%            { opacity: 0; }
+  16.67%, 83.33% { opacity: 1; }
+  83.34%, 100%  { opacity: 0; }
+}
+
+@keyframes wb-dot-three {
+  0%            { opacity: 0; }
+  33.33%        { opacity: 1; }
+  66.67%, 100%  { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wb-send.is-running .wb-send-dots i {
+    animation: none;
+  }
+}
+
+.wb-send-icon .wb-send-mark {
+  display: none;
+  width: 20px;
+  height: 20px;
+  margin: -4px -3px;
+  fill: #ffffff;
+}
+
+.wb-send.is-running .wb-send-icon svg:not(.wb-send-mark) {
   display: none;
 }
 
-.wb-send.is-running .wb-send-icon::before {
-  content: "";
-  width: 11px;
-  height: 11px;
-  border: 2px solid currentColor;
-  border-right-color: transparent;
-  border-radius: 50%;
-  animation: wb-spin 0.8s linear infinite;
+.wb-send.is-running .wb-send-mark {
+  display: block;
+  animation: wb-mark-spin 1.4s infinite;
+}
+
+.wb-send.is-running .wb-send-mark .wb-mark-l {
+  animation: wb-mark-left 1.4s infinite;
+}
+
+.wb-send.is-running .wb-send-mark .wb-mark-r {
+  animation: wb-mark-right 1.4s infinite;
+}
+
+.wb-send.is-running .wb-send-mark .wb-mark-d {
+  animation: wb-send-core 1.4s infinite;
+}
+
+@keyframes wb-send-core {
+  0%, 16% { transform: scale(1); fill: #ffffff; animation-timing-function: cubic-bezier(0.7, 0, 0.84, 0); }
+  36%, 46% { transform: scale(0.45); fill: #B9A6FF; animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1); }
+  60% { transform: scale(1.5); fill: #B9A6FF; animation-timing-function: ease-in-out; }
+  82%, 100% { transform: scale(1); fill: #ffffff; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wb-send.is-running .wb-send-mark,
+  .wb-send.is-running .wb-send-mark path {
+    animation: none;
+  }
+
+  .wb-send.is-running .wb-send-mark path {
+    animation: wb-mark-fade 1.2s ease-in-out infinite;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2566,8 +2643,7 @@ html.wb-arrive .rs-bar-fill {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .wb-primary.is-running::before,
-  .wb-send.is-running .wb-send-icon::before {
+  .wb-primary.is-running::before {
     animation: none;
   }
 

@@ -524,7 +524,8 @@
     }
 
     var reason = blocker();
-    el.runLabel.textContent = running ? "Running…" : "Run " + NAMES[state.method];
+    // (while it runs, its three dots count up and down beside it: .wb-send-dots in styles.css)
+    el.runLabel.textContent = running ? "Running" : "Run " + NAMES[state.method];
     el.run.disabled = running || reason !== "";
     el.run.classList.toggle("is-running", running);
     el.composer.classList.toggle("is-running", running);
