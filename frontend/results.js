@@ -147,8 +147,44 @@
     var chart = card("figure", "rs-chart", "Prompt tokens");
     var list = make("div", "rs-bars");
     list.setAttribute("role", "list");
-    var detail = make("span", "wb-count rs-detail", "Point at or tab to a bar for details.");
-    detail.setAttribute("aria-live", "polite");
+    // Pointing at (or tabbing to) a bar shows a small dark card beside it with its numbers: a
+    // title, then a row each with a coloured dot, a label and the value (styles.css .rs-tip). It
+    // follows the pointer, and sits at the bar's end for the keyboard. Screen readers have each
+    // bar's own label instead
+    var tip = make("div", "rs-tip");
+    tip.setAttribute("aria-hidden", "true");
+    function tipRows(bar) {
+      var rows = [["is-" + (bar.baseline ? "base" : "method"), "tokens", bar.tokens]];
+      if (!bar.baseline) {
+        var saved = bar.original - bar.tokens;
+        rows.push(["is-base", "original", bar.original]);
+        rows.push(["is-saved", "saved", saved + " · " + (bar.original ? (100 * saved / bar.original).toFixed(1) : "0.0") + "%"]);
+      }
+      return rows;
+    }
+    function showTip(bar, x, y) {
+      tip.textContent = "";
+      tip.append(make("p", "rs-tip-title", bar.label));
+      var body = make("dl", "rs-tip-rows");
+      tipRows(bar).forEach(function (row) {
+        var item = make("div", "rs-tip-row " + row[0]);
+        item.append(make("dt", null, row[1]), make("dd", null, String(row[2])));
+        body.append(item);
+      });
+      tip.append(body);
+      tip.classList.add("is-shown");
+      placeTip(x, y);
+    }
+    function placeTip(x, y) {
+      var area = chart.box.getBoundingClientRect();
+      var left = x - area.left + 18, topAt = y - area.top + 18;
+      // (kept inside the chart's box)
+      left = Math.min(left, area.width - tip.offsetWidth - 12);
+      topAt = Math.min(topAt, area.height - tip.offsetHeight - 12);
+      tip.style.left = Math.max(12, left) + "px";
+      tip.style.top = Math.max(12, topAt) + "px";
+    }
+    function hideTip() { tip.classList.remove("is-shown"); }
 
     bars.forEach(function (bar) {
       var row = make("div", "rs-bar" + (bar.baseline ? " is-baseline" : ""));
@@ -162,14 +198,17 @@
       fill.style.setProperty("--bar", bars.indexOf(bar));  // its turn to slide in (styles.css)
       track.append(fill);
       row.append(make("span", "rs-bar-label", bar.label), track, make("span", "rs-bar-value", String(bar.tokens)));
-      ["pointerenter", "focus"].forEach(function (type) {
-        row.addEventListener(type, function () { detail.textContent = text; });
+      row.addEventListener("pointerenter", function (event) { showTip(bar, event.clientX, event.clientY); });
+      row.addEventListener("pointermove", function (event) { placeTip(event.clientX, event.clientY); });
+      row.addEventListener("pointerleave", hideTip);
+      row.addEventListener("focus", function () {
+        var end = fill.getBoundingClientRect();
+        showTip(bar, end.right, end.top);
       });
+      row.addEventListener("blur", hideTip);
       list.append(row);
     });
-    var strip = make("div", "wb-card-foot");
-    strip.append(detail);
-    chart.box.append(list, strip);
+    chart.box.append(list, tip);
     box.append(chart.box);
   }
 

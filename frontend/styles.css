@@ -2630,10 +2630,85 @@ html.wb-arrive .rs-bar-fill {
   color: #262626;
 }
 
-.rs-detail {
-  min-height: 1.5em;
-  font-size: 13px;
-  color: #5c5c5c;
+/* The card that shows a bar's numbers while it's pointed at (results.js): white with a thin
+   outline, its title over a thin line, then a row each: a coloured dot (grey for the original,
+   violet for a method, light violet for what was saved), the label in grey and the value in ink */
+.rs-chart {
+  position: relative;
+}
+
+.rs-tip {
+  position: absolute;
+  z-index: 5;
+  min-width: 210px;
+  border: 1px solid #D9D8D3;
+  background: #ffffff;
+  color: #16171A;
+  box-shadow: 0 10px 28px rgba(22, 23, 26, 0.08);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.rs-tip.is-shown {
+  opacity: 1;
+  transform: none;
+}
+
+.rs-tip-title {
+  padding: 12px 16px 10px;
+  border-bottom: 1px solid #E5E4DF;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.rs-tip-rows {
+  margin: 0;
+  padding: 10px 16px 12px;
+}
+
+.rs-tip-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 3px 0;
+  font-size: 14px;
+}
+
+.rs-tip-row::before {
+  content: "";
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #C9C8C3;
+}
+
+.rs-tip-row.is-method::before {
+  background: #8467DD;
+}
+
+.rs-tip-row.is-saved::before {
+  background: #B9A6FF;
+}
+
+.rs-tip-row dt {
+  color: #8a8a8a;
+}
+
+.rs-tip-row dd {
+  margin: 0 0 0 auto;
+  padding-left: 24px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rs-tip {
+    transition: none;
+    transform: none;
+  }
 }
 
 .rs-numbers {
@@ -3456,6 +3531,11 @@ html.home-scroll .content.home.is-bare .home-intro {
 
 .content.home.is-bare .home-headline > span {
   font-size: clamp(30px, 3.6vw, 60px);
+}
+
+/* (both lines start at the same left edge: no push-in on the second) */
+.content.home.is-bare .home-headline > span:last-child {
+  text-indent: 0;
 }
 
 .content.home.is-bare .home-lede {
