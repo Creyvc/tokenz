@@ -1757,6 +1757,7 @@ textarea.wb-input {
 
 .wb-phrases-box .wb-section-title {
   margin-bottom: 4px;
+  font-size: 16px;
 }
 
 /* (its title on the left, "Optional" at the far right of the box) */
@@ -1770,6 +1771,7 @@ textarea.wb-input {
 .wb-phrases-box .wb-phrases {
   min-height: 84px;
   padding: 4px 0 8px;
+  font-size: 14px;
 }
 
 /* Run, with the reason it's greyed out beside it */
