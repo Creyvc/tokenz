@@ -659,7 +659,7 @@
     el.history.showModal();
   });
 
-  // (0.8s: as long as the panel takes to slide out, wb-menu-out in styles.css)
+  // (0.9s: as long as the panel takes to slide out, wb-menu-out in styles.css)
   function closeHistory() {
     if (!el.history.open || el.history.classList.contains("is-closing")) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return el.history.close();
@@ -667,7 +667,7 @@
     setTimeout(function () {
       el.history.classList.remove("is-closing");
       el.history.close();
-    }, 800);
+    }, 900);
   }
 
   el.historyClose.addEventListener("click", closeHistory);
