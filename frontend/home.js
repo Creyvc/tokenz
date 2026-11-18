@@ -629,12 +629,12 @@
     var shown = null, shownAt = 0, jump = true;  // where the row is drawn, eased towards the scroll
     function measureSlide() {
       var space = parseFloat(getComputedStyle(row).columnGap) || 0;
-      // (the title's leaving, before the first method: a window of scrolling)
-      slide.start = window.innerHeight;
+      // (the title's leaving, before the first method: 1.4 windows of scrolling, so it goes gently)
+      slide.start = 1.4 * window.innerHeight;
       slide.gap = space;
       slide.step = 0.22 * window.innerWidth + space;  // a small panel and the gap after it
-      slide.hold = 0.4 * window.innerHeight;
-      slide.move = 1.8 * window.innerHeight;  // a slow handover: almost two windows of scrolling
+      slide.hold = 0.55 * window.innerHeight;
+      slide.move = 2.3 * window.innerHeight;  // a slow handover: over two windows of scrolling
       slide.tail = 2.2 * window.innerHeight;
       travel = slide.start + Math.max(0, boxes.length - 1) * (slide.hold + slide.move) + slide.hold;
       next.style.height = (window.innerHeight + travel + slide.tail) + "px";
@@ -695,6 +695,12 @@
       // (before the first, it slides in from the right as the title leaves)
       var x = spot - at + (t < 0 ? -t * 0.9 * window.innerWidth : 0);
       svc.style.setProperty("--svc-x", x.toFixed(1) + "px");
+      // A name fades away as it leaves the bright column to the left, gone by halfway to the next
+      Array.prototype.forEach.call(svcRows, function (rowOf) {
+        Array.prototype.forEach.call(rowOf.children, function (word, j) {
+          word.style.setProperty("--gone", clamp((t - j) * 2).toFixed(3));
+        });
+      });
       var arrive = clamp(t + 1);
       svc.style.setProperty("--svc-in", ease(clamp((t + 0.75) / 0.6)).toFixed(3));
       if (svcIntro) {

@@ -5707,9 +5707,9 @@ html.home-scroll .home-cover {
 /* Three Methods, with the scroll effect, after santalarch.com's services: four columns past the
    sidebar, parted by thin lines. A row of the three names, big, slides right to left as you
    scroll; they're light grey, and black only inside the third column, the bright one, where the
-   current method sits. Under it, in the same column, each method's moving gradient (its panel
+   current method sits. Under it, across that column and the last, each method's moving gradient (its panel
    from above), the next wiping in from the right over the last. On the left, the current
-   method's description with a small note above it; at the bottom right, its name and number.
+   method's description with a small note above it; at the top right, its name and number.
    --svc-t (home.js) is where the row is: 0 on NLP, 1 on TF-IDF, 2 on AI Rewrite, below 0 while
    the title is still leaving. The panels' own text is hidden: the stage tells it instead */
 .svc {
@@ -5737,9 +5737,14 @@ html.home-scroll .svc {
   background: #ECEBE7;
 }
 
+/* (the line between the last two columns stops where the picture across them starts) */
+.svc-line.is-above {
+  bottom: calc(100vh - 22vh - var(--col) / 4.6 - 4.5vh);
+}
+
 .svc-words {
   position: absolute;
-  top: 34vh;
+  top: 22vh;
   left: 0;
   display: flex;
   gap: calc(var(--col) * 0.55);
@@ -5753,6 +5758,11 @@ html.home-scroll .svc {
   will-change: transform;
 }
 
+/* A name fades away once it has gone left out of the bright column (--gone, home.js) */
+.svc-words span {
+  opacity: calc(1 - var(--gone, 0));
+}
+
 /* The black copy, seen only inside the bright column */
 .svc-words.is-ink {
   color: #16171A;
@@ -5763,7 +5773,7 @@ html.home-scroll .svc {
 
 .svc-desc {
   position: absolute;
-  top: 34vh;
+  top: 22vh;
   left: calc(var(--left) + 8px);
   width: calc(var(--col) * 1.6);
   margin-top: calc(var(--col) / 4.6 + 4.5vh);
@@ -5795,8 +5805,8 @@ html.home-scroll .svc {
 
 .svc-count {
   position: absolute;
+  top: 36px;
   right: 40px;
-  bottom: 32px;
   display: flex;
   align-items: baseline;
   gap: 12px;
@@ -5819,6 +5829,7 @@ html.home-scroll .svc {
 /* The row of panels no longer slides: the title and its sentence leave to the left (--svc-out,
    home.js), and the three panels stack in the bright column, under the names, as its pictures */
 html.home-scroll .home-row {
+  width: 100%;
   transform: none !important;
 }
 
@@ -5829,10 +5840,12 @@ html.home-scroll .home-next-intro {
 
 html.home-scroll .home-method {
   position: absolute;
-  top: calc(34vh + (100vw - 258px) / 4 / 4.6 + 4.5vh);
+  top: calc(22vh + (100vw - 258px) / 4 / 4.6 + 4.5vh);
   bottom: 0;
   left: calc(218px + 2 * (100vw - 258px) / 4);
-  width: calc((100vw - 258px) / 4);
+  /* from the bright column right out to the window's edge */
+  right: 0;
+  width: auto;
   height: auto;
   border-radius: 0;
   /* Each wipes in from the right over the one before (--wipe 0 to 1, home.js) */
