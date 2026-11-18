@@ -230,6 +230,19 @@
 
   // Sentence preflight for TF-IDF (it also counts the prompt's tokens)
 
+  // The sentence most likely to be the main task: the first the engine reads as a request or
+  // instruction, or else the last question, or else the last sentence
+  function likelyTask(sentences) {
+    if (!sentences.length) return null;
+    for (var i = 0; i < sentences.length; i++) {
+      if ((sentences[i].mandatory_reasons || []).indexOf("Request or instruction") !== -1) return i;
+    }
+    for (var j = sentences.length - 1; j >= 0; j--) {
+      if (/\?\s*$/.test(sentences[j].text)) return j;
+    }
+    return sentences.length - 1;
+  }
+
   function scheduleInspect(delay) {
     clearTimeout(inspectTimer);
     inspectTimer = setTimeout(inspect, delay);
@@ -248,6 +261,16 @@
     }).then(function (reply) {
       if (count !== inspectCount) return;  // a newer check is on its way
       plan = reply;
+      // No main task chosen yet: pick the likeliest one, so Run works straight away, and check
+      // again with it (clicking another sentence still changes it)
+      var guess = state.task === null ? likelyTask(reply.sentences || []) : null;
+      if (guess !== null) {
+        state.task = guess;
+        state.taskText = reply.sentences[guess].text;
+        state.keep = state.keep.filter(function (index) { return index !== guess; });
+        render();
+        return inspect();
+      }
       if (!state.budgetTouched) state.budget = reply.suggested_budget;
       state.budget = clampBudget(state.budget);
       var restoring = rerunAfterCheck;
