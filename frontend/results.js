@@ -31,13 +31,6 @@
     return { box: box, head: head };
   }
 
-  // Your prompt in a light bubble on the right, the shorter version in a violet one on the left
-  function bubble(kind, title, text, count) {
-    var figure = make("figure", "wb-bubble " + kind);
-    figure.append(make("div", "wb-text wb-bubble-text", text), make("figcaption", "wb-bubble-meta", title + " · " + count + " tokens"));
-    return figure;
-  }
-
   function foot(text) {
     var strip = make("div", "wb-card-foot");
     strip.append(make("span", "wb-count", text));
@@ -250,13 +243,28 @@
 
   var details = make("details", "wb-details");
   details.append(make("summary", null, "Prompts and suggestions"));
+  // Your prompt once at the top (it's the same for every method), then one box per method:
+  // its name, how many tokens it went from and to, and its suggestion
+  var counts = done.map(function (method, i) { return results[i].original_target_tokens; });
+  var same = counts.every(function (n) { return n === counts[0]; });
+  var mine = make("section", "rs-text-group is-original");
+  var mineHead = make("div", "rs-text-head");
+  mineHead.append(make("h3", "rs-text-name", "Your prompt"));
+  if (same) mineHead.append(make("span", "rs-text-count", counts[0] + " tokens"));
+  mine.append(mineHead, make("div", "wb-text rs-text-body", results[0].original_text));
+  details.append(mine);
   done.forEach(function (method, i) {
     var r = results[i];
-    // Each method's two texts as a chat, like on Compare
-    var pair = card("div", "wb-chat", NAMES[method]);
-    pair.box.append(bubble("is-mine", "Original", r.original_text, r.original_target_tokens),
-      bubble("is-reply", r.candidate_text === r.original_text ? "Original kept" : "Suggestion", r.candidate_text, r.candidate_target_tokens));
-    details.append(pair.box);
+    var kept = r.candidate_text === r.original_text;
+    var group = make("section", "rs-text-group" + (kept ? " is-kept" : ""));
+    var head = make("div", "rs-text-head");
+    var saved = r.original_target_tokens - r.candidate_target_tokens;
+    var pct = r.original_target_tokens ? (100 * saved / r.original_target_tokens).toFixed(1) : "0.0";
+    head.append(make("h3", "rs-text-name", NAMES[method]),
+      make("span", "rs-text-count", kept ? "Original kept · " + r.candidate_target_tokens + " tokens" :
+        r.original_target_tokens + " → " + r.candidate_target_tokens + " tokens · saves " + saved + " (" + pct + "%)"));
+    group.append(head, make("div", "wb-text rs-text-body", r.candidate_text));
+    details.append(group);
   });
   box.append(details);
 })();

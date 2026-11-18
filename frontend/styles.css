@@ -2720,9 +2720,67 @@ html.wb-arrive .rs-bar-fill {
   padding: 6px 18px 10px;
 }
 
-/* Each method's texts on Results: its name over its chat */
-.wb-details .wb-chat {
+/* Results' texts: your prompt once, then one outlined box per method, its name and counts on a
+   strip along the top and its suggestion under it */
+.rs-text-group {
   margin-top: 16px;
+  border: 1px solid #D9D8D3;
+  background: #ffffff;
+}
+
+.rs-text-group + .rs-text-group {
+  margin-top: 12px;
+}
+
+.rs-text-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 16px;
+  padding: 12px 18px;
+  border-bottom: 1px solid #E5E4DF;
+}
+
+.rs-text-head .rs-text-name {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #16171A;
+}
+
+.rs-text-count {
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: #8a8a8a;
+}
+
+.results-page .wb-details .wb-text.rs-text-body {
+  height: auto;
+  padding: 16px 18px;
+  border: none;
+  border-left: 3px solid #8467DD;
+  background: #ffffff;
+  line-height: 1.65;
+  color: #16171A;
+}
+
+.results-page .wb-details .is-original .wb-text.rs-text-body {
+  border-left-color: #C9C8C3;
+  background: #F7F7F5;
+}
+
+.rs-text-group.is-original {
+  margin-bottom: 24px;
+}
+
+.results-page .wb-details .is-kept .wb-text.rs-text-body {
+  border-left-color: #C9C8C3;
+}
+
+/* The "Prompts and suggestions" line: an outline only when reached with the keyboard */
+.wb-details summary:focus:not(:focus-visible) {
+  outline: none;
 }
 
 /* The table's last row needs no line of its own: the box's edge closes it */
