@@ -1846,6 +1846,8 @@ textarea.wb-input {
   overflow: visible;
   fill: #ffffff;
   pointer-events: none;
+  /* (over the sticky heading row's white, so the outer line runs the whole height) */
+  z-index: 2;
 }
 
 .wb-history-curve path {
@@ -1874,6 +1876,39 @@ textarea.wb-input {
 
 .wb-history.is-closing .wb-history-list > li {
   animation: wb-menu-item-out 0.8s var(--menu-ease) calc(0.05s * var(--i, 0)) forwards;
+}
+
+/* The panel's outer line: a thin light line down its left edge, which bends with the curve as
+   it slides in and out (the same paths' curved side), and lies straight once it's open */
+.wb-history-curve .wb-history-edge {
+  d: path("M100 100 Q100 50 100 0");
+  fill: none;
+  stroke: #E5E4DF;
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+}
+
+.wb-history[open] .wb-history-curve .wb-history-edge {
+  animation: wb-edge-in 1s var(--menu-ease);
+}
+
+.wb-history.is-closing .wb-history-curve .wb-history-edge {
+  animation: wb-edge-out 0.8s var(--menu-ease) forwards;
+}
+
+@keyframes wb-edge-in {
+  from { d: path("M100 100 Q-100 50 100 0"); }
+}
+
+@keyframes wb-edge-out {
+  to { d: path("M100 100 Q-100 50 100 0"); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wb-history[open] .wb-history-curve .wb-history-edge,
+  .wb-history.is-closing .wb-history-curve .wb-history-edge {
+    animation: none;
+  }
 }
 
 .wb-history::backdrop {
