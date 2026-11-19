@@ -24,6 +24,7 @@
 // ?w=1920&h=1080 (the default) or ?w=1080&h=1920 for the vertical cut: the same film, laid out
 // for each. Times are in beats (timeline.js), shared with the music (score.py).
 const TL = window.TL, SC = TL.scenes;
+const MARK = new Image(); MARK.src = "../../frontend/assets/logo-mark.svg";
 const q = new URLSearchParams(location.search);
 const W = +(q.get("w") || 1920), H = +(q.get("h") || 1080), V = H > W;
 const cv = document.getElementById("c");
@@ -306,51 +307,6 @@ function drawBlocks(t) {
 }
 
 // ---------- streams of light ----------
-const LABELS = ["Local NLP", "TF‑IDF", "AI rewrite"];
-function drawStreams(t, dim) {
-  const ys = V ? [CY - 300, CY, CY + 300] : [CY - 230, CY, CY + 230];
-  const x0 = W * 0.06, mx = W * (V ? 0.62 : 0.6), burst = at(TL.burst);
-  const yAt = (i, x) => lerp(ys[i], CY, (() => { const k = clamp((x - W * 0.28) / (mx - W * 0.28)); return k * k * (3 - 2 * k); })());
-  g.save();
-  const gr = gradFill(0, 0, W, 0);
-  TL.streams.forEach((b, i) => {
-    const k = ramp(prog(t, at(b), burst - at(b)));
-    if (k <= 0) return;
-    const head = lerp(x0, mx, k);
-    const fade = 1 - outCubic(prog(t, burst, 0.4));
-    for (const [lw, a, bl] of [[18, 0.2, 30], [6, 0.5, 12], [2.4, 1, 0]]) {
-      g.strokeStyle = gr; g.lineWidth = lw; g.globalAlpha = a * fade * dim; g.shadowColor = "#8a7cff"; g.shadowBlur = bl;
-      g.beginPath(); for (let x = x0; x <= head; x += 8) { const y = yAt(i, x); x === x0 ? g.moveTo(x, y) : g.lineTo(x, y); } g.stroke();
-    }
-    // the speeding head, stretched by its speed
-    const speed = (ramp(prog(t + 0.01, at(b), burst - at(b))) - k) / 0.01;
-    const hy = yAt(i, head), len = 40 + Math.min(260, speed * 18);
-    const hg = g.createRadialGradient(head, hy, 0, head, hy, 46);
-    hg.addColorStop(0, `rgba(90,80,255,${fade * dim})`); hg.addColorStop(1, "rgba(130,120,255,0)");
-    g.globalAlpha = 1; g.shadowBlur = 0; g.fillStyle = hg;
-    g.save(); g.translate(head, hy); g.scale(len / 46, 1); g.beginPath(); g.arc(0, 0, 46, 0, 6.283); g.restore(); g.fill();
-    // label
-    const la = clamp(prog(t, at(b), 0.12)) * (1 - prog(t, burst - 0.2, 0.2));
-    if (la > 0) text(LABELS[i], x0, ys[i] - 44, 30, INK, { weight: 600, align: "left", alpha: 0.7 * la * dim });
-  });
-  // the burst: one beam, and a shockwave where they meet
-  const bk = prog(t, burst, 0.6);
-  if (t >= burst) {
-    const beamEnd = lerp(mx, W + 50, outExpo(prog(t, burst, 0.25)));
-    const beamA = (1 - 0.75 * outCubic(prog(t, burst + 0.3, 0.5))) * dim;
-    for (const [lw, a, bl] of [[34, 0.25, 50], [10, 0.6, 18], [3.5, 1, 0]]) {
-      g.strokeStyle = gr; g.lineWidth = lw; g.globalAlpha = a * beamA; g.shadowColor = "#9a8cff"; g.shadowBlur = bl;
-      g.beginPath(); g.moveTo(x0, CY); g.lineTo(beamEnd, CY); g.stroke();
-    }
-    if (bk < 1) {
-      g.globalAlpha = (1 - bk) * dim; g.shadowBlur = 0;
-      const R = Math.max(W, H) * outExpo(bk) * 0.6;
-      g.strokeStyle = "rgba(100,90,255,0.6)"; g.lineWidth = 10 * (1 - bk) + 1;
-      g.beginPath(); g.arc(mx, CY, R, 0, 6.283); g.stroke();
-    }
-  }
-  g.restore();
-}
 
 // ---------- rounded rectangles ----------
 function rr(x, y, w, h, r) {
@@ -764,40 +720,205 @@ function bgWord(t, word, sub) {
 }
 
 // ---------- the opening (after Dexatel's): a two-weight line typing on, prompts stacking up beside it ----------
+
+// ---------- a faint dot grid, drifting: depth behind the light scenes ----------
+function dotGrid(alpha, ox = 0, oy = 0, step = 46) {
+  g.save(); g.fillStyle = `rgba(30,40,120,${alpha})`;
+  const x0 = ((ox % step) + step) % step, y0 = ((oy % step) + step) % step;
+  for (let y = y0 - step; y < H + step; y += step) for (let x = x0 - step; x < W + step; x += step) g.fillRect(x - 1, y - 1, 2.2, 2.2);
+  g.restore();
+}
+
+// ---------- the opening: a caret, a two-weight line typing on, and a deck of incoming prompts ----------
+const OPEN = { s1: V ? 118 : 128, x0: V ? W * 0.08 : W * 0.07 };
+// the paper's dot grid drifts a whole number of dots over the film, so it's in the same place when it loops
+const paperDots = (t) => dotGrid(0.06, -t * 46 * 15 / DUR, 0);
+OPEN.y1 = V ? H * 0.17 : CY - OPEN.s1 * 0.55;
+// where the caret waits before the first letter (the loop ends on it too)
+function caretHome() { const s = OPEN.s1; return { x: OPEN.x0 + 4, y: OPEN.y1 - s * 0.42, w: 7, h: s * 0.84 }; }
+function caret(x, y, w, h, t, blink) {
+  const a = blink ? (Math.sin(t * Math.PI * 2 / (2 * B)) > 0 ? 1 : 0.15) : 1;
+  g.save(); g.globalAlpha *= a; rr(x, y, w, h, w / 2); g.fillStyle = "#5B4FD6"; g.fill(); g.restore();
+}
+function promptCard2(x, y, w, h, msg, n, alpha) {
+  g.save(); g.globalAlpha *= alpha;
+  g.shadowColor = "rgba(30,40,120,0.16)"; g.shadowBlur = 48; g.shadowOffsetY = 18;
+  rr(x, y, w, h, 26); g.fillStyle = "#FFFFFF"; g.fill();
+  g.shadowColor = "rgba(0,0,0,0)"; g.lineWidth = 1.2; g.strokeStyle = "rgba(20,30,90,0.08)"; g.stroke();
+  // the app icon: a gradient tile with a speech bubble
+  const ix = x + 28, iy = y + 28, is = 48;
+  const ig = g.createLinearGradient(ix, iy, ix + is, iy + is); ig.addColorStop(0, "#3B6BFF"); ig.addColorStop(1, "#7C5CFF");
+  rr(ix, iy, is, is, 13); g.fillStyle = ig; g.fill();
+  rr(ix + 11, iy + 13, 26, 18, 6); g.fillStyle = "#FFFFFF"; g.fill();
+  g.beginPath(); g.moveTo(ix + 17, iy + 30); g.lineTo(ix + 15, iy + 37); g.lineTo(ix + 24, iy + 30); g.closePath(); g.fill();
+  text("New prompt", ix + is + 18, iy + 13, 23, INK, { weight: 700, align: "left" });
+  text("now", ix + is + 18 + measure("New prompt", 23, 700) + 12, iy + 13, 21, "#9A9DB0", { weight: 500, align: "left" });
+  text(msg, ix + is + 18, iy + 46, fit(msg, 26, w - is - 210, 500), "#30323F", { weight: 500, align: "left" });
+  const tag = `+${n} tokens`, tw = measure(tag, 21, 700) + 28;
+  rr(x + w - tw - 24, y + 26, tw, 36, 18); g.fillStyle = "#FFF0E6"; g.fill();
+  text(tag, x + w - tw / 2 - 24, y + 44, 21, "#F06A1A", { weight: 700 });
+  g.restore();
+}
 function drawOpening(t) {
+  paperDots(t);
   const d = t - at(TL.openType.start), span = at(TL.openType.span);
   const L1 = "Prompts are", L2 = "getting longer.";
-  const all = L1.length + L2.length, shown = Math.floor(clamp(d / span) * all + (d > 0 ? 1 : 0));
-  const s1 = V ? 118 : 150, x0 = V ? W * 0.08 : W * 0.07, y1 = V ? H * 0.17 : CY - s1 * 0.55;
-  const n1 = Math.min(shown, L1.length), n2 = Math.max(0, shown - L1.length);
+  const all = L1.length + L2.length, typed = d < 0 ? 0 : Math.min(all, Math.floor(clamp(d / span) * all) + 1);
+  const { s1, x0, y1 } = OPEN;
+  const n1 = Math.min(typed, L1.length), n2 = Math.max(0, typed - L1.length);
+  // the eyebrow
+  const ea = outExpo(clamp((t - at(0.5)) / 0.3));
+  g.save(); g.globalAlpha = ea;
+  rr(x0, y1 - s1 * 1.05 - 18, 12, 12, 3); g.fillStyle = BLUE; g.fill();
+  font(22, 700); g.letterSpacing = "4px"; g.textAlign = "left"; g.textBaseline = "middle"; g.fillStyle = BLUE;
+  g.fillText("THE PROBLEM", x0 + 24, y1 - s1 * 1.05 - 11);
+  g.restore();
   text(L1.slice(0, n1), x0, y1, s1, INK, { weight: 300, align: "left" });
-  text(L2.slice(0, n2), x0, y1 + s1 * 1.08, s1, INK, { weight: 800, align: "left" });
-  // the stack of incoming prompts, each on its beat, the newest on top
-  const cw = V ? W * 0.84 : 700, ch = V ? 150 : 124, step = ch + (V ? 18 : 14);
-  const cx0 = V ? (W - cw) / 2 : W * 0.56, cy0 = V ? H * 0.36 : CY - (6 * step - 14) / 2;
-  TL.openCards.forEach((b2, i) => {
-    const k = outExpo(clamp((t - at(b2)) / 0.35));
-    if (k <= 0) return;
+  if (n2) text(L2.slice(0, n2), x0, y1 + s1 * 1.08, s1, INK, { weight: 800, align: "left" });
+  // the caret follows the typing, blinking while it waits
+  let cx = x0 + 4, cy = y1;
+  if (n2) { cx = x0 + measure(L2.slice(0, n2), s1, 800) + 10; cy = y1 + s1 * 1.08; }
+  else if (n1) cx = x0 + measure(L1.slice(0, n1), s1, 300) + 10;
+  const waiting = typed === 0 || typed === all;
+  if (t < at(SC.s1) - 0.25) caret(cx, cy - s1 * 0.42, 7, s1 * 0.84, t, waiting);
+  const la = outExpo(clamp((t - at(4.5)) / 0.4));
+  if (la > 0) text("Every extra word costs tokens.", x0, y1 + s1 * 1.95, 32, "#6E7183", { weight: 500, align: "left", alpha: la });
+  // the deck: each new prompt arrives at the front; the rest step back
+  const cw = V ? W * 0.84 : 640, ch = 116;
+  const bx = V ? (W - cw) / 2 : W * 0.6, by = V ? H * 0.62 : CY + 60;
+  const cards = TL.openCards.map((b2, i) => ({ i, k: outExpo(clamp((t - at(b2)) / 0.45)) })).filter((c) => c.k > 0);
+  const depthOf = (i) => cards.filter((c) => c.i > i).reduce((s, c) => s + c.k, 0);
+  cards.slice().sort((a, b2) => depthOf(b2.i) - depthOf(a.i)).forEach(({ i, k }) => {
+    const dep = depthOf(i);
+    if (dep > 3.6) return;
+    const sc = (1 - dep * 0.06) * lerp(1.06, 1, k);
+    const y = by - dep * 64 + (1 - k) * 170;
+    const alpha = clamp(k * 1.6) * (1 - clamp((dep - 2.6) / 1));
+    g.save(); g.translate(bx + cw / 2, y + ch / 2); g.scale(sc, sc); g.translate(-(bx + cw / 2), -(y + ch / 2));
+    if (dep > 0.3) g.filter = `blur(${(dep * 0.9).toFixed(1)}px)`;
     const [msg, n] = C.cards[i];
-    const x = cx0 + (V ? 0 : (i % 2 ? 50 : 0)) + (1 - k) * (V ? 0 : 500), y = cy0 + i * step + (V ? (1 - k) * 260 : 0);
-    g.save(); g.globalAlpha = clamp(k * 2);
-    g.shadowColor = "rgba(30,40,140,0.16)"; g.shadowBlur = 40; g.shadowOffsetY = 14;
-    rr(x, y, cw, ch, 22); g.fillStyle = "#FFFFFF"; g.fill(); g.shadowColor = "rgba(0,0,0,0)";
-    // a little badge, a label, the message, its count
-    rr(x + 26, y + 26, 34, 34, 9); g.fillStyle = BLUE; g.fill();
-    text("P", x + 43, y + 43, 20, WHITE, { weight: 800 });
-    text("New prompt", x + 76, y + 44, V ? 24 : 22, "#8A8D9E", { weight: 600, align: "left" });
-    const ms = fit(msg, V ? 36 : 30, cw - 60, 600);
-    text(msg, x + 28, y + ch * 0.68, ms, INK, { weight: 600, align: "left" });
-    const tag = `+${n} tokens`, tw = measure(tag, V ? 24 : 22, 700) + 26;
-    rr(x + cw - tw - 22, y + 26, tw, 36, 18); g.fillStyle = "#FFE9DC"; g.fill();
-    text(tag, x + cw - tw / 2 - 22, y + 44, V ? 24 : 22, ORANGE, { weight: 700 });
+    promptCard2(bx, y, cw, ch, msg, n, alpha);
     g.restore();
   });
 }
 
+// ---------- streams of light, redesigned: three coloured ribbons with light flowing along them ----------
+const STREAMS = [
+  { label: "Local NLP", tag: "Local", c0: "#38BDF8", c1: "#3B82F6" },
+  { label: "TF‑IDF", tag: "Local", c0: "#6366F1", c1: "#818CF8" },
+  { label: "AI rewrite", tag: "Cloud", c0: "#8B5CF6", c1: "#D946EF" }];
+function drawStreams(t, dim) {
+  dotGrid(0.055, -t * 40, 0);
+  const ys = [CY - 210, CY, CY + 210];
+  const x0 = W * (V ? 0.1 : 0.2), mx = W * 0.64, burst = at(TL.burst);
+  const yAt = (i, x) => { const k = clamp((x - W * 0.36) / (mx - W * 0.36)); return lerp(ys[i], CY, k * k * (3 - 2 * k)); };
+  const path = (i, a, b2) => { g.beginPath(); for (let x = a; x <= b2; x += 6) { const y = yAt(i, x); x === a ? g.moveTo(x, y) : g.lineTo(x, y); } };
+  const merged = clamp((t - burst) / 0.12);
+  STREAMS.forEach((st, i) => {
+    const b2 = TL.streams[i];
+    const k = ramp(prog(t, at(b2), burst - at(b2)));
+    // the label: a glass pill with a coloured dot and where it runs
+    const pd = t - at(b2);
+    if (pd >= 0) {
+      const lw = measure(st.label, 24, 600), tg = measure(st.tag, 17, 700) + 20, pw = 40 + lw + 14 + tg + 18, ph = 50;
+      const px = x0 - pw - 26, py = ys[i] - ph / 2, ps = slam(pd, 1.25);
+      g.save(); g.globalAlpha = clamp(pd / 0.05) * (0.55 + 0.45 * dim);
+      g.translate(px + pw / 2, ys[i]); g.scale(ps, ps); g.translate(-(px + pw / 2), -ys[i]);
+      g.shadowColor = "rgba(30,40,120,0.14)"; g.shadowBlur = 26; g.shadowOffsetY = 8;
+      rr(px, py, pw, ph, ph / 2); g.fillStyle = "rgba(255,255,255,0.96)"; g.fill(); g.shadowColor = "rgba(0,0,0,0)";
+      g.lineWidth = 1; g.strokeStyle = "rgba(20,30,90,0.08)"; g.stroke();
+      g.beginPath(); g.arc(px + 24, ys[i], 7, 0, 6.283); g.fillStyle = st.c1; g.fill();
+      text(st.label, px + 40, ys[i], 24, INK, { weight: 600, align: "left" });
+      rr(px + 40 + lw + 14, ys[i] - 13, tg, 26, 13); g.fillStyle = "#EEF0F7"; g.fill();
+      text(st.tag, px + 40 + lw + 14 + tg / 2, ys[i], 17, "#6E7183", { weight: 700 });
+      g.restore();
+    }
+    if (k <= 0) return;
+    const head = lerp(x0, mx, k);
+    const gr = g.createLinearGradient(x0, 0, mx, 0); gr.addColorStop(0, st.c0); gr.addColorStop(1, st.c1);
+    g.save(); g.lineCap = "round"; g.lineJoin = "round";
+    const fade = (1 - 0.45 * merged) * dim;
+    for (const [lw, a, bl] of [[26, 0.14, 34], [9, 0.85, 10], [2.4, 0.9, 0]]) {
+      g.strokeStyle = lw < 3 ? "rgba(255,255,255,0.9)" : gr; g.lineWidth = lw; g.globalAlpha = a * fade;
+      g.shadowColor = st.c1; g.shadowBlur = bl; path(i, x0, head); g.stroke();
+    }
+    // light flowing along it
+    g.shadowBlur = 16; g.shadowColor = st.c1;
+    for (let p = x0 + ((t * 520 + i * 47) % 150); p < head - 20; p += 150) {
+      const y = yAt(i, p), y2 = yAt(i, p + 24);
+      g.globalAlpha = 0.9 * fade; g.strokeStyle = "#FFFFFF"; g.lineWidth = 4;
+      g.beginPath(); g.moveTo(p, y); g.lineTo(p + 24, y2); g.stroke();
+    }
+    // the comet at the head while it races in
+    if (head < mx - 1) {
+      const hy = yAt(i, head), hg = g.createRadialGradient(head, hy, 0, head, hy, 54);
+      hg.addColorStop(0, "rgba(255,255,255,1)"); hg.addColorStop(0.25, st.c1); hg.addColorStop(1, "rgba(255,255,255,0)");
+      g.globalAlpha = dim; g.shadowBlur = 0; g.fillStyle = hg; g.beginPath(); g.arc(head, hy, 54, 0, 6.283); g.fill();
+    }
+    g.restore();
+  });
+  // where they meet: one bright ribbon onward, and a glowing node holding the mark
+  if (t >= burst) {
+    const run = lerp(mx, W + 80, outExpo(prog(t, burst, 0.4)));
+    const gr = g.createLinearGradient(mx, 0, W, 0); gr.addColorStop(0, "#3B82F6"); gr.addColorStop(0.5, "#818CF8"); gr.addColorStop(1, "#D946EF");
+    g.save(); g.lineCap = "round";
+    for (const [lw, a, bl] of [[44, 0.16, 50], [15, 0.9, 14], [3.5, 0.95, 0]]) {
+      g.strokeStyle = lw < 4 ? "rgba(255,255,255,0.95)" : gr; g.lineWidth = lw; g.globalAlpha = a * dim; g.shadowColor = "#7C6CFF"; g.shadowBlur = bl;
+      g.beginPath(); g.moveTo(mx, CY); g.lineTo(run, CY); g.stroke();
+    }
+    g.shadowBlur = 18; g.shadowColor = "#7C6CFF";
+    for (let p = mx + ((t * 900) % 120); p < run - 30; p += 120) { g.globalAlpha = dim; g.strokeStyle = "#FFFFFF"; g.lineWidth = 6; g.beginPath(); g.moveTo(p, CY); g.lineTo(p + 36, CY); g.stroke(); }
+    g.restore();
+    const nk = t - burst, ns = nk < 0.12 ? lerp(0.3, 1.12, outExpo(nk / 0.12)) : lerp(1.12, 1, outCubic(clamp((nk - 0.12) / 0.16)));
+    const R = 74 * ns;
+    g.save();
+    const og = g.createRadialGradient(mx, CY, R * 0.4, mx, CY, R * 2.6); og.addColorStop(0, "rgba(124,108,255,0.35)"); og.addColorStop(1, "rgba(124,108,255,0)");
+    g.fillStyle = og; g.beginPath(); g.arc(mx, CY, R * 2.6, 0, 6.283); g.fill();
+    g.shadowColor = "rgba(60,50,200,0.35)"; g.shadowBlur = 40; g.shadowOffsetY = 12;
+    g.beginPath(); g.arc(mx, CY, R, 0, 6.283); g.fillStyle = "#FFFFFF"; g.fill(); g.shadowColor = "rgba(0,0,0,0)";
+    const rim = g.createLinearGradient(mx - R, CY - R, mx + R, CY + R); rim.addColorStop(0, "#38BDF8"); rim.addColorStop(1, "#D946EF");
+    g.lineWidth = 4; g.strokeStyle = rim; g.stroke();
+    if (MARK.complete && MARK.naturalWidth) g.drawImage(MARK, mx - R * 0.62, CY - R * 0.62, R * 1.24, R * 1.24);
+    g.restore();
+    ring(mx, CY, R * 1.2, R * 1.2, nk, "#7C6CFF");
+  }
+}
+
+// ---------- the camera: a slow push and drift through every scene, and a transition at every cut ----------
+const CUTS = Object.keys(TL.cuts).map(Number).sort((a, b2) => a - b2);
+const BOUNDS = [0, ...CUTS, 27, 28, 29, 58, 60, SC.loop, TL.beats].sort((a, b2) => a - b2);
+function camera(t, b) {
+  const [sx, sy] = shake(t);
+  let s0 = 0, s1 = TL.beats;
+  for (const x of BOUNDS) { if (x <= b) s0 = x; else { s1 = x; break; } }
+  const p = clamp((b - s0) / (s1 - s0));
+  // (the end card eases back to rest, so the loop lands exactly on the opening's first frame)
+  const env = b >= SC.logo ? Math.sin(Math.PI * clamp((b - SC.logo) / (SC.loop - SC.logo))) : 1;
+  let s = 1 + (b >= SC.logo ? 0.035 * env : 0.045 * p);
+  let r = 0.0055 * Math.sin(t * 0.55 + s0) * env * (b < 1 ? clamp(b) : 1);
+  let x = (6 * Math.sin(t * 0.9) * env + sx), y = (4 * Math.sin(t * 0.7) * env + sy);
+  for (const c of CUTS) {
+    const type = TL.cuts[c], dOut = at(c) - t, dIn = t - at(c);
+    if (dOut > 0 && dOut < 0.22) {
+      const k = inExpo(1 - dOut / 0.22);
+      if (type === "zoom") s *= 1 + 3.2 * k;
+      if (type === "spin") { r += 0.4 * k; s *= 1 + 0.5 * k; }
+      if (type === "push") y -= H * 0.95 * k;
+      if (type === "whip") x -= W * 0.9 * k;
+    }
+    if (dIn >= 0 && dIn < 0.32) {
+      const k = outExpo(dIn / 0.32);
+      if (type === "zoom") s *= lerp(0.78, 1, k);
+      if (type === "spin") { r -= 0.4 * (1 - k); s *= lerp(0.8, 1, k); }
+      if (type === "push") y += H * 0.9 * (1 - k);
+      if (type === "whip") x += W * 0.9 * (1 - k);
+      if (type === "swoosh") s *= lerp(1.08, 1, k);
+    }
+  }
+  return { s, r, x, y };
+}
+
 // ---------- the end card (after Dexatel's): a blue bloom, the mark, the name types on beside it ----------
-const MARK = new Image(); MARK.src = "../../frontend/assets/logo-mark.svg";
 function drawLogoEnd(t) {
   const d = t - at(SC.logo);
   // the soft blue bloom from the edges, clearing to white
@@ -814,6 +935,20 @@ function drawLogoEnd(t) {
   const markX = lerp(CX, CX - (nameW + gap + ms * 0.46) / 2 + ms * 0.2, open);
   const sk = d < 0.12 ? lerp(0.4, 1.08, outExpo(d / 0.12)) : lerp(1.08, 1, outCubic(clamp((d - 0.12) / 0.16)));
   const y = V ? CY - 80 : CY - 50;
+  // the loop: the camera dives into the mark's violet diamond until it fills the screen; the violet
+  // then shrinks into the caret the film opens on
+  const dive = inExpo(clamp((t - at(SC.loop)) / at(1.25)));
+  const after = t - at(SC.loop + 1.25);
+  if (after >= 0) {
+    paperDots(t);
+    const ck = caretHome(), k = inOut(clamp(after / at(1.75)));
+    const rx = lerp(-40, ck.x, k), ry = lerp(-40, ck.y, k), rw = lerp(W + 80, ck.w, k), rh = lerp(H + 80, ck.h, k);
+    if (k < 1) { rr(rx, ry, rw, rh, lerp(0, ck.w / 2, k)); g.fillStyle = "#5B4FD6"; g.fill(); }
+    else caret(ck.x, ck.y, ck.w, ck.h, t, true);
+    return;
+  }
+  g.save();
+  if (dive > 0) { g.translate(markX, y); g.scale(1 + 90 * dive, 1 + 90 * dive); g.translate(-markX, -y); }
   g.save(); g.translate(markX, y); g.scale(sk, sk);
   if (MARK.complete && MARK.naturalWidth) g.drawImage(MARK, -ms / 2, -ms / 2, ms, ms);
   g.restore();
@@ -833,6 +968,7 @@ function drawLogoEnd(t) {
     text(line.slice(0, shown), CX - fullW / 2, py, ls, INK, { weight: 600, align: "left" });
     g.restore();
   }
+  g.restore();
 }
 
 // ---------- the scenes ----------
@@ -849,17 +985,11 @@ function render(t) {
   g.setTransform(1, 0, 0, 1, 0, 0);
   g.globalAlpha = 1; g.filter = "none"; g.globalCompositeOperation = "source-over";
   const ink = background(bgAt(b));
-  if (b >= SC.end) return;
 
-  // camera: shake, and whip pans across the cuts that have them
-  const [sx, sy] = shake(t);
-  let wx = 0;
-  for (const w of TL.whips) {
-    const dIn = t - at(w), dOut = at(w) - t;
-    if (dIn >= 0 && dIn < 0.14) wx = W * 0.9 * (1 - outExpo(dIn / 0.14));
-    if (dOut > 0 && dOut < 0.09) wx = -W * 0.9 * inExpo(1 - dOut / 0.09);
-  }
-  g.setTransform(1, 0, 0, 1, sx + wx, sy);
+  // the camera: drift, push, and a transition across every cut
+  const cam = camera(t, b);
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  g.translate(CX + cam.x, CY + cam.y); g.rotate(cam.r); g.scale(cam.s, cam.s); g.translate(-CX, -CY);
   const big = V ? 0.86 * W : 0.8 * W;
 
   if (b < SC.s1) drawOpening(t);
@@ -979,13 +1109,14 @@ function render(t) {
   // three streams race in and burst into one
   else if (b < SC.s8) {
     const words = b >= TL.lines[0];
-    drawStreams(t, words ? 0.3 : 1);
+    drawStreams(t, words ? 0.8 : 1);
     if (words) {
       const two = b >= TL.lines[1];
       const l = two ? (V ? ["AI when", "it counts."] : ["AI when it counts."]) : ["Local first."];
       const d = t - at(two ? TL.lines[1] : TL.lines[0]);
-      const size = Math.min(...l.map((x) => fit(x, V ? 190 : 200, big, 900)));
-      l.forEach((x, i) => text(x, CX, CY + (i - (l.length - 1) / 2) * size, size, INK, { weight: 900, scale: slam(d, 1.5) }));
+      const size = Math.min(...l.map((x) => fit(x, V ? 150 : 128, big, 900)));
+      const ly = V ? CY - 520 : CY - 360;
+      l.forEach((x, i) => text(x, CX, ly + (i - (l.length - 1) / 2) * size, size, INK, { weight: 900, scale: slam(d, 1.5) }));
     }
   }
 

@@ -62,7 +62,8 @@ def sub808(note, length, prev=None, g=1.0):
     body = np.sin(2 * np.pi * np.cumsum(f) / SR)
     env = np.clip(t / 0.004, 0, 1) * np.exp(-t / 1.1) * np.clip((length - t) / 0.03, 0, 1)
     knock = np.sin(2 * np.pi * 160 * t) * np.exp(-t / 0.012) * 0.6
-    return np.tanh((body * env + knock * env) * 4.0) * 0.62 * g
+    x = np.tanh((body * env + knock * env * 0.6) * 1.7) * 0.7 * g
+    return lp(x, 420)
 
 
 def keyclick(m, g=1.0):
@@ -74,6 +75,7 @@ def glide():
     m = S.Mix(118)
     L = SCN
     bars = int(np.ceil(L["silence"] / 4))
+    LOOP_IN = L["logo"] + 4                                   # the last two bars, back into bar one
 
     # ---- the 808: two notes a bar, gliding, from the opening to the silence ----
     prev = None
@@ -88,7 +90,7 @@ def glide():
             if st >= L["s1"]:
                 n_ = int((at(length) + 0.05) * SR); tt = np.arange(n_) / SR
                 gr = lp(saw(hz(note + 12), n_, 12, det=0.004) + saw(hz(note + 12), n_, 12, det=-0.004), 700)
-                m.add(gr * np.exp(-tt / 0.9) * np.clip(tt / 0.01, 0, 1) * np.clip((n_ / SR - tt) / 0.03, 0, 1) * 0.26, at(st))
+                m.add(gr * np.exp(-tt / 0.9) * np.clip(tt / 0.01, 0, 1) * np.clip((n_ / SR - tt) / 0.03, 0, 1) * 0.15, at(st), pan=0.15)
             prev = note
 
     # ---- drums: kick on 1 and the "and" of 3, plus 3 in the busier bars; claps on 2 and 4; rolling hats ----
@@ -99,18 +101,37 @@ def glide():
             if b0 + kb < L["silence"]:
                 m.kicks.append(at(b0 + kb)); m.add(kick(m, 1.0 if kb == 0 else 0.85, low=46, punch=150, dec=0.22), at(b0 + kb), duck=False)
         for cb in (1, 3):
-            if busy and b0 + cb < L["silence"]: m.add(clap(m, 1.5), at(b0 + cb), send=0.3, duck=False)
+            if busy and b0 + cb < L["silence"]: m.add(clap(m, 1.05), at(b0 + cb), send=0.35, duck=False)
         # hats: eighths, and a quick roll of 16ths (then 32nds) into the next bar
         for e in range(8):
             hb = b0 + e / 2
             if hb >= L["silence"]: break
-            m.add(hat(m, g=0.55 if e % 2 else 0.38), at(hb), pan=0.25, duck=False)
+            m.add(lp(hat(m, g=0.4 if e % 2 else 0.26), 11000), at(hb), pan=0.25, duck=False)
         if busy and b0 + 4 <= L["silence"]:
             roll_from = b0 + 3.5
             for k in range(6):
                 hb = roll_from + k * (0.125 if k < 2 else 0.0625)
-                m.add(hat(m, g=0.4 + 0.05 * k), at(hb), pan=-0.2, duck=False)
+                m.add(lp(hat(m, g=0.26 + 0.035 * k), 11000), at(hb), pan=-0.2, duck=False)
         if busy and bar_ % 2: m.add(hat(m, True, 0.4), at(b0 + 1.5), pan=0.3, duck=False)
+
+    # the last two bars: the 808 line and a lighter groove, running straight back into bar one
+    prev = None
+    for bar_ in range(LOOP_IN // 4, T["beats"] // 4):
+        a, b2 = LINE[bar_ % 8]
+        for half, note in enumerate((a, b2)):
+            st = bar_ * 4 + half * 2
+            m.add(sub808(note, at(2) + 0.05, prev, 0.3), at(st)); prev = note
+        b0 = bar_ * 4
+        for kb in (0, 2.5):
+            m.kicks.append(at(b0 + kb)); m.add(kick(m, 0.85, low=46, punch=150, dec=0.22), at(b0 + kb), duck=False)
+        for cb in (1, 3): m.add(clap(m, 0.8), at(b0 + cb), send=0.35, duck=False)
+        for e in range(8): m.add(lp(hat(m, g=0.34 if e % 2 else 0.22), 11000), at(b0 + e / 2), pan=0.25, duck=False)
+
+    # ---- a warm chord bed under everything, a bar at a time ----
+    for bar_ in range(T["beats"] // 4):
+        if bar_ * 4 >= L["silence"] and bar_ * 4 < L["logo"]: continue
+        ch = CHORDS[bar_ % 8]
+        m.add(pad([ch[0] - 12] + ch, BAR + 0.15, 0.55, 1600), at(bar_ * 4), send=0.6)
 
     # ---- deep hits on the big cuts ----
     for b in (8, 12, 16, 20, 24, 26, 30, 34, 38, 44, 50, 56, 62, 64, 68, 72, 78):
@@ -221,33 +242,62 @@ def glide():
     m.add(whoosh(m, at(1), 0.9), at(L["s9"]), duck=False)
     m.add(impact(m, 1.4, 3.0), at(L["logo"]), send=0.6, duck=False)
     m.add(boom(m, 1.2), at(L["logo"]), duck=False)
-    m.add(sub808(33, at(6), None, 0.9), at(L["logo"]))
+    m.add(sub808(33, at(4), None, 0.6), at(L["logo"]))
     m.add(stab([45, 57, 64, 69, 72, 76, 81], 1.6, 1.0, 1.4), at(L["logo"]), send=0.6)
-    m.add(pad([45, 57, 64, 69, 72], at(L["end"] - L["logo"]), 1.1, 3000), at(L["logo"]), send=0.6)
+    m.add(pad([45, 57, 64, 69, 72], at(LOOP_IN - L["logo"]) + 0.3, 1.0, 2600), at(L["logo"]), send=0.6)
     for i in range(6):                                                    # "Tokenz" typing on
         m.add(keyclick(m, 0.6), at(L["logo"] + 1) + 0.1 + i * 0.5 / 6, duck=False)
     line = "Save tokens. Keep meaning."
     for i in range(len(line)):                                            # the line typing on
         if line[i] != " ": m.add(keyclick(m, 0.4), at(L["tagline"]) + 0.1 + i * 0.8 / len(line), duck=False)
 
-    out = os.path.join(HERE, "score.wav")
-    m.master(out, duck_depth=0.45, verb=0.4, verb_len=0.5)
+    master_loop(m, os.path.join(HERE, "score.wav"))
 
-    # the half-beat drop-outs before the big cuts, and the cut on the last beat
-    with wave.open(out) as w_:
-        params = w_.getparams(); data = np.frombuffer(w_.readframes(w_.getnframes()), dtype=np.int16).reshape(-1, 2).astype(np.float64)
-    f = int(0.006 * SR)
-    def gate(a, b2, floor=0.0):
-        i, j = int(a * SR), int(b2 * SR)
-        data[i:i + f] *= np.linspace(1, floor, f)[:, None]; data[i + f:j] *= floor
-        data[j:j + f] *= np.linspace(floor, 1, f)[:, None]
+
+def master_loop(m, path):
+    """Like scores.Mix.master, without its hard tanh: the kick ducks the bed, a short room reverb,
+    the beat of silence, then a gentle bus compressor and a soft ceiling. Everything that rings on past
+    the end is folded back onto the start, so the loop point is seamless. Loudness is set later, when
+    the video is made (ffmpeg's loudnorm, to -16 LUFS)."""
+    N = S.N
+    side = np.ones(N)
+    for kt in m.kicks:
+        i = int(kt * SR); n = int(0.2 * SR)
+        if 0 <= i and i + n < N: side[i:i + n] = np.minimum(side[i:i + n], 0.6 + 0.4 * (np.arange(n) / n) ** 0.6)
+    Lc = m.L * side; Rc = m.R * side
+    ir_n = int(1.6 * SR); ir_t = np.arange(ir_n) / SR
+    ir = lp(m.rng.standard_normal(ir_n) * np.exp(-ir_t / 0.42), 7000); ir /= np.sqrt((ir ** 2).sum())
+    size = 1 << int(np.ceil(np.log2(N + ir_n)))
+    wet = np.fft.irfft(np.fft.rfft(m.SEND, size) * np.fft.rfft(ir, size), size)[:N] * 0.4
+    Lc = Lc + m.DL + wet; Rc = Rc + m.DR + np.roll(wet, int(0.017 * SR))
+    # the beat of silence before the logo
+    i0, i1 = int(S.STOP * SR), int(S.HIT * SR); f = np.linspace(1, 0, int(0.012 * SR))
+    for c in (Lc, Rc):
+        c[i0:i0 + len(f)] *= f; c[i0 + len(f):i1] *= 0.03
+    # fold the tail past the end onto the start
+    n_out = int(round(DUR * SR))
+    mix = np.stack([Lc[:n_out].copy(), Rc[:n_out].copy()])
+    tail = np.stack([Lc[n_out:], Rc[n_out:]])
+    mix[:, :tail.shape[1]] += tail[:, :n_out]
+    # the half-beat drop-outs before the big cuts (the reference's little breaks)
+    fd = int(0.006 * SR)
     for b in T["breaks"]:
-        gate(at(b) + 0.02, at(b + 0.5) - 0.01, 0.08)
-    i = int(at(L["end"]) * SR)
-    data[i:i + f] *= np.linspace(1, 0, f)[:, None]; data[i + f:] = 0
-    with wave.open(out, "wb") as w_:
-        w_.setparams(params); w_.writeframes(data.astype(np.int16).tobytes())
-    print("breaks at", T["breaks"], "· cut at", round(at(L["end"]), 3), "s")
+        i, j = int((at(b) + 0.02) * SR), int((at(b + 0.5) - 0.01) * SR)
+        mix[:, i:i + fd] *= np.linspace(1, 0.08, fd); mix[:, i + fd:j] *= 0.08; mix[:, j:j + fd] *= np.linspace(0.08, 1, fd)
+    # bus glue: a slow, gentle compressor (2:1 above -14 dB of the peak)
+    peak = np.max(np.abs(mix)) + 1e-9; x = mix / peak
+    env = np.sqrt(np.convolve((x ** 2).mean(0), np.ones(int(0.05 * SR)) / int(0.05 * SR), mode="same")) + 1e-9
+    thr = 10 ** (-14 / 20)
+    gain = np.where(env > thr, (env / thr) ** (1 / 2 - 1), 1.0)
+    gain = np.convolve(gain, np.ones(int(0.03 * SR)) / int(0.03 * SR), mode="same")
+    x = x * gain
+    # a soft ceiling: untouched below 0.6 of the peak, rounded off above
+    a_ = np.abs(x); x = np.where(a_ < 0.6, x, np.sign(x) * (0.6 + 0.4 * np.tanh((a_ - 0.6) / 0.4)))
+    x *= 10 ** (-1 / 20) / np.max(np.abs(x))
+    with wave.open(path, "wb") as w:
+        w.setnchannels(2); w.setsampwidth(2); w.setframerate(SR)
+        w.writeframes((x.T * 32767).astype(np.int16).tobytes())
+    print("wrote", path, "·", round(n_out / SR, 3), "s, looping")
 
 
 if __name__ == "__main__":

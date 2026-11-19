@@ -1,10 +1,11 @@
-// The promo's timeline, in beats at 118 BPM (one beat = 60/118 s; 94 beats = 47.8 s). Shared by
+// The promo's timeline, in beats at 118 BPM (one beat = 60/118 s; 96 beats = 24 bars = 48.8 s, and it
+// loops: the last bar runs straight back into the first). Shared by
 // promo.html (the picture) and score.py (the sound reads this file too), so every flash, shake,
 // whoosh and tick has its sound on the same beat. Plain JSON after "window.TL =".
 window.TL = {
-  "bpm": 118, "beats": 94,
+  "bpm": 118, "beats": 96,
   "scenes": { "open": 0, "s1": 8, "s2": 12, "s3": 16, "s4": 20, "pct": 24, "drop": 26, "tunnel": 30, "rows": 34, "nlp": 38, "tfidf": 44, "ai": 50,
-              "s6": 56, "check": 62, "s7": 64, "s8": 72, "s9": 82, "silence": 83, "logo": 84, "tagline": 86, "end": 93 },
+              "s6": 56, "check": 62, "s7": 64, "s8": 72, "s9": 82, "silence": 83, "logo": 84, "tagline": 86, "loop": 92, "end": 96 },
   "openType": { "start": 0.25, "span": 3 }, "openCards": [1, 2, 3, 4, 5, 6],
   "words": { "start": 12, "span": 3.4, "curve": 0.55 },
   "tokens": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19, 20, 21, 22, 23, 25, 27],
@@ -20,7 +21,9 @@ window.TL = {
   "blocks": { "start": 72, "span": 3 }, "corners": { "start": 76, "step": 0.25 }, "compress": 78, "spin": 80,
   "flashes": [8, 24, 26, 68, 84],
   "impacts": [8, 10, 20, 24, 26, 30, 34, 38, 44, 50, 52, 56, 58, 60, 62, 68, 72, 78, 84],
-  "whips": [12, 16, 34, 50, 56, 64, 72],
+  "whips": [12, 34, 56],
+  "cuts": { "8": "zoom", "12": "whip", "16": "zoom", "20": "spin", "24": "zoom", "26": "push", "30": "zoom", "34": "whip",
+            "38": "swoosh", "44": "swoosh", "50": "zoom", "56": "whip", "62": "spin", "64": "push", "72": "zoom", "84": "bloom" },
   "swooshes": [38, 44],
   "breaks": [7.5, 25.5, 29.5, 63.5, 71.5]
 };

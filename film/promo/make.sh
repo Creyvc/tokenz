@@ -15,6 +15,6 @@ for i in $(seq 0 $((PARTS - 1))); do
 done
 wait
 for i in $(seq 0 $((PARTS - 1))); do echo "file '$TMP/part$i.mp4'"; done > $TMP/list.txt
-$FF -y -loglevel error -f concat -safe 0 -i $TMP/list.txt -i score.wav -c:v copy -af volume=-1dB -c:a aac -b:a 256k -shortest -movflags +faststart $OUT
+$FF -y -loglevel error -f concat -safe 0 -i $TMP/list.txt -i score.wav -c:v copy -c:a aac -b:a 320k -shortest -movflags +faststart $OUT
 rm -rf $TMP
 echo "wrote $OUT"
