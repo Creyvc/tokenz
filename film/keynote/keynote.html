@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tokenz keynote film</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=block" rel="stylesheet">
+<script src="timeline.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; }
+  body { font-family: "Inter", sans-serif; -webkit-font-smoothing: antialiased; color: #F5F5F7; }
+  #stage { position: absolute; inset: 0; overflow: hidden; background: #000; }
+
+  /* Slow ambient light: soft blue and violet pools far behind everything */
+  .glow { position: absolute; width: 1400px; height: 1400px; border-radius: 50%; left: 0; top: 0; pointer-events: none; }
+  #glow-a { background: radial-gradient(closest-side, rgba(70, 120, 255, 0.22), rgba(70, 120, 255, 0.07) 55%, rgba(0, 0, 0, 0) 100%); }
+  #glow-b { background: radial-gradient(closest-side, rgba(139, 110, 242, 0.20), rgba(139, 110, 242, 0.06) 55%, rgba(0, 0, 0, 0) 100%); }
+  #vignette { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 50%, rgba(0,0,0,0) 45%, rgba(0,0,0,0.75) 100%); }
+
+  canvas { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+
+  /* 1: typed line and its cursor */
+  #type { position: absolute; top: 498px; font-weight: 600; font-size: 84px; letter-spacing: -0.035em; line-height: 1; white-space: pre; }
+  #type span { opacity: 0; }
+  #cursor { position: absolute; top: 490px; width: 4px; height: 100px; background: #F5F5F7; border-radius: 2px; }
+
+  /* the token counter, top right */
+  #counter { position: absolute; right: 120px; top: 92px; text-align: right; }
+  #counter .lab { font-weight: 500; font-size: 14px; letter-spacing: 0.26em; color: #8E8E93; }
+  #counter .num { position: relative; height: 56px; margin-top: 10px; overflow: hidden; }
+  #counter .num span { position: absolute; right: 0; top: 0; font-weight: 600; font-size: 48px; letter-spacing: -0.03em; line-height: 56px; font-variant-numeric: tabular-nums; }
+
+  /* the prompt's words, each placed on its own */
+  .w { position: absolute; left: 0; top: 0; font-weight: 500; font-size: 64px; letter-spacing: -0.025em; line-height: 1; white-space: pre; transform-origin: 50% 60%; }
+  #measure { position: absolute; left: 210px; top: 0; width: 1500px; text-align: center; font-weight: 500; font-size: 64px; letter-spacing: -0.025em; line-height: 1.32; visibility: hidden; }
+
+  /* captions, above the prompt */
+  .cap { position: absolute; left: 0; right: 0; text-align: center; font-weight: 600; font-size: 54px; letter-spacing: -0.03em; line-height: 1; white-space: nowrap; }
+  #cap-noise { top: 250px; } #cap-keep { top: 250px; } #cap-lines { top: 800px; }
+
+  /* −30% */
+  #pct { position: absolute; left: 0; right: 0; top: 735px; text-align: center; font-weight: 600; font-size: 150px; letter-spacing: -0.05em; line-height: 1; }
+  #pct span { background: linear-gradient(100deg, #6AA8FF 0%, #7C8CFF 45%, #A58BFF 100%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 28px rgba(122, 140, 255, 0.55)); }
+
+  /* rings */
+  svg#rings { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: visible; }
+
+  /* line labels */
+  .ll { position: absolute; left: 190px; font-weight: 500; font-size: 26px; letter-spacing: 0.02em; color: #A1A1A6; white-space: nowrap; }
+
+  /* the end */
+  #mark { position: absolute; left: 0; right: 0; top: 430px; text-align: center; font-weight: 600; font-size: 168px; letter-spacing: -0.045em; line-height: 1; text-shadow: 0 0 40px rgba(130, 140, 255, 0.35), 0 0 120px rgba(130, 120, 255, 0.25); }
+  #tag { position: absolute; left: 0; right: 0; top: 650px; text-align: center; font-weight: 500; font-size: 40px; letter-spacing: -0.02em; color: #A1A1A6; }
+  #black { position: absolute; inset: 0; background: #000; opacity: 0; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="glow" id="glow-a"></div>
+  <div class="glow" id="glow-b"></div>
+  <canvas id="fx" width="1920" height="1080"></canvas>
+
+  <div id="type"></div>
+  <div id="cursor"></div>
+
+  <div id="counter"><div class="lab">TOKENS</div><div class="num"><span id="n-old"></span><span id="n-new">0</span></div></div>
+
+  <div id="words"></div>
+  <div id="measure"></div>
+
+  <svg id="rings"><defs>
+    <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#6AA8FF"/><stop offset="1" stop-color="#A58BFF"/></linearGradient>
+    <filter id="ringGlow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs></svg>
+
+  <div class="cap" id="cap-noise">Most of it is noise.</div>
+  <div id="pct"><span>−30%</span></div>
+  <div class="cap" id="cap-keep">Nothing that matters gets lost.</div>
+
+  <div class="ll" id="ll-0">Local NLP</div>
+  <div class="ll" id="ll-1">TF‑IDF</div>
+  <div class="ll" id="ll-2">AI rewrite</div>
+  <div class="cap" id="cap-lines">Local first. AI when it counts.</div>
+
+  <div id="mark">Tokenz</div>
+  <div id="tag">Save tokens. Keep meaning.</div>
+
+  <div id="vignette"></div>
+  <div id="black"></div>
+</div>
+
+<script>
+// The film, drawn from the time t alone (render(t)), so every frame is exact. Times are in
+// timeline.js, which the music (score.py) reads as well.
+const T = window.TL;
+const $ = (id) => document.getElementById(id);
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const prog = (t, a, d) => clamp((t - a) / d);
+const lerp = (a, b, k) => a + (b - a) * k;
+// cubic-bezier(0.22, 1, 0.36, 1), the brief's ease-out
+function bezier(x1, y1, x2, y2) {
+  const cx = 3 * x1, bx = 3 * (x2 - x1) - cx, ax = 1 - cx - bx;
+  const cy = 3 * y1, by = 3 * (y2 - y1) - cy, ay = 1 - cy - by;
+  const X = (s) => ((ax * s + bx) * s + cx) * s, Y = (s) => ((ay * s + by) * s + cy) * s, dX = (s) => (3 * ax * s + 2 * bx) * s + cx;
+  return (x) => {
+    if (x <= 0) return 0; if (x >= 1) return 1;
+    let s = x;
+    for (let i = 0; i < 8; i++) { const d = dX(s); if (Math.abs(d) < 1e-6) break; s -= (X(s) - x) / d; }
+    s = clamp(s);
+    return Y(s);
+  };
+}
+const ease = bezier(0.22, 1, 0.36, 1);
+const inOut = bezier(0.65, 0, 0.35, 1);
+const smooth = (k) => k * k * (3 - 2 * k);
+// seeded random, so the particles are the same every time
+function rng(seed) { let s = seed >>> 0; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+
+const OFF = [245, 245, 247];
+const mix = (a, b, k) => a.map((v, i) => Math.round(lerp(v, b[i], k)));
+const rgb = (c, a = 1) => `rgba(${c[0]}, ${c[1]}, ${c[2]}, ${a})`;
+
+// An element arriving: blur to sharp, a gentle rise, and the reverse when it leaves
+function vis(el, t, inAt, inDur, outAt, outDur, opts = {}) {
+  const kin = ease(prog(t, inAt, inDur));
+  const kout = outAt == null ? 0 : inOut(prog(t, outAt, outDur));
+  const o = kin * (1 - kout);
+  el.style.opacity = o;
+  el.style.visibility = o > 0.001 ? "visible" : "hidden";
+  const blur = (opts.blur ?? 14) * (1 - kin) + (opts.blurOut ?? 10) * kout;
+  el.style.filter = blur > 0.05 ? `blur(${blur.toFixed(2)}px)` : "none";
+  const rise = (opts.rise ?? 18) * (1 - kin) - (opts.riseOut ?? 0) * kout;
+  const sc = lerp(opts.scale ?? 1, 1, kin);
+  el.style.transform = `translateY(${rise.toFixed(2)}px) scale(${sc.toFixed(4)})`;
+  return o;
+}
+
+// ---------- 1: the typed line ----------
+const LINE = "Every word costs.";
+LINE.split("").forEach((ch) => { const s = document.createElement("span"); s.textContent = ch; $("type").append(s); });
+const typeChars = Array.from($("type").children);
+
+// ---------- 2–5: the prompt ----------
+const LONG = "Could you please help me write a polite email to my professor asking for a meeting on Friday? Please keep it under 100 words.".split(" ");
+const SHORT = "Write a polite email to my professor requesting a Friday meeting. Use fewer than 100 words.".split(" ");
+const FILLER = [[0, 1, 2, 3, 4], [12, 13], [18]];               // dissolve in that order
+const isFiller = new Set(FILLER.flat());
+// each of the short prompt's words: the long word it comes from (slides there), or null (new)
+const FROM = [5, 6, 7, 8, 9, 10, 11, null, 14, 17, 15, null, null, null, 22, 23];
+const REMOVED = [16, 19, 20, 21];                                 // on, keep, it, under
+// The shortening, in two clean steps (nothing ever passes over anything):
+//  A: "on", "keep it under" fade, and what's left closes up along its own line
+//  B: the first line slides into place; the rest fade out and come back sharp where they belong,
+//     with the new words ("requesting", "Use fewer than")
+const SLIDE_B = new Set([5, 6, 7, 8, 9, 10]);                    // write a polite email to my
+const B_AT = 16.5;
+
+function layout(words) {
+  const m = $("measure");
+  m.innerHTML = "";
+  const spans = words.map((w, i) => { const s = document.createElement("span"); s.textContent = w; m.append(s); if (i < words.length - 1) m.append(" "); return s; });
+  const h = m.offsetHeight, top = 560 - h / 2;
+  const base = m.getBoundingClientRect();
+  return spans.map((s) => { const r = s.getBoundingClientRect(); return { x: r.left, y: r.top - base.top + top, w: r.width, h: r.height }; });
+}
+
+let longPos, shortPos, compactPos = [], words = [], newWords = [];
+// each line of the long prompt with the filler and removed words gone, closed up and centred
+function compact() {
+  const keep = LONG.map((w, i) => i).filter((i) => !isFiller.has(i) && !REMOVED.includes(i));
+  const lines = {};
+  keep.forEach((i) => { const y = Math.round(longPos[i].y); (lines[y] = lines[y] || []).push(i); });
+  const space = 17;
+  Object.values(lines).forEach((idx) => {
+    const width = idx.reduce((sum, i) => sum + longPos[i].w, 0) + space * (idx.length - 1);
+    let x = 960 - width / 2;
+    idx.forEach((i) => { compactPos[i] = { x, y: longPos[i].y }; x += longPos[i].w + space; });
+  });
+}
+function build() {
+  longPos = layout(LONG);
+  shortPos = layout(SHORT);
+  compact();
+  words = LONG.map((w, i) => { const el = document.createElement("div"); el.className = "w"; el.textContent = w; $("words").append(el); return el; });
+  newWords = SHORT.map((w, j) => {
+    if (FROM[j] != null) return null;
+    const el = document.createElement("div"); el.className = "w"; el.textContent = w; $("words").append(el); return el;
+  });
+  buildDust();
+  buildRings();
+}
+
+// ---------- dust: the filler words' own pixels, drifting away ----------
+let dust = [];
+function buildDust() {
+  const c = document.createElement("canvas"); c.width = 1920; c.height = 1080;
+  const g = c.getContext("2d");
+  g.font = `500 64px Inter`;
+  g.textBaseline = "top";
+  const r = rng(7);
+  FILLER.forEach((group, gi) => group.forEach((i) => {
+    const p = longPos[i];
+    g.clearRect(0, 0, 1920, 1080);
+    g.fillStyle = "#fff";
+    // (letter-spacing as on the page)
+    if ("letterSpacing" in g) g.letterSpacing = "-1.6px";
+    g.fillText(LONG[i], p.x, p.y + (p.h - 64) / 2 + 2);
+    const img = g.getImageData(Math.floor(p.x) - 4, Math.floor(p.y) - 4, Math.ceil(p.w) + 8, Math.ceil(p.h) + 8);
+    const pts = [];
+    for (let y = 0; y < img.height; y += 2) for (let x = 0; x < img.width; x += 2) {
+      if (img.data[(y * img.width + x) * 4 + 3] > 140) pts.push([Math.floor(p.x) - 4 + x, Math.floor(p.y) - 4 + y]);
+    }
+    const n = Math.min(pts.length, 340);
+    for (let k = 0; k < n; k++) {
+      const q = pts[Math.floor(r() * pts.length)];
+      dust.push({ x: q[0], y: q[1], group: gi, delay: (q[0] - p.x) / Math.max(1, p.w) * 0.35 + r() * 0.25,
+        vx: 18 + r() * 60, vy: -22 - r() * 70, wob: r() * 6.28, size: 1.1 + r() * 1.8, life: 1.8 + r() * 1.0 });
+    }
+  }));
+}
+
+function drawDust(g, t) {
+  for (const d of dust) {
+    const start = T.dissolve[d.group] + d.delay;
+    const k = (t - start) / d.life;
+    if (k <= 0 || k >= 1) continue;
+    const e = ease(k);
+    const x = d.x + d.vx * e * 2.2 + Math.sin(d.wob + k * 5) * 6 * k;
+    const y = d.y + d.vy * e * 1.6;
+    const a = (1 - smooth(k)) * 0.65 * Math.min(1, k * 8);
+    g.fillStyle = `rgba(225, 220, 235, ${a})`;
+    g.beginPath(); g.arc(x, y, d.size * (1 - 0.4 * k), 0, 6.283); g.fill();
+  }
+}
+
+// ---------- 5: rings around what matters ----------
+const RING_WORDS = [[2], [9], [14, 15]];                         // in the short prompt: polite, Friday, 100 words
+let rings = [];
+function buildRings() {
+  const svg = $("rings");
+  rings = RING_WORDS.map((idx) => {
+    const boxes = idx.map((j) => shortPos[j]);
+    const x0 = Math.min(...boxes.map((b) => b.x)), x1 = Math.max(...boxes.map((b) => b.x + b.w));
+    const y0 = Math.min(...boxes.map((b) => b.y)), y1 = Math.max(...boxes.map((b) => b.y + b.h));
+    const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2 + 4, rx = (x1 - x0) / 2 + 30, ry = (y1 - y0) / 2 + 20;
+    const e = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
+    e.setAttribute("cx", cx); e.setAttribute("cy", cy); e.setAttribute("rx", rx); e.setAttribute("ry", ry);
+    e.setAttribute("fill", "none"); e.setAttribute("stroke", "url(#ringGrad)"); e.setAttribute("stroke-width", "2");
+    e.setAttribute("filter", "url(#ringGlow)");
+    e.style.transformOrigin = `${cx}px ${cy}px`;
+    const len = Math.PI * (3 * (rx + ry) - Math.sqrt((3 * rx + ry) * (rx + 3 * ry)));
+    e.setAttribute("stroke-dasharray", len);
+    svg.append(e);
+    return { el: e, len, idx };
+  });
+}
+
+// ---------- 6: three lines of light, merging ----------
+const LINE_Y = [380, 540, 700], MERGE_X0 = 620, MERGE_X1 = 1180;
+function lineY(i, x, mergeK) {
+  const k = smooth(clamp((x - MERGE_X0) / (MERGE_X1 - MERGE_X0)));
+  return lerp(LINE_Y[i], 540, k * mergeK + (1 - mergeK) * k);
+}
+function drawLines(g, t) {
+  const fadeOut = 1 - inOut(prog(t, 33.6, 0.9));
+  if (t < T.lines[0] || fadeOut <= 0) return;
+  g.save();
+  g.globalCompositeOperation = "lighter";
+  const grad = g.createLinearGradient(0, 0, 1920, 0);
+  grad.addColorStop(0, "rgba(106, 168, 255, 1)"); grad.addColorStop(0.55, "rgba(124, 140, 255, 1)"); grad.addColorStop(1, "rgba(165, 139, 255, 1)");
+  const startX = 170;
+  for (let i = 0; i < 3; i++) {
+    // each line's head travels from the left to where they meet, then on together
+    const head = lerp(startX, MERGE_X1, ease(prog(t, T.lines[i], T.merge - T.lines[i] + 0.4)));
+    const tail = startX;
+    const together = ease(prog(t, T.merge, 1.6));
+    const end = Math.max(head, lerp(MERGE_X1, 2000, together));
+    const fadeIn = ease(prog(t, T.lines[i], 0.8));
+    // the three fade as they become one
+    const own = 1 - 0.66 * smooth(prog(t, T.merge + 0.2, 1.0));
+    for (const [width, alpha, blur] of [[14, 0.18, 26], [5, 0.35, 10], [1.6, 0.95, 0]]) {
+      g.strokeStyle = grad; g.lineWidth = width; g.lineCap = "round";
+      g.globalAlpha = alpha * fadeIn * fadeOut * own;
+      g.shadowColor = "rgba(130, 140, 255, 0.9)"; g.shadowBlur = blur;
+      g.beginPath();
+      for (let x = tail; x <= end; x += 6) { const y = lineY(i, x, 1); x === tail ? g.moveTo(x, y) : g.lineTo(x, y); }
+      g.stroke();
+    }
+    // the bright head while it's travelling
+    if (head < MERGE_X1 - 1) {
+      const hy = lineY(i, head, 1);
+      const rg = g.createRadialGradient(head, hy, 0, head, hy, 40);
+      rg.addColorStop(0, `rgba(220, 225, 255, ${0.9 * fadeIn})`); rg.addColorStop(1, "rgba(120, 130, 255, 0)");
+      g.globalAlpha = fadeOut; g.shadowBlur = 0; g.fillStyle = rg;
+      g.beginPath(); g.arc(head, hy, 40, 0, 6.283); g.fill();
+    }
+  }
+  // the one clean line they become
+  const one = ease(prog(t, T.merge, 1.4)) * fadeOut;
+  if (one > 0) {
+    const end = lerp(MERGE_X1, 2000, ease(prog(t, T.merge, 1.6)));
+    for (const [width, alpha, blur] of [[22, 0.16, 40], [7, 0.4, 14], [2.2, 1, 0]]) {
+      g.strokeStyle = grad; g.lineWidth = width; g.globalAlpha = alpha * one; g.shadowBlur = blur;
+      g.beginPath(); g.moveTo(MERGE_X1 - 40, 540); g.lineTo(end, 540); g.stroke();
+    }
+    // a soft flare where they meet
+    const fl = (1 - prog(t, T.merge + 0.2, 1.6)) * ease(prog(t, T.merge - 0.1, 0.5));
+    const rg = g.createRadialGradient(MERGE_X1, 540, 0, MERGE_X1, 540, 160);
+    rg.addColorStop(0, `rgba(210, 215, 255, ${0.55 * fl})`); rg.addColorStop(1, "rgba(120, 120, 255, 0)");
+    g.globalAlpha = 1; g.shadowBlur = 0; g.fillStyle = rg; g.beginPath(); g.arc(MERGE_X1, 540, 160, 0, 6.283); g.fill();
+  }
+  g.restore();
+}
+
+// ---------- the counter: each new number rises in as the old one rises away ----------
+function countAt(t) {
+  let n = 0, at = -10, prev = 0;
+  T.tokens.forEach((v, i) => { const ti = T.wordT0 + i * T.wordStep; if (t >= ti) { prev = n; n = v; at = ti; } });
+  const steps = T.tokens[T.tokens.length - 1] - T.rollTo;
+  for (let s = 1; s <= steps; s++) { const ti = T.roll + (s - 1) * T.rollStep; if (t >= ti) { prev = n; n = T.tokens[T.tokens.length - 1] - s; at = ti; } }
+  return { n, prev, at };
+}
+function drawCounter(t) {
+  vis($("counter"), t, T.counterIn, 0.8, 27.4, 0.7, { rise: 8, blur: 8 });
+  const { n, prev, at } = countAt(t);
+  const k = ease(prog(t, at, 0.28));
+  const nn = $("n-new"), no = $("n-old");
+  if (nn.textContent !== String(n)) nn.textContent = n;
+  if (no.textContent !== String(prev)) no.textContent = prev;
+  const down = t >= T.roll;   // rolling down: numbers come from above instead
+  const d = down ? -1 : 1;
+  nn.style.transform = `translateY(${(1 - k) * 40 * d}px)`; nn.style.opacity = k;
+  no.style.transform = `translateY(${-k * 40 * d}px)`; no.style.opacity = at > 0 ? 1 - k : 0;
+  // warmer as it climbs (until the noise goes)
+  const warm = clamp(n / 27) * (1 - smooth(prog(t, T.dissolve[0], 3)));
+  nn.style.color = rgb(mix(OFF, [255, 200, 150], warm));
+  if (t >= T.roll + 7 * T.rollStep) nn.style.color = rgb(mix(OFF, [150, 170, 255], ease(prog(t, T.roll + 7 * T.rollStep, 0.5))));
+}
+
+// ---------- the ambient light ----------
+function drawGlow(t) {
+  const strength = 0.55 + 0.25 * smooth(prog(t, 10, 6)) + 0.35 * smooth(prog(t, 28, 3)) - 0.2 * smooth(prog(t, 34.5, 2)) ;
+  const fade = 1 - inOut(prog(t, T.fade, 0.8));
+  const a = $("glow-a"), b = $("glow-b");
+  const ax = 960 - 700 + Math.sin(t * 0.11) * 380 - 300, ay = 540 - 700 + Math.cos(t * 0.08) * 160 + 140;
+  const bx = 960 - 700 + Math.cos(t * 0.09 + 1.3) * 420 + 320, by = 540 - 700 + Math.sin(t * 0.07 + 0.6) * 180 - 120;
+  a.style.transform = `translate(${ax}px, ${ay}px) scale(${1 + 0.08 * Math.sin(t * 0.2)})`;
+  b.style.transform = `translate(${bx}px, ${by}px) scale(${1 + 0.08 * Math.cos(t * 0.17)})`;
+  a.style.opacity = b.style.opacity = clamp(strength * fade * ease(prog(t, 0, 2.5)));
+}
+
+function render(t) {
+  t = clamp(t, 0, T.dur - 1e-6);
+  const g = $("fx").getContext("2d");
+  g.clearRect(0, 0, 1920, 1080);
+  drawGlow(t);
+
+  // ---- 1: the cursor blinks, then types "Every word costs." ----
+  const typeEl = $("type"), cur = $("cursor");
+  const left = 960 - typeEl.offsetWidth / 2;
+  typeEl.style.left = left + "px";
+  let typed = 0, caretX = left;
+  typeChars.forEach((s, i) => {
+    const at = T.typeStart + i * T.typeStep;
+    const k = ease(prog(t, at, 0.16));
+    s.style.opacity = k;
+    if (t >= at) { typed = i + 1; caretX = left + s.offsetLeft + s.offsetWidth; }
+  });
+  const lineOut = inOut(prog(t, 3.5, 0.7));
+  typeEl.style.opacity = 1 - lineOut;
+  typeEl.style.filter = lineOut > 0 ? `blur(${(lineOut * 12).toFixed(2)}px)` : "none";
+  typeEl.style.transform = `translateY(${-lineOut * 14}px)`;
+  typeEl.style.visibility = t < 4.3 ? "visible" : "hidden";
+  // soft blink while waiting, steady while typing
+  const typing = t >= T.typeStart && t < T.typeStart + LINE.length * T.typeStep + 0.15;
+  const blink = typing ? 1 : 0.5 + 0.5 * Math.cos(2 * Math.PI * (t - 0.3) / 1.0);
+  const curIn = ease(prog(t, 0.3, 0.6));
+  cur.style.left = (caretX + 10) + "px";
+  cur.style.opacity = curIn * smooth(clamp(blink * 1.4 - 0.2)) * (1 - lineOut);
+
+  drawCounter(t);
+
+  // ---- 2–5: the prompt ----
+  const { n } = countAt(t);
+  const cooling = smooth(prog(t, T.dissolve[0], 3));
+  const warm = clamp(n / 27) * (1 - cooling);
+  const promptOut = inOut(prog(t, 27.6, 0.8));
+  // the depth of field: the prompt softens a touch while a caption is up, then comes back into focus
+  const focusNoise = smooth(prog(t, T.noiseIn, 0.6)) * (1 - smooth(prog(t, T.dim, 0.6)));
+  const focusKeep = smooth(prog(t, T.keepIn - 0.1, 0.6)) * (1 - smooth(prog(t, T.keepIn + 1.4, 0.8)));
+  const soft = 1.6 * Math.max(focusNoise, focusKeep);
+  const morphOn = t >= T.morph;
+  words.forEach((el, i) => {
+    const appear = T.wordT0 + i * T.wordStep;
+    const kin = ease(prog(t, appear, 0.55));
+    let o = kin, blur = 10 * (1 - kin), dx = 0, dy = 14 * (1 - kin), x = longPos[i].x, y = longPos[i].y;
+    let color = mix(OFF, [255, 214, 176], warm * 0.85);
+    let glow = warm;
+    if (isFiller.has(i)) {
+      // dim, then fade away into dust
+      const dim = smooth(prog(t, T.dim, 0.8));
+      const gi = FILLER.findIndex((gr) => gr.includes(i));
+      const go = ease(prog(t, T.dissolve[gi], 0.9));
+      o *= lerp(1, 0.3, dim) * (1 - go);
+      blur += 8 * go; dx += 34 * go; dy -= 26 * go;
+      glow *= 1 - dim;
+    } else if (REMOVED.includes(i)) {
+      const go = inOut(prog(t, T.morph, 0.6));
+      o *= 1 - go; blur += 10 * go; dy -= 10 * go;
+    } else if (morphOn) {
+      const j = FROM.indexOf(i), to = shortPos[j], c = compactPos[i];
+      const kA = inOut(prog(t, T.morph + 0.2, 1.1));
+      x = lerp(longPos[i].x, c.x, kA); y = lerp(longPos[i].y, c.y, kA);
+      if (SLIDE_B.has(i)) {
+        const kB = inOut(prog(t, B_AT, 0.8));
+        if (t >= B_AT && el.textContent !== SHORT[j]) el.textContent = SHORT[j];
+        x = lerp(x, to.x, kB); y = lerp(y, to.y, kB);
+      } else {
+        // out where it is, then back in its new place
+        const gone = inOut(prog(t, B_AT - 0.1, 0.45));
+        const back = ease(prog(t, B_AT + 0.8, 0.8));
+        if (t >= B_AT + 0.7) {
+          if (el.textContent !== SHORT[j]) el.textContent = SHORT[j];
+          x = to.x; y = to.y + 12 * (1 - back);
+          o *= back; blur += 10 * (1 - back);
+        } else {
+          o *= 1 - gone; blur += 10 * gone; dy -= 10 * gone;
+        }
+      }
+    }
+    if (!morphOn && el.textContent !== LONG[i]) el.textContent = LONG[i];
+    o *= 1 - promptOut; blur += 12 * promptOut + soft;
+    el.style.visibility = o > 0.002 ? "visible" : "hidden";
+    el.style.opacity = o;
+    el.style.color = rgb(color);
+    el.style.filter = blur > 0.05 ? `blur(${blur.toFixed(2)}px)` : "none";
+    el.style.transform = `translate(${(x + dx).toFixed(2)}px, ${(y + dy).toFixed(2)}px)`;
+    el.style.textShadow = glow > 0.02 ? `0 0 ${(14 + 26 * glow).toFixed(1)}px rgba(255, 170, 100, ${(0.45 * glow).toFixed(3)})` : "none";
+  });
+  newWords.forEach((el, j) => {
+    if (!el) return;
+    const k = ease(prog(t, B_AT + 0.8 + (j - 7) * 0.04, 0.8));
+    const o = k * (1 - promptOut);
+    el.style.visibility = o > 0.002 ? "visible" : "hidden";
+    el.style.opacity = o;
+    el.style.color = rgb(OFF);
+    const blur = 10 * (1 - k) + 12 * promptOut + soft;
+    el.style.filter = blur > 0.05 ? `blur(${blur.toFixed(2)}px)` : "none";
+    el.style.transform = `translate(${shortPos[j].x}px, ${shortPos[j].y + 12 * (1 - k)}px)`;
+  });
+
+  drawDust(g, t);
+
+  vis($("cap-noise"), t, T.noiseIn, 1.0, 14.2, 0.7, { rise: 16 });
+  vis($("pct"), t, T.pct, 1.1, 21.8, 0.6, { scale: 0.86, rise: 0, blur: 16 });
+  vis($("cap-keep"), t, T.keepIn, 1.0, 27.4, 0.7, { rise: 16 });
+
+  // ---- 5: rings: drawn on, then breathing softly ----
+  rings.forEach((r, i) => {
+    const at = T.rings[i];
+    const draw = ease(prog(t, at, 1.0));
+    const out = inOut(prog(t, 27.2, 0.7));
+    const breathe = 0.5 + 0.5 * Math.sin((t - at) * 2 * Math.PI / 1.8 - Math.PI / 2);
+    r.el.style.strokeDashoffset = r.len * (1 - draw);
+    r.el.style.opacity = (draw > 0 ? 0.6 + 0.4 * breathe * draw : 0) * (1 - out);
+    r.el.style.transform = `scale(${1 + 0.025 * breathe * draw})`;
+    // the words inside glow with it
+    r.idx.forEach((j) => {
+      const el = FROM[j] != null ? words[FROM[j]] : newWords[j];
+      if (draw > 0 && out < 1) el.style.textShadow = `0 0 ${(10 + 18 * breathe).toFixed(1)}px rgba(130, 150, 255, ${(0.55 * draw * (1 - out)).toFixed(3)})`;
+    });
+  });
+
+  // ---- 6: three lines of light ----
+  drawLines(g, t);
+  [0, 1, 2].forEach((i) => {
+    const el = $("ll-" + i);
+    el.style.top = (LINE_Y[i] - 46) + "px";
+    vis(el, t, T.lines[i] + 0.15, 0.9, T.merge - 0.2, 0.8, { rise: 10 });
+  });
+  vis($("cap-lines"), t, T.lineText, 1.1, 33.5, 0.8, { rise: 16 });
+
+  // ---- 7: the wordmark, the line under it, then black ----
+  vis($("mark"), t, T.logo, 1.6, null, 0, { blur: 26, rise: 0, scale: 1.05 });
+  vis($("tag"), t, T.tagline, 1.2, null, 0, { rise: 14 });
+  $("black").style.opacity = inOut(prog(t, T.fade, 0.8));
+}
+
+window.render = render;
+window.DUR = T.dur;
+window.ready = document.fonts.ready.then(() => document.fonts.load("500 64px Inter")).then(() => { build(); render(0); return true; });
+</script>
+</body>
+</html>

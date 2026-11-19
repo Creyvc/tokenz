@@ -1,0 +1,254 @@
+"""The promo's track, "Glide": a hard-hitting SaaS-teaser beat in the manner of the reference the owner
+chose (refs/), written from scratch: 118 BPM, a deep 808 sub that glides between notes on a creeping
+minor line, a punchy kick, claps on 2 and 4, rolling hi-hats, half-beat drop-outs before the big cuts.
+Every hit sits on the picture's beats (timeline.js): typing clicks, a whoosh per card, a pop per
+shattered word, a tick per count, whooshes on the whip pans and swooshes, a beat of silence before
+the logo, then one big impact, and a cut on the last beat.
+
+  python score.py      writes score.wav (needs numpy)
+"""
+import json
+import os
+import sys
+import wave
+import numpy as np
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(HERE, ".."))
+import scores as S
+from scores import SR, hz, lp, saw, kick, snare, clap, hat, click, impact, riser, swell, pad, pluck, stab, bell
+
+src = open(os.path.join(HERE, "timeline.js")).read()
+T = json.loads(src[src.index("{"): src.rindex("}") + 1])
+SCN = T["scenes"]
+B = 60 / T["bpm"]
+BAR = 4 * B
+DUR = T["beats"] * B
+def at(b): return b * B
+
+S.N = int((DUR + 3) * SR)
+S.STOP, S.HIT, S.DUR = at(SCN["silence"]), at(SCN["logo"]), DUR   # the beat of silence before the logo
+
+# Our own line: two 808 notes a bar, creeping up by half steps and falling back (A minor)
+LINE = [(33, 34), (35, 36), (33, 31), (30, 35), (33, 34), (35, 38), (36, 35), (31, 33)]
+CHORDS = [[57, 60, 64], [58, 62, 65], [59, 62, 67], [60, 64, 67], [57, 60, 64], [59, 62, 67], [60, 64, 67], [55, 59, 62]]
+SCALE = [69, 72, 74, 76, 79, 81, 84]                                     # A minor pentatonic, for the lead
+
+
+def whoosh(m, length=0.32, g=1.0):
+    n = int(length * SR); k = np.linspace(0, 1, n); nz = m.noise(n)
+    body = lp(nz, 400 + 7000 * np.sin(np.pi * k) ** 2) - lp(nz, 250)
+    return body * np.sin(np.pi * k) ** 1.5 * 0.9 * g
+
+
+def boom(m, g=1.0):
+    n = int(0.9 * SR); t = np.arange(n) / SR
+    f = 38 + 60 * np.exp(-t / 0.06)
+    return np.tanh(np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-t / 0.45) * 1.8) * 0.8 * g
+
+
+def pop(m, g=1.0):
+    n = int(0.35 * SR); t = np.arange(n) / SR; nz = m.noise(n)
+    burst = (nz - lp(nz, 2500)) * np.exp(-t / 0.05)
+    glass = sum(np.sin(2 * np.pi * f * t) * np.exp(-t / 0.08) for f in (3100, 4650, 6900)) * 0.15
+    return (burst * 0.8 + glass) * g
+
+
+def sub808(note, length, prev=None, g=1.0):
+    """An 808: a sine with a click on top, gliding up or down from the last note, long and saturated."""
+    n = int(length * SR); t = np.arange(n) / SR
+    f1 = hz(note); f0 = hz(prev) if prev is not None else f1
+    f = f1 + (f0 - f1) * np.exp(-t / 0.045)
+    body = np.sin(2 * np.pi * np.cumsum(f) / SR)
+    env = np.clip(t / 0.004, 0, 1) * np.exp(-t / 1.1) * np.clip((length - t) / 0.03, 0, 1)
+    knock = np.sin(2 * np.pi * 160 * t) * np.exp(-t / 0.012) * 0.6
+    return np.tanh((body * env + knock * env) * 4.0) * 0.62 * g
+
+
+def keyclick(m, g=1.0):
+    n = int(0.03 * SR); t = np.arange(n) / SR; nz = m.noise(n)
+    return (nz - lp(nz, 3500)) * np.exp(-t / 0.004) * 0.5 * g
+
+
+def glide():
+    m = S.Mix(118)
+    L = SCN
+    bars = int(np.ceil(L["silence"] / 4))
+
+    # ---- the 808: two notes a bar, gliding, from the opening to the silence ----
+    prev = None
+    for bar_ in range(bars):
+        a, b2 = LINE[bar_ % 8]
+        for half, note in enumerate((a, b2)):
+            st = bar_ * 4 + half * 2
+            if st >= L["silence"]: break
+            length = min(2, L["silence"] - st)
+            m.add(sub808(note, at(length) + 0.05, prev, 0.24 if st >= L["s1"] else 0.2), at(st))
+            # a growl an octave up, following the same line: the 808's grit, in the low-mids
+            if st >= L["s1"]:
+                n_ = int((at(length) + 0.05) * SR); tt = np.arange(n_) / SR
+                gr = lp(saw(hz(note + 12), n_, 12, det=0.004) + saw(hz(note + 12), n_, 12, det=-0.004), 700)
+                m.add(gr * np.exp(-tt / 0.9) * np.clip(tt / 0.01, 0, 1) * np.clip((n_ / SR - tt) / 0.03, 0, 1) * 0.26, at(st))
+            prev = note
+
+    # ---- drums: kick on 1 and the "and" of 3, plus 3 in the busier bars; claps on 2 and 4; rolling hats ----
+    for bar_ in range(bars):
+        b0 = bar_ * 4
+        busy = b0 >= L["s1"]
+        for kb in ((0, 2.5) if not busy else (0, 1.75, 2.5)):
+            if b0 + kb < L["silence"]:
+                m.kicks.append(at(b0 + kb)); m.add(kick(m, 1.0 if kb == 0 else 0.85, low=46, punch=150, dec=0.22), at(b0 + kb), duck=False)
+        for cb in (1, 3):
+            if busy and b0 + cb < L["silence"]: m.add(clap(m, 1.5), at(b0 + cb), send=0.3, duck=False)
+        # hats: eighths, and a quick roll of 16ths (then 32nds) into the next bar
+        for e in range(8):
+            hb = b0 + e / 2
+            if hb >= L["silence"]: break
+            m.add(hat(m, g=0.55 if e % 2 else 0.38), at(hb), pan=0.25, duck=False)
+        if busy and b0 + 4 <= L["silence"]:
+            roll_from = b0 + 3.5
+            for k in range(6):
+                hb = roll_from + k * (0.125 if k < 2 else 0.0625)
+                m.add(hat(m, g=0.4 + 0.05 * k), at(hb), pan=-0.2, duck=False)
+        if busy and bar_ % 2: m.add(hat(m, True, 0.4), at(b0 + 1.5), pan=0.3, duck=False)
+
+    # ---- deep hits on the big cuts ----
+    for b in (8, 12, 16, 20, 24, 26, 30, 34, 38, 44, 50, 56, 62, 64, 68, 72, 78):
+        m.add(boom(m, 0.65), at(b), duck=False)
+    for b in (8, 24, 26, 30, 44, 52, 62, 68):
+        m.add(impact(m, 0.6, 1.4), at(b), send=0.35, duck=False)
+
+    # ---- the opening: a click per letter as the line types, a soft whoosh per card ----
+    ot = T["openType"]; letters = len("Prompts are") + len("getting longer.")
+    for i in range(letters):
+        m.add(keyclick(m, 0.5 + 0.3 * (i % 3 == 0)), at(ot["start"]) + i * at(ot["span"]) / letters, pan=-0.3, duck=False)
+    for b in T["openCards"]:
+        m.add(whoosh(m, 0.3, 0.45), at(b) - 0.12, pan=0.5, duck=False)
+        m.add(click(m, 0.25, 2600), at(b) + 0.1, pan=0.5, duck=False)
+    m.add(swell(m, at(1.5), 0.7), at(L["s1"] - 1.5), send=0.3, duck=False)
+
+    # ---- "27" / "TOKENS" ----
+    m.add(stab([45, 57, 64, 69, 72], 0.3, 0.7, 1.1), at(L["s1"]), send=0.35)
+    m.add(stab([45, 57, 64, 69, 72, 76], 0.3, 0.7, 1.0), at(L["s1"] + 1), send=0.35)
+
+    # ---- the prompt races in: a tick per token ----
+    w = T["words"]
+    def word_time(i): return at(w["start"]) + at(w["span"]) * (i / len(T["tokens"])) ** w["curve"]
+    prevn = 0
+    for i, n in enumerate(T["tokens"]):
+        for k in range(n - prevn):
+            m.add(click(m, 0.3, 3400 + 40 * n), word_time(i) + k * 0.03, pan=0.5, duck=False)
+        prevn = n
+
+    # ---- the shatters, and the riser into the snap ----
+    for b in T["pops"]:
+        m.add(pop(m, 1.0), at(b), send=0.3, duck=False)
+        m.add(snare(m, 0.8, dec=0.14), at(b), send=0.3, duck=False)
+    m.add(riser(m, at(4), 0.8), at(L["s3"]), send=0.2, duck=False)
+
+    # ---- the snap, the flip, −30% ----
+    for j in range(15):
+        m.add(click(m, 0.26, 2200), at(T["snap"]["start"]) + at(T["snap"]["span"]) * j / 15 + 0.16, pan=0.3 * np.sin(j), duck=False)
+    for s in range(8):
+        m.add(click(m, 0.34, 3000 - 120 * s), at(T["flip"]["start"] + s * T["flip"]["step"]), pan=0.2, duck=False)
+    m.add(stab([45, 57, 64, 69, 72, 76], 0.6, 0.9, 1.3), at(L["pct"]), send=0.5)
+
+    # ---- the four words, the tunnel, the rows ----
+    for b in T["punch"] + T["tunnelLines"] + T["rowLines"]:
+        ch = CHORDS[int(b // 4) % 8]
+        m.add(stab(ch + [ch[0] + 12], 0.28, 0.6, 1.1), at(b), send=0.35)
+    m.add(whoosh(m, 0.9, 1.0), at(L["tunnel"]) - 0.2, duck=False)
+
+    # ---- a bright lead through the rows and the methods ----
+    lead = [0, 2, 4, 2, 5, 4, 2, 1]
+    for b in range(L["rows"], L["s6"]):
+        for e in range(2):
+            m.add(pluck([SCALE[lead[(2 * b + e) % 8]]], 0.28, 0.9), at(b) + e * B / 2, pan=0.35 * (-1) ** e, send=0.35)
+    for b in T["swooshes"]:
+        m.add(whoosh(m, 0.7, 1.1), at(b) - 0.35, duck=False)
+
+    # ---- NLP ----
+    for b in T["nlpPops"]:
+        m.add(pop(m, 0.8), at(b), pan=0.2, duck=False)
+        m.add(click(m, 0.34, 3000), at(b), pan=0.4, duck=False)
+    m.add(pluck([72, 76, 79, 84], 0.6, 0.8), at(T["nlpReflow"]), send=0.4)
+    m.add(bell([84], 1.0, 0.6), at(T["nlpReflow"] + 0.5), send=0.5)
+    # ---- TF-IDF ----
+    for i, b in enumerate(T["tfDrop"]):
+        m.add(whoosh(m, 0.35, 0.8), at(b) - 0.05, pan=0.5 if i == 0 else -0.5, duck=False)
+    m.add(click(m, 0.4, 2200), at(T["tfClose"]), duck=False)
+    for name in ("tfRoll", "aiRoll"):
+        r = T[name]
+        for s_ in range(r["steps"]):
+            m.add(click(m, 0.32, 3200 - 90 * s_), at(r["start"] + s_ * r["step"]), pan=0.4, duck=False)
+        m.add(bell([86], 1.0, 0.6), at(r["start"] + r["steps"] * r["step"]), send=0.5)
+    # ---- AI rewrite ----
+    m.add(swell(m, at(T["aiForm"] - T["aiMelt"]), 0.9), at(T["aiMelt"]), send=0.4, duck=False)
+    m.add(bell([76, 83, 88], 1.6, 0.7), at(T["aiForm"]), send=0.6)
+
+    # ---- the details, the check ----
+    for b in T["details"]:
+        ch = CHORDS[int(b // 4) % 8]
+        m.add(stab(ch + [ch[0] + 12], 0.3, 0.6, 1.1), at(b), send=0.35)
+        m.add(bell([ch[2] + 12], 0.9, 0.6), at(b + 0.5), send=0.5)
+    m.add(bell([72, 79, 84, 88], 2.0, 0.9), at(L["check"]), send=0.6)
+    rr_ = np.random.default_rng(5)
+    for k in range(40):
+        m.add(click(m, 0.1 + 0.1 * rr_.random(), 4000 + 3000 * rr_.random()), at(L["check"]) + 0.05 + 0.9 * rr_.random() ** 1.6, pan=rr_.random() * 2 - 1, duck=False)
+
+    # ---- streams, the cube ----
+    for b in T["streams"]:
+        span = at(T["burst"]) - at(b)
+        m.add(whoosh(m, 0.5, 0.8), at(b) + 0.55 * span - 0.25, pan=-0.4 + 0.4 * (b - T["streams"][0]), duck=False)
+    for b in T["lines"]:
+        ch = CHORDS[int(b // 4) % 8]
+        m.add(stab(ch + [ch[0] + 12], 0.3, 0.6, 1.1), at(b), send=0.35)
+    blk = T["blocks"]
+    for s_ in range(12):
+        m.add(pluck([SCALE[s_ % 7] - 12 + 12 * (s_ // 7)], 0.25, 0.8), at(blk["start"]) + s_ * at(blk["span"]) / 12, pan=0.3 * np.sin(s_), send=0.3)
+    c = T["corners"]
+    for s_ in range(8):
+        tt = at(c["start"] + s_ * c["step"])
+        m.add(click(m, 0.38, 3200 - 100 * s_), tt, pan=0.3 * (-1) ** s_, duck=False)
+        m.add(pop(m, 0.4), tt, pan=0.3 * (-1) ** s_, duck=False)
+    m.add(riser(m, at(L["s9"] - T["spin"]), 0.8), at(T["spin"]), send=0.2, duck=False)
+
+    # ---- whip pans ----
+    for b in T["whips"]:
+        m.add(whoosh(m, 0.3, 0.9), at(b) - 0.15, duck=False)
+
+    # ---- collapse, the silence, the logo ----
+    m.add(whoosh(m, at(1), 0.9), at(L["s9"]), duck=False)
+    m.add(impact(m, 1.4, 3.0), at(L["logo"]), send=0.6, duck=False)
+    m.add(boom(m, 1.2), at(L["logo"]), duck=False)
+    m.add(sub808(33, at(6), None, 0.9), at(L["logo"]))
+    m.add(stab([45, 57, 64, 69, 72, 76, 81], 1.6, 1.0, 1.4), at(L["logo"]), send=0.6)
+    m.add(pad([45, 57, 64, 69, 72], at(L["end"] - L["logo"]), 1.1, 3000), at(L["logo"]), send=0.6)
+    for i in range(6):                                                    # "Tokenz" typing on
+        m.add(keyclick(m, 0.6), at(L["logo"] + 1) + 0.1 + i * 0.5 / 6, duck=False)
+    line = "Save tokens. Keep meaning."
+    for i in range(len(line)):                                            # the line typing on
+        if line[i] != " ": m.add(keyclick(m, 0.4), at(L["tagline"]) + 0.1 + i * 0.8 / len(line), duck=False)
+
+    out = os.path.join(HERE, "score.wav")
+    m.master(out, duck_depth=0.45, verb=0.4, verb_len=0.5)
+
+    # the half-beat drop-outs before the big cuts, and the cut on the last beat
+    with wave.open(out) as w_:
+        params = w_.getparams(); data = np.frombuffer(w_.readframes(w_.getnframes()), dtype=np.int16).reshape(-1, 2).astype(np.float64)
+    f = int(0.006 * SR)
+    def gate(a, b2, floor=0.0):
+        i, j = int(a * SR), int(b2 * SR)
+        data[i:i + f] *= np.linspace(1, floor, f)[:, None]; data[i + f:j] *= floor
+        data[j:j + f] *= np.linspace(floor, 1, f)[:, None]
+    for b in T["breaks"]:
+        gate(at(b) + 0.02, at(b + 0.5) - 0.01, 0.08)
+    i = int(at(L["end"]) * SR)
+    data[i:i + f] *= np.linspace(1, 0, f)[:, None]; data[i + f:] = 0
+    with wave.open(out, "wb") as w_:
+        w_.setparams(params); w_.writeframes(data.astype(np.int16).tobytes())
+    print("breaks at", T["breaks"], "· cut at", round(at(L["end"]), 3), "s")
+
+
+if __name__ == "__main__":
+    glide()

@@ -1,0 +1,1043 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tokenz promo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;600;700;800;900&display=block" rel="stylesheet">
+<script src="timeline.js"></script>
+<script src="chips.js"></script>
+<style>
+  * { margin: 0; padding: 0; }
+  html, body { overflow: hidden; background: #000; }
+  canvas { display: block; }
+  /* (so the font is loaded before the canvas draws with it) */
+  #warm { position: absolute; left: -9999px; font-family: Inter; }
+</style>
+</head>
+<body>
+<span id="warm"><b style="font-weight:900">A</b><b style="font-weight:800">A</b><b style="font-weight:600">A</b><b style="font-weight:500">A</b><b style="font-weight:300">A</b></span>
+<canvas id="c"></canvas>
+<script>
+// The promo, drawn from the time t alone on one canvas (render(t)), so every frame is exact.
+// ?w=1920&h=1080 (the default) or ?w=1080&h=1920 for the vertical cut: the same film, laid out
+// for each. Times are in beats (timeline.js), shared with the music (score.py).
+const TL = window.TL, SC = TL.scenes;
+const q = new URLSearchParams(location.search);
+const W = +(q.get("w") || 1920), H = +(q.get("h") || 1080), V = H > W;
+const cv = document.getElementById("c");
+cv.width = W; cv.height = H; cv.style.width = W + "px"; cv.style.height = H + "px";
+document.body.style.width = W + "px"; document.body.style.height = H + "px";
+const g = cv.getContext("2d");
+const B = 60 / TL.bpm, DUR = TL.beats * B;
+const at = (b) => b * B;
+const CX = W / 2, CY = H / 2;
+
+// ---------- maths ----------
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const prog = (t, a, d) => clamp((t - a) / d);
+const lerp = (a, b, k) => a + (b - a) * k;
+const outExpo = (k) => (k >= 1 ? 1 : 1 - Math.pow(2, -10 * k));
+const inExpo = (k) => (k <= 0 ? 0 : Math.pow(2, 10 * k - 10));
+const outCubic = (k) => 1 - Math.pow(1 - k, 3);
+const inOut = (k) => (k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
+function rng(seed) { let s = seed >>> 0; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+const hash = (n) => { const x = Math.sin(n * 127.1) * 43758.5453; return x - Math.floor(x); };
+// speed ramp: a slow crawl, then a burst
+const ramp = (k) => (k < 0.55 ? 0.12 * (k / 0.55) : 0.12 + 0.88 * outExpo((k - 0.55) / 0.45));
+
+// ---------- colours ----------
+const INK = "#0E0F1A", WHITE = "#FFFFFF", ORANGE = "#FF6A1A", ACC = "#6C5CFF", BLUE = "#2F5BFF", PAPER = "#F5F6FA";
+function gradFill(x0, y0, x1, y1) {
+  const gr = g.createLinearGradient(x0, y0, x1, y1);
+  gr.addColorStop(0, "#2F6BFF"); gr.addColorStop(0.55, "#5B4BFF"); gr.addColorStop(1, "#9B3DFF");
+  return gr;
+}
+function background(kind) {
+  if (kind === "white") { g.fillStyle = WHITE; g.fillRect(0, 0, W, H); return INK; }
+  if (kind === "grad") {
+    g.fillStyle = gradFill(0, 0, W, H); g.fillRect(0, 0, W, H);
+    const rg = g.createRadialGradient(W * 0.3, H * 0.25, 0, W * 0.3, H * 0.25, Math.max(W, H) * 0.8);
+    rg.addColorStop(0, "rgba(255,255,255,0.18)"); rg.addColorStop(1, "rgba(255,255,255,0)");
+    g.fillStyle = rg; g.fillRect(0, 0, W, H);
+    return WHITE;
+  }
+  if (kind === "light") { g.fillStyle = PAPER; g.fillRect(0, 0, W, H); return INK; }
+  if (kind === "blue") {
+    g.fillStyle = BLUE; g.fillRect(0, 0, W, H);
+    const rg = g.createRadialGradient(W * 0.25, H * 0.2, 0, W * 0.25, H * 0.2, Math.max(W, H) * 0.9);
+    rg.addColorStop(0, "rgba(255,255,255,0.16)"); rg.addColorStop(1, "rgba(20,30,160,0.25)");
+    g.fillStyle = rg; g.fillRect(0, 0, W, H);
+    return WHITE;
+  }
+  if (kind === "lav") {
+    g.fillStyle = "#EEF0FE"; g.fillRect(0, 0, W, H);
+    const rg = g.createRadialGradient(CX, CY, 0, CX, CY, Math.max(W, H) * 0.7);
+    rg.addColorStop(0, "rgba(255,255,255,0.85)"); rg.addColorStop(1, "rgba(200,205,250,0.35)");
+    g.fillStyle = rg; g.fillRect(0, 0, W, H);
+    return INK;
+  }
+  if (kind === "airy") {
+    g.fillStyle = "#F5F5FA"; g.fillRect(0, 0, W, H);
+    const rg = g.createRadialGradient(CX, CY, 0, CX, CY, Math.max(W, H) * 0.7);
+    rg.addColorStop(0, "rgba(255,255,255,0.9)"); rg.addColorStop(1, "rgba(225,228,250,0.6)");
+    g.fillStyle = rg; g.fillRect(0, 0, W, H);
+    return INK;
+  }
+  if (kind === "violet") {
+    g.fillStyle = "#5E58D8"; g.fillRect(0, 0, W, H);
+    const rg = g.createRadialGradient(CX, CY * 0.6, 0, CX, CY, Math.max(W, H) * 0.75);
+    rg.addColorStop(0, "rgba(255,255,255,0.10)"); rg.addColorStop(1, "rgba(30,20,120,0.25)");
+    g.fillStyle = rg; g.fillRect(0, 0, W, H);
+    return WHITE;
+  }
+  g.fillStyle = "#000"; g.fillRect(0, 0, W, H); return WHITE;
+}
+
+// ---------- type ----------
+function font(size, weight = 800) { g.font = `${weight} ${size}px Inter`; g.letterSpacing = `${(-0.045 * size).toFixed(2)}px`; }
+function measure(str, size, weight = 800) { font(size, weight); return g.measureText(str).width; }
+// size that fits in maxW (never bigger than size)
+function fit(str, size, maxW, weight = 800) { const w = measure(str, size, weight); return w > maxW ? size * maxW / w : size; }
+function text(str, x, y, size, color, { weight = 800, align = "center", alpha = 1, scale = 1, blur = 0 } = {}) {
+  g.save();
+  g.globalAlpha *= alpha;
+  if (blur > 0.3) g.filter = `blur(${blur.toFixed(1)}px)`;
+  g.translate(x, y); g.scale(scale, scale);
+  font(size, weight); g.textAlign = align; g.textBaseline = "middle";
+  g.fillStyle = color === "grad" ? gradFill(-size * 2, -size / 2, size * 2, size / 2) : color;
+  g.fillText(str, 0, size * 0.04);
+  g.restore();
+}
+// the slam: in big, a few frames of overshoot, snap, then a slow push for as long as it's up
+function slam(dt, from = 1.5) {
+  if (dt < 0) return 0;
+  let s = dt < 0.075 ? lerp(from, 0.93, outExpo(dt / 0.075)) : lerp(0.93, 1, outCubic(clamp((dt - 0.075) / 0.1)));
+  return s * (1 + 0.035 * dt);
+}
+
+// ---------- camera: shake on impacts, white flashes on drops ----------
+function shake(t) {
+  let x = 0, y = 0;
+  for (const b of TL.impacts) {
+    const dt = t - at(b);
+    if (dt < 0 || dt > 0.32) continue;
+    const a = 16 * Math.pow(1 - dt / 0.32, 2) * (b === SC.logo || b === SC.pct ? 1.6 : 1);
+    x += a * (hash(b * 31 + Math.floor(dt * 60)) - 0.5) * 2;
+    y += a * (hash(b * 57 + Math.floor(dt * 60) + 9) - 0.5) * 2;
+  }
+  return [x, y];
+}
+function flash(t) {
+  let a = 0;
+  for (const b of TL.flashes) { const dt = t - at(b); if (dt >= 0 && dt < 0.14) a = Math.max(a, 1 - outCubic(dt / 0.14)); }
+  return a;
+}
+
+// ---------- the prompt ----------
+const LONG = "Could you please help me write a polite email to my professor asking for a meeting on Friday? Please keep it under 100 words.".split(" ");
+const FILLER_IDX = new Set([0, 1, 2, 3, 4, 12, 13, 18]);
+const SHORT = "Write a polite email to my professor requesting a Friday meeting. Use fewer than 100 words.".split(" ");
+const POPS = ["Could", "please", "help me", "asking for"];
+const wordTime = (i) => at(TL.words.start) + at(TL.words.span) * Math.pow(i / LONG.length, TL.words.curve);
+function counterS2(t) { let n = 0; TL.tokens.forEach((v, i) => { if (t >= wordTime(i)) n = v; }); return n; }
+
+// a counter: a number with "TOKENS" under it; the number rolls when it changes
+function counter(x, y, n, nPrev, since, size, color, up = true, align = "right") {
+  const k = outExpo(clamp(since / 0.09));
+  const d = up ? 1 : -1;
+  g.save();
+  g.beginPath(); g.rect(x - (align === "right" ? size * 3 : size * 1.5), y - size * 0.62, size * 3, size * 1.22); g.clip();
+  text(String(n), x, y + (1 - k) * size * 0.9 * d, size, color, { weight: 800, align });
+  if (k < 1) text(String(nPrev), x, y - k * size * 0.9 * d, size, color, { weight: 800, align, alpha: 1 - k });
+  g.restore();
+  text("TOKENS", x, y + size * 0.78, size * 0.2, color, { weight: 600, align, alpha: 0.7 });
+}
+
+// ---------- shatter: a word in shards of itself ----------
+const shardCache = {};
+function shards(str, size) {
+  const key = str + size;
+  if (shardCache[key]) return shardCache[key];
+  const w = Math.ceil(measure(str, size)) + 40, h = Math.ceil(size * 1.3);
+  const off = document.createElement("canvas"); off.width = w; off.height = h;
+  const o = off.getContext("2d");
+  o.font = `800 ${size}px Inter`; o.letterSpacing = `${(-0.045 * size).toFixed(2)}px`;
+  o.textAlign = "center"; o.textBaseline = "middle"; o.fillStyle = ORANGE;
+  o.fillText(str, w / 2, h / 2 + size * 0.04);
+  const r = rng(str.length * 97 + size);
+  const cols = 14, rows = 5, list = [];
+  const jit = () => (r() - 0.5) * 0.7;
+  const P = [];
+  for (let j = 0; j <= rows; j++) { P.push([]); for (let i = 0; i <= cols; i++) P[j].push([(i + (i % cols ? jit() : 0)) * w / cols, (j + (j % rows ? jit() : 0)) * h / rows]); }
+  for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) {
+    const a = P[j][i], b2 = P[j][i + 1], c = P[j + 1][i + 1], d = P[j + 1][i];
+    for (const tri of (r() < 0.5 ? [[a, b2, c], [a, c, d]] : [[a, b2, d], [b2, c, d]])) {
+      const cx = (tri[0][0] + tri[1][0] + tri[2][0]) / 3, cy = (tri[0][1] + tri[1][1] + tri[2][1]) / 3;
+      const ang = Math.atan2(cy - h / 2, cx - w / 2) + (r() - 0.5) * 0.8;
+      const sp = (0.6 + r()) * size * 9;
+      list.push({ tri, cx, cy, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp - size * 2, rot: (r() - 0.5) * 14 });
+    }
+  }
+  return (shardCache[key] = { off, w, h, list });
+}
+function drawShatter(str, size, x, y, dt) {
+  const S = shards(str, size);
+  const k = clamp(dt / 0.55);
+  g.save(); g.translate(x - S.w / 2, y - S.h / 2);
+  for (const s of S.list) {
+    const e = outExpo(k);
+    g.save();
+    g.globalAlpha = 1 - k * k;
+    g.translate(s.cx + s.vx * e * 0.12, s.cy + s.vy * e * 0.12 + 900 * k * k);
+    g.rotate(s.rot * e);
+    g.translate(-s.cx, -s.cy);
+    g.beginPath(); g.moveTo(...s.tri[0]); g.lineTo(...s.tri[1]); g.lineTo(...s.tri[2]); g.closePath(); g.clip();
+    g.drawImage(S.off, 0, 0);
+    g.restore();
+  }
+  g.restore();
+}
+
+// ---------- a ring pulse ----------
+function ring(x, y, rx, ry, dt, color) {
+  for (const [delay, grow] of [[0, 1], [0.09, 1.35]]) {
+    const k = clamp((dt - delay) / 0.45);
+    if (k <= 0 || k >= 1) continue;
+    const e = outExpo(k);
+    g.save();
+    g.globalAlpha = 1 - k;
+    g.strokeStyle = color; g.lineWidth = 6 * (1 - k) + 1.5;
+    g.shadowColor = color; g.shadowBlur = 30;
+    g.beginPath(); g.ellipse(x, y, rx * lerp(0.92, grow * 1.18, e), ry * lerp(0.92, grow * 1.3, e), 0, 0, 6.283); g.stroke();
+    g.restore();
+  }
+}
+
+// ---------- 3D blocks ----------
+const CUBE = [];
+for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) for (let k = -1; k <= 1; k++) CUBE.push([i, j, k]);
+const isCorner = (p) => Math.abs(p[0]) + Math.abs(p[1]) + Math.abs(p[2]) === 3;
+const CORNERS = CUBE.map((p, i) => (isCorner(p) ? i : -1)).filter((i) => i >= 0);
+const order = (() => { const r = rng(5); return CUBE.map((p, i) => [r(), i]).sort((a, b) => a[0] - b[0]).map((x) => x[1]); })();
+const arrive = {};
+order.forEach((ci, n) => { arrive[ci] = at(TL.blocks.start) + at(TL.blocks.span) * (n / CUBE.length); });
+const flyFrom = (() => { const r = rng(11); return CUBE.map(() => { const a = r() * 6.283, e = (r() - 0.5) * 2; return [Math.cos(a) * 9, e * 6, Math.sin(a) * 9 + 6]; }); })();
+const FACES = [[[0, 1, 2, 3], [0, 0, -1]], [[4, 5, 6, 7], [0, 0, 1]], [[0, 1, 5, 4], [0, -1, 0]], [[3, 2, 6, 7], [0, 1, 0]], [[0, 3, 7, 4], [-1, 0, 0]], [[1, 2, 6, 5], [1, 0, 0]]];
+const VERTS = [[-1, -1, -1], [1, -1, -1], [1, 1, -1], [-1, 1, -1], [-1, -1, 1], [1, -1, 1], [1, 1, 1], [-1, 1, 1]];
+const FACE_COL = { "0,-1,0": [214, 222, 255], "0,1,0": [120, 110, 230], "-1,0,0": [126, 150, 255], "1,0,0": [150, 120, 250], "0,0,-1": [140, 165, 255], "0,0,1": [160, 140, 252] };
+
+function drawBlocks(t) {
+  const s8 = at(SC.s8);
+  // the camera orbits, faster and faster, then bursts on the spin
+  const yaw = 0.6 + (t - s8) * 1.1 + 2.2 * inExpo(prog(t, at(TL.spin), at(SC.s9) - at(TL.spin))) + 0.0;
+  const pitch = -0.42 + 0.12 * Math.sin((t - s8) * 1.3);
+  const cy = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch);
+  const unit = (V ? 0.9 : 1) * Math.min(W, H) * 0.105;
+  const press = outExpo(prog(t, at(TL.compress), 0.5));
+  const gap = lerp(2.32, 2.0, press);                             // gaps between blocks close up
+  let scale = lerp(1, 0.74, press);
+  // collapse to a point: slow, then a burst
+  const col = ramp(prog(t, at(SC.s9), at(SC.silence) - at(SC.s9)));
+  scale *= 1 - col;
+  const camZ = 14, f = Math.min(W, H) * 1.8;
+  const focus = lerp(-2.5, 2.5, inOut(prog(t, at(TL.compress), at(2))));   // the focus pulls through the cube
+  const items = [];
+  CUBE.forEach((p, ci) => {
+    let k = outExpo(prog(t, arrive[ci], 0.32));
+    if (k <= 0) return;
+    let pos = p.map((v) => v * gap / 2 * 1);
+    let size = 1, alpha = 1;
+    // corners pop out, one at a time
+    const pi = CORNERS.indexOf(ci);
+    if (pi >= 0) {
+      const pt = at(TL.corners.start + pi * TL.corners.step);
+      const pk = prog(t, pt, 0.3);
+      if (pk >= 1) return;
+      if (pk > 0) { pos = pos.map((v) => v * (1 + 2.6 * inExpo(pk))); size = 1 + 0.25 * outExpo(pk * 3) - 1.1 * inExpo(pk); alpha = 1 - pk; }
+    }
+    pos = pos.map((v, i) => lerp(flyFrom[ci][i], v, k) * scale);
+    // rotate into the camera
+    const x1 = pos[0] * cy - pos[2] * sy, z1 = pos[0] * sy + pos[2] * cy;
+    const y1 = pos[1] * cp - z1 * sp, z2 = pos[1] * sp + z1 * cp;
+    items.push({ ci, x: x1, y: y1, z: z2, size: size * scale * 0.5 * (gap > 2.01 ? 1 : 1), alpha: alpha * clamp(k * 3), k });
+  });
+  items.sort((a, b) => b.z - a.z);
+  // a soft shadow under the cube, on the light floor
+  if (items.length) {
+    const sh = g.createRadialGradient(CX, CY + Math.min(W, H) * 0.3 * scale, 0, CX, CY + Math.min(W, H) * 0.3 * scale, Math.min(W, H) * 0.32 * scale + 1);
+    sh.addColorStop(0, "rgba(60,60,160,0.22)"); sh.addColorStop(1, "rgba(60,60,160,0)");
+    g.save(); g.translate(CX, CY + Math.min(W, H) * 0.3 * scale); g.scale(1, 0.28); g.translate(-CX, -(CY + Math.min(W, H) * 0.3 * scale));
+    g.fillStyle = sh; g.fillRect(0, 0, W, H); g.restore();
+  }
+  for (const it of items) {
+    const blur = Math.min(10, Math.abs(it.z - focus) * 2.2) * (1 - col);
+    g.save();
+    g.globalAlpha = it.alpha;
+    if (blur > 0.4) g.filter = `blur(${blur.toFixed(1)}px)`;
+    const pts = VERTS.map(([vx, vy, vz]) => {
+      // each block's own corner, turned the same way as the cube
+      const lx = vx * it.size, ly = vy * it.size, lz = vz * it.size;
+      const ax = lx * cy - lz * sy, az = lx * sy + lz * cy;
+      const ay = ly * cp - az * sp, az2 = ly * sp + az * cp;
+      const X = it.x + ax, Y = it.y + ay, Z = it.z + az2 + camZ;
+      return [CX + X * unit * f / (Z * unit) * 1, CY + Y * unit * f / (Z * unit), Z];
+    });
+    for (const [idx, n] of FACES) {
+      // facing the camera?
+      const nx = n[0] * cy - n[2] * sy, nz0 = n[0] * sy + n[2] * cy;
+      const nz = n[1] * sp + nz0 * cp;
+      if (nz > -0.02) continue;
+      const c = FACE_COL[n.join(",")];
+      g.beginPath(); idx.forEach((vi, j) => (j ? g.lineTo(pts[vi][0], pts[vi][1]) : g.moveTo(pts[vi][0], pts[vi][1]))); g.closePath();
+      g.fillStyle = `rgb(${c[0]}, ${c[1]}, ${c[2]})`; g.fill();
+      g.strokeStyle = "rgba(255,255,255,0.55)"; g.lineWidth = 1.4; g.stroke();
+    }
+    g.restore();
+  }
+  // the point it all collapses to
+  if (col > 0) {
+    const r = Math.min(W, H) * lerp(0.02, 0.012, col);
+    const glow = g.createRadialGradient(CX, CY, 0, CX, CY, r * 6);
+    glow.addColorStop(0, `rgba(80,70,255,${col})`); glow.addColorStop(0.2, `rgba(120,110,255,${0.7 * col})`); glow.addColorStop(1, "rgba(120,100,255,0)");
+    g.fillStyle = glow; g.beginPath(); g.arc(CX, CY, r * 6, 0, 6.283); g.fill();
+  }
+}
+
+// ---------- streams of light ----------
+const LABELS = ["Local NLP", "TF‑IDF", "AI rewrite"];
+function drawStreams(t, dim) {
+  const ys = V ? [CY - 300, CY, CY + 300] : [CY - 230, CY, CY + 230];
+  const x0 = W * 0.06, mx = W * (V ? 0.62 : 0.6), burst = at(TL.burst);
+  const yAt = (i, x) => lerp(ys[i], CY, (() => { const k = clamp((x - W * 0.28) / (mx - W * 0.28)); return k * k * (3 - 2 * k); })());
+  g.save();
+  const gr = gradFill(0, 0, W, 0);
+  TL.streams.forEach((b, i) => {
+    const k = ramp(prog(t, at(b), burst - at(b)));
+    if (k <= 0) return;
+    const head = lerp(x0, mx, k);
+    const fade = 1 - outCubic(prog(t, burst, 0.4));
+    for (const [lw, a, bl] of [[18, 0.2, 30], [6, 0.5, 12], [2.4, 1, 0]]) {
+      g.strokeStyle = gr; g.lineWidth = lw; g.globalAlpha = a * fade * dim; g.shadowColor = "#8a7cff"; g.shadowBlur = bl;
+      g.beginPath(); for (let x = x0; x <= head; x += 8) { const y = yAt(i, x); x === x0 ? g.moveTo(x, y) : g.lineTo(x, y); } g.stroke();
+    }
+    // the speeding head, stretched by its speed
+    const speed = (ramp(prog(t + 0.01, at(b), burst - at(b))) - k) / 0.01;
+    const hy = yAt(i, head), len = 40 + Math.min(260, speed * 18);
+    const hg = g.createRadialGradient(head, hy, 0, head, hy, 46);
+    hg.addColorStop(0, `rgba(90,80,255,${fade * dim})`); hg.addColorStop(1, "rgba(130,120,255,0)");
+    g.globalAlpha = 1; g.shadowBlur = 0; g.fillStyle = hg;
+    g.save(); g.translate(head, hy); g.scale(len / 46, 1); g.beginPath(); g.arc(0, 0, 46, 0, 6.283); g.restore(); g.fill();
+    // label
+    const la = clamp(prog(t, at(b), 0.12)) * (1 - prog(t, burst - 0.2, 0.2));
+    if (la > 0) text(LABELS[i], x0, ys[i] - 44, 30, INK, { weight: 600, align: "left", alpha: 0.7 * la * dim });
+  });
+  // the burst: one beam, and a shockwave where they meet
+  const bk = prog(t, burst, 0.6);
+  if (t >= burst) {
+    const beamEnd = lerp(mx, W + 50, outExpo(prog(t, burst, 0.25)));
+    const beamA = (1 - 0.75 * outCubic(prog(t, burst + 0.3, 0.5))) * dim;
+    for (const [lw, a, bl] of [[34, 0.25, 50], [10, 0.6, 18], [3.5, 1, 0]]) {
+      g.strokeStyle = gr; g.lineWidth = lw; g.globalAlpha = a * beamA; g.shadowColor = "#9a8cff"; g.shadowBlur = bl;
+      g.beginPath(); g.moveTo(x0, CY); g.lineTo(beamEnd, CY); g.stroke();
+    }
+    if (bk < 1) {
+      g.globalAlpha = (1 - bk) * dim; g.shadowBlur = 0;
+      const R = Math.max(W, H) * outExpo(bk) * 0.6;
+      g.strokeStyle = "rgba(100,90,255,0.6)"; g.lineWidth = 10 * (1 - bk) + 1;
+      g.beginPath(); g.arc(mx, CY, R, 0, 6.283); g.stroke();
+    }
+  }
+  g.restore();
+}
+
+// ---------- rounded rectangles ----------
+function rr(x, y, w, h, r) {
+  r = Math.min(r, h / 2, w / 2);
+  g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r);
+  g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath();
+}
+// two-tone words, like the references' "Just drop and go": each word its own colour
+function words2(list, x, y, size, opts = {}) {
+  const space = measure(" ", size, opts.weight || 800) + size * 0.05;
+  const widths = list.map(([w]) => measure(w, size, opts.weight || 800));
+  const total = widths.reduce((a, b2) => a + b2, 0) + space * (list.length - 1);
+  let cx = x - total / 2;
+  g.save(); g.translate(x, y); g.scale(opts.scale || 1, opts.scale || 1); g.translate(-x, -y);
+  list.forEach(([w, col], i) => { text(w, cx + widths[i] / 2, y, size, col, { weight: opts.weight || 800, alpha: opts.alpha ?? 1 }); cx += widths[i] + space; });
+  g.restore();
+}
+
+// ---------- chips: one per real token ----------
+const PASTEL = ["#E3EDFB", "#E5F3E8", "#FBE5EC", "#FDF0DA", "#ECE6FB"];
+const chipLabel = (s) => (s.trim() === "" ? "·" : s.trim());
+const chipCache = {};
+// tokens laid out as chips in centred lines; rows: an array of token arrays, each starting a new line
+function chipLayout(key, rows, size, maxW, top, rowGap = 0) {
+  if (chipCache[key]) return chipCache[key];
+  const padX = size * 0.34, h = size * 1.5, gap = size * 0.22, lh = h + gap;
+  const out = []; const lines = [];
+  rows.forEach((row, ri) => {
+    let line = [], lw = 0;
+    row.forEach((tok, ti) => {
+      const w = measure(chipLabel(tok), size, 600) + padX * 2;
+      if (line.length && lw + gap + w > maxW) { lines.push({ items: line, row: ri, w: lw }); line = []; lw = 0; }
+      lw += (line.length ? gap : 0) + w; line.push({ tok, w, row: ri, i: ti });
+    });
+    if (line.length) lines.push({ items: line, row: ri, w: lw, last: true });
+  });
+  let y = top, prevRow = 0;
+  lines.forEach((ln) => {
+    if (ln.row !== prevRow) { y += rowGap; prevRow = ln.row; }
+    let x = CX - ln.w / 2;
+    ln.items.forEach((it) => { out.push({ ...it, x, y, h }); x += it.w + gap; });
+    y += lh;
+  });
+  const height = y - top;
+  return (chipCache[key] = { items: out, height, h });
+}
+function chip(x, y, w, h, label, size, fill, color, scale = 1, alpha = 1) {
+  if (scale <= 0.01 || alpha <= 0.01) return;
+  g.save(); g.globalAlpha *= alpha;
+  g.translate(x + w / 2, y + h / 2); g.scale(scale, scale);
+  rr(-w / 2, -h / 2, w, h, h * 0.24);
+  g.shadowColor = "rgba(40,50,140,0.12)"; g.shadowBlur = h * 0.3; g.shadowOffsetY = h * 0.08;
+  g.fillStyle = fill; g.fill();
+  g.shadowColor = "rgba(0,0,0,0)";
+  text(label, 0, 0, size, color, { weight: 600 });
+  g.restore();
+}
+
+// ---------- the glossy bar (after the score bars in launch videos): tokens left of the original ----------
+function bar(value, total, pct, pctA, dark, enterK) {
+  const w = V ? W * 0.8 : 980, x = CX - w / 2, y = V ? H * 0.83 : H * 0.86, h = V ? 30 : 34;
+  g.save(); g.globalAlpha *= enterK;
+  g.translate(0, (1 - enterK) * 40);
+  // the number: value in the gradient, "/total" light, right-aligned over the bar's end
+  const ns = V ? 96 : 92;
+  font(ns, 800); const vw = g.measureText(String(value)).width;
+  font(ns * 0.62, 700); const tw = g.measureText("/" + total).width;
+  const nx = x + w;
+  text("/" + total, nx, y - ns * 0.62, ns * 0.62, dark ? "rgba(255,255,255,0.35)" : "rgba(10,10,12,0.25)", { weight: 700, align: "right" });
+  text(String(value), nx - tw - 8, y - ns * 0.66, ns, dark ? WHITE : "grad", { weight: 800, align: "right" });
+  text("TOKENS", x, y - ns * 0.55, V ? 26 : 24, dark ? "rgba(255,255,255,0.6)" : "rgba(10,10,12,0.5)", { weight: 700, align: "left" });
+  if (pctA > 0) {
+    const bw = measure(pct, V ? 34 : 32, 800) + 34, bx = x + measure("TOKENS", V ? 26 : 24, 700) + 24;
+    g.save(); g.globalAlpha *= pctA; const pk = lerp(1.35, 1, pctA);
+    g.translate(bx + bw / 2, y - ns * 0.55); g.scale(pk, pk);
+    rr(-bw / 2, -24, bw, 48, 12); g.fillStyle = "#5B4FD6"; g.fill();
+    text(pct, 0, 0, V ? 34 : 32, WHITE, { weight: 800 });
+    g.restore();
+  }
+  // the track and the fill
+  g.save(); g.shadowColor = dark ? "rgba(0,0,0,0)" : "rgba(80,90,200,0.18)"; g.shadowBlur = 30; g.shadowOffsetY = 10;
+  rr(x, y, w, h, h / 2); g.fillStyle = dark ? "rgba(255,255,255,0.10)" : "#FFFFFF"; g.fill(); g.restore();
+  const fw = Math.max(h, w * value / total);
+  const gr = g.createLinearGradient(x, 0, x + w, 0);
+  gr.addColorStop(0, "#C3BCFF"); gr.addColorStop(0.45, "#6E66FF"); gr.addColorStop(1, "#5AB4FF");
+  g.save(); g.shadowColor = "rgba(110,120,255,0.55)"; g.shadowBlur = 26; g.shadowOffsetY = 8;
+  rr(x, y, fw, h, h / 2); g.fillStyle = gr; g.fill(); g.restore();
+  rr(x + 4, y + 3, fw - 8, h * 0.36, h * 0.18); g.fillStyle = "rgba(255,255,255,0.35)"; g.fill();
+  g.restore();
+}
+// a count rolling from a to b in steps, from a beat
+function rolled(t, a, b2, roll) {
+  let n = a, since = 9;
+  for (let s = 1; s <= roll.steps; s++) { const st = at(roll.start + (s - 1) * roll.step); if (t >= st) { n = Math.round(lerp(a, b2, s / roll.steps)); since = t - st; } }
+  return { n, since };
+}
+// a method's name and line, at the top
+function methodTitle(t, name, line, ink, sub) {
+  const d = t - at(SC[sub]);
+  const ty = V ? H * 0.17 : H * 0.15;
+  text(name, CX, ty, fit(name, V ? 190 : 160, V ? W * 0.84 : W * 0.6, 900), ink, { weight: 900, scale: slam(d, 1.4) });
+  const ld = t - at(SC[sub] + 0.5);
+  if (ld >= 0) text(line, CX, ty + (V ? 140 : 118), V ? 44 : 40, ink, { weight: 600, alpha: outExpo(clamp(ld / 0.12)) * 0.85 });
+}
+
+// ---------- NLP: the filler pops, the rest tidies up ----------
+const C = window.CHIPS;
+const NLP_POPPED = C.email.map((tk, i) => (C.nlpTo[i] == null ? i : -1)).filter((i) => i >= 0);
+function drawNlp(t) {
+  bgWord(t, "Tidy.", "nlp");
+  methodTitle(t, "NLP", "Tidies the wording.", INK, "nlp");
+  const size = V ? 44 : 38, maxW = V ? W * 0.9 : W * 0.74;
+  const A = chipLayout("nlpA", [C.email], size, maxW, 0), Bl = chipLayout("nlpB", [C.nlp], size, maxW, 0);
+  const topA = CY - A.height / 2 + (V ? 0 : 20), topB = CY - Bl.height / 2 + (V ? 0 : 20);
+  const reflow = inOut(prog(t, at(TL.nlpReflow), 0.4));
+  let n = C.counts.email, since = 9;
+  A.items.forEach((it, i) => {
+    const appear = t - (at(SC.nlp + 0.25) + i * 0.012);
+    if (appear < 0) return;
+    const pi = NLP_POPPED.indexOf(i);
+    let sc = outExpo(clamp(appear / 0.14)) * (appear < 0.14 ? 1 : 1);
+    let x = it.x, y = it.y + topA, label = chipLabel(it.tok), fill = PASTEL[i % 5], col = INK;
+    if (pi >= 0) {
+      fill = "#E8823A"; col = WHITE;
+      const pt = t - at(TL.nlpPops[pi]);
+      if (pt >= 0) {
+        n = Math.min(n, C.counts.email - (pi + 1)); since = Math.min(since, pt);
+        if (pt < 0.05) sc *= lerp(1, 1.3, pt / 0.05); else sc *= Math.max(0, 1.3 - 1.3 * outExpo((pt - 0.05) / 0.12));
+        ring(it.x + it.w / 2, it.y + topA + it.h / 2, it.w * 0.5, it.h * 0.6, pt, "#E8823A");
+      }
+    } else if (reflow > 0) {
+      const o = Bl.items[C.nlpTo[i]];
+      x = lerp(it.x, o.x, reflow); y = lerp(it.y + topA, o.y + topB, reflow);
+      if (t >= at(TL.nlpReflow)) label = chipLabel(o.tok);
+    }
+    chip(x, y, pi < 0 && reflow > 0 ? lerp(it.w, Bl.items[C.nlpTo[i]].w, reflow) : it.w, it.h, label, size, fill, col, sc);
+  });
+  const p = Math.round(100 * (C.counts.email - C.counts.nlp) / C.counts.email);
+  bar(n, C.counts.email, `−${p}%`, outExpo(clamp((t - at(TL.nlpReflow + 0.5)) / 0.12)), false, outExpo(clamp((t - at(SC.nlp + 0.5)) / 0.2)));
+}
+
+// ---------- TF-IDF: whole sentences that are off topic slide away ----------
+function drawTfidf(t) {
+  bgWord(t, "Focus.", "tfidf");
+  methodTitle(t, "TF‑IDF", "Keeps what’s on topic.", INK, "tfidf");
+  const size = V ? 29 : 24, maxW = V ? W * 0.92 : W * 0.8, gapR = size * 0.5;
+  const A = chipLayout("tfA", C.tfRows, size, maxW, 0, gapR);
+  const keepRows = C.tfRows.map((r, i) => (C.tfKeep.includes(i) ? r : null));
+  const Bl = chipLayout("tfB", C.tfRows.filter((r, i) => C.tfKeep.includes(i)), size, maxW, 0, gapR);
+  const topA = CY - A.height / 2 + (V ? 10 : 30), topB = CY - Bl.height / 2 + (V ? 10 : 30);
+  const close = inOut(prog(t, at(TL.tfClose), 0.4));
+  const offRows = [0, 1, 2, 3, 4].filter((r) => !C.tfKeep.includes(r));
+  const mark = outExpo(clamp((t - at(SC.tfidf + 1)) / 0.15));
+  // where each kept token lands after the close-up
+  const landing = {}; let k = 0;
+  C.tfRows.forEach((row, ri) => { if (C.tfKeep.includes(ri)) row.forEach((tok, ti) => { landing[ri + ":" + ti] = Bl.items[k++]; }); });
+  A.items.forEach((it, idx) => {
+    const appear = t - (at(SC.tfidf + 0.25) + it.row * 0.05 + it.i * 0.004);
+    if (appear < 0) return;
+    const sc = outExpo(clamp(appear / 0.14));
+    const off = offRows.indexOf(it.row);
+    let x = it.x, y = it.y + topA, alpha = 1;
+    let fill = "#FFFFFF", col = INK;
+    if (off >= 0) {
+      fill = `rgb(${Math.round(lerp(255, 226, mark))}, ${Math.round(lerp(255, 226, mark))}, ${Math.round(lerp(255, 234, mark))})`;
+      col = `rgba(14,15,26,${lerp(1, 0.35, mark)})`;
+      const dk = inExpo(prog(t, at(TL.tfDrop[off]), 0.3));
+      x += (off % 2 ? -1 : 1) * W * 0.9 * dk; alpha = 1 - dk;
+    } else if (close > 0) {
+      const o = landing[it.row + ":" + it.i];
+      x = lerp(x, o.x, close); y = lerp(y, o.y + topB, close);
+    }
+    chip(x, y, it.w, it.h, chipLabel(it.tok), size, fill, col, sc, alpha);
+  });
+  const { n } = rolled(t, C.counts.tf, C.counts.tfOut, TL.tfRoll);
+  const p = Math.round(100 * (C.counts.tf - C.counts.tfOut) / C.counts.tf);
+  bar(n, C.counts.tf, `−${p}%`, outExpo(clamp((t - at(TL.tfRoll.start + TL.tfRoll.steps * TL.tfRoll.step)) / 0.12)), false, outExpo(clamp((t - at(SC.tfidf + 0.5)) / 0.2)));
+}
+
+// ---------- AI rewrite: the chips melt into a glowing core; the rewrite forms out of it ----------
+function drawAi(t) {
+  const glow = g.createRadialGradient(CX, CY, 0, CX, CY, Math.max(W, H) * 0.55);
+  glow.addColorStop(0, "rgba(110,95,255,0.16)"); glow.addColorStop(1, "rgba(110,95,255,0)");
+  g.fillStyle = glow; g.fillRect(-50, -50, W + 100, H + 100);
+  bgWord(t, "Rewrite.", "ai");
+  methodTitle(t, "AI rewrite", "Rewrites the whole prompt.", INK, "ai");
+  const size = V ? 44 : 38, maxW = V ? W * 0.9 : W * 0.74;
+  const A = chipLayout("aiA", [C.email], size, maxW, 0), Bl = chipLayout("aiB", [C.ai], size, maxW, 0);
+  const topA = CY - A.height / 2 + (V ? 0 : 20), topB = CY - Bl.height / 2 + (V ? 0 : 20);
+  const melt = t - at(TL.aiMelt), form = t - at(TL.aiForm);
+  const cy0 = CY + (V ? 0 : 20);
+  // the core
+  const coreK = clamp(melt / 0.3) * (1 - clamp((form - 0.1) / 0.25));
+  if (coreK > 0) {
+    const r = (V ? 60 : 70) * (0.6 + 0.4 * coreK);
+    const cg = g.createRadialGradient(CX, cy0, 0, CX, cy0, r * 3);
+    cg.addColorStop(0, `rgba(255,255,255,${coreK})`); cg.addColorStop(0.18, `rgba(120,110,255,${0.9 * coreK})`); cg.addColorStop(1, "rgba(90,80,255,0)");
+    g.fillStyle = cg; g.beginPath(); g.arc(CX, cy0, r * 3, 0, 6.283); g.fill();
+  }
+  if (form < 0) {
+    A.items.forEach((it, i) => {
+      const appear = t - (at(SC.ai + 0.25) + i * 0.012);
+      if (appear < 0) return;
+      let sc = outExpo(clamp(appear / 0.14)), x = it.x, y = it.y + topA, alpha = 1;
+      if (melt > 0) {
+        // each chip is pulled into the core, spinning a little, shrinking
+        const k = inExpo(clamp((melt - (i % 9) * 0.012) / 0.42));
+        x = lerp(it.x, CX - it.w / 2, k); y = lerp(y, cy0 - it.h / 2, k); sc *= 1 - 0.9 * k; alpha = 1 - k;
+      }
+      chip(x, y, it.w, it.h, chipLabel(it.tok), size, "#FFFFFF", INK, sc, alpha);
+    });
+  } else {
+    Bl.items.forEach((it, i) => {
+      const k = outExpo(clamp((form - i * 0.014) / 0.22));
+      if (k <= 0) return;
+      const x = lerp(CX - it.w / 2, it.x, k), y = lerp(cy0 - it.h / 2, it.y + topB, k);
+      const gr = g.createLinearGradient(x, 0, x + it.w, 0); gr.addColorStop(0, "#6E66FF"); gr.addColorStop(1, "#4F8DFF");
+      chip(x, y, it.w, it.h, chipLabel(it.tok), size, gr, WHITE, lerp(0.4, 1, k), clamp(k * 2));
+    });
+  }
+  const { n } = rolled(t, C.counts.email, C.counts.ai, TL.aiRoll);
+  const p = Math.round(100 * (C.counts.email - C.counts.ai) / C.counts.email);
+  bar(n, C.counts.email, `−${p}%`, outExpo(clamp((t - at(TL.aiRoll.start + TL.aiRoll.steps * TL.aiRoll.step)) / 0.12)), false, outExpo(clamp((t - at(SC.ai + 0.5)) / 0.2)));
+  const la = outExpo(clamp((t - at(TL.aiRoll.start)) / 0.15));
+  text("Example", V ? W * 0.1 : CX - 490, (V ? H * 0.83 : H * 0.86) + (V ? 70 : 66), V ? 24 : 22, "rgba(14,15,26,0.45)", { weight: 600, align: "left", alpha: la });
+}
+
+// ---------- the tunnel: prompt cards rushing past on every side ----------
+const TUNNEL = (() => { const r = rng(21), list = [];
+  for (let k = 0; k < 28; k++) list.push({ a: (k % 4) * Math.PI / 2 + Math.PI / 4 + (r() - 0.5) * 0.5, z: 1 + k * 0.5, tilt: (r() - 0.5) * 0.3, kind: k % 3, lines: 2 + Math.floor(r() * 3) });
+  return list; })();
+function promptCard(w, h, kind, lines) {
+  // a white card with a dark edge, like a device, showing a prompt as chips and lines
+  rr(-w / 2, -h / 2, w, h, w * 0.09); g.fillStyle = "#121216"; g.fill();
+  const b2 = w * 0.03; rr(-w / 2 + b2, -h / 2 + b2, w - 2 * b2, h - 2 * b2, w * 0.07); g.fillStyle = "#FFFFFF"; g.fill();
+  const px = -w / 2 + w * 0.1;
+  text("PROMPT", px, -h / 2 + h * 0.1, w * 0.05, "#9A9AA5", { weight: 700, align: "left" });
+  for (let l = 0; l < lines; l++) { rr(px, -h / 2 + h * (0.2 + l * 0.08), w * (0.8 - (l % 2) * 0.22), h * 0.03, h * 0.015); g.fillStyle = "#DCDCE4"; g.fill(); }
+  const cy = -h / 2 + h * (0.24 + lines * 0.08);
+  const cols = kind === 0 ? ["#E8823A", "#E8823A", "#E3EDFB"] : kind === 1 ? ["#E3EDFB", "#E5F3E8", "#FBE5EC"] : ["#6E66FF", "#4F8DFF", "#6E66FF"];
+  let cx = px;
+  cols.forEach((c, i) => { const cw = w * (0.18 + 0.06 * i); rr(cx, cy, cw, h * 0.06, h * 0.02); g.fillStyle = c; g.fill(); cx += cw + w * 0.03; });
+  rr(-w / 2 + w * 0.1, h / 2 - h * 0.16, w * 0.8, h * 0.08, h * 0.04); g.fillStyle = "#16171A"; g.fill();
+  text("Run", 0, h / 2 - h * 0.12, w * 0.06, WHITE, { weight: 700 });
+}
+function drawTunnel(t) {
+  const d = t - at(SC.tunnel);
+  const zc = 4.2 * outExpo(clamp(d / at(4))) + 0.6 * d;     // fast in, then gliding on
+  const f = Math.min(W, H) * 0.95, Rx = V ? 0.8 : 1.55, Ry = V ? 1.55 : 0.95;
+  const cards = TUNNEL.map((c) => ({ ...c, rz: c.z - zc + 3.2 })).filter((c) => c.rz > 0.35 && c.rz < 8).sort((a, b2) => b2.rz - a.rz);
+  cards.forEach((c) => {
+    const X = Math.cos(c.a) * Rx, Y = Math.sin(c.a) * Ry;
+    const sx = CX + f * X / c.rz, sy = CY + f * Y / c.rz, s = f / c.rz;
+    const far = clamp((c.rz - 3.0) / 1.2), near = clamp((0.9 - c.rz) / 0.5);
+    const alpha = (1 - far) * (1 - near);
+    if (alpha <= 0.01) return;
+    g.save(); g.globalAlpha = alpha;
+    const blur = Math.abs(c.rz - 1.6) * 3.6;
+    if (blur > 0.5) g.filter = `blur(${Math.min(9, blur).toFixed(1)}px)`;
+    g.translate(sx, sy); g.rotate(c.a + Math.PI / 2 + c.tilt); g.scale(1, 0.62);
+    g.shadowColor = "rgba(40,40,90,0.25)"; g.shadowBlur = 30;
+    promptCard(s * 0.7, s * 1.25, c.kind, c.lines);
+    g.restore();
+  });
+  // a soft clearing behind the line, so it always reads over the cards
+  const haze = g.createRadialGradient(CX, CY, 0, CX, CY, V ? W * 0.55 : W * 0.32);
+  haze.addColorStop(0, "rgba(246,246,252,0.95)"); haze.addColorStop(0.6, "rgba(246,246,252,0.7)"); haze.addColorStop(1, "rgba(246,246,252,0)");
+  g.save(); g.translate(CX, CY); g.scale(1, 0.45); g.translate(-CX, -CY); g.fillStyle = haze; g.fillRect(0, 0, W, H); g.restore();
+  const two = t >= at(TL.tunnelLines[1]);
+  const dl = t - at(two ? TL.tunnelLines[1] : TL.tunnelLines[0]);
+  const size = V ? 92 : 104;
+  const blue = "#3B5BFF", sky = "#7FB0FF", grey = "#9A9AA8";
+  const list = two ? [["Get", blue], ["it", INK], ["back", sky], ["shorter.", INK]] : [["Paste", blue], ["any", INK], ["prompt.", sky]];
+  const fitS = Math.min(size, size * (V ? W * 0.86 : W * 0.6) / list.reduce((a, [w]) => a + measure(w + " ", size, 700), 0));
+  words2(list, CX, CY, fitS, { weight: 700, scale: slam(dl, 1.25) });
+}
+
+// ---------- rows of drifting words, one line bold in the middle ----------
+const ROW_ITEMS = ["please", "kindly", "Hi!", "just", "really", "thanks", "I hope", "so much", "basically", "actually", "in advance", "could you"];
+const ROWS = (() => { const r = rng(33), rows = [];
+  for (let k = 0; k < 9; k++) {
+    const items = [];
+    for (let j = 0; j < 14; j++) {
+      const p = r();
+      items.push(p < 0.6 ? { kind: "word", s: ROW_ITEMS[Math.floor(r() * ROW_ITEMS.length)] } : p < 0.8 ? { kind: "pill", s: ["NLP", "TF‑IDF", "AI", "tokens"][Math.floor(r() * 4)] } : { kind: "tile", s: ["N", "T", "A", "−"][Math.floor(r() * 4)], hue: Math.floor(r() * 3) });
+    }
+    rows.push({ items, dir: k % 2 ? 1 : -1, speed: 70 + r() * 60, off: r() * 600 });
+  }
+  return rows; })();
+function drawRows(t) {
+  const d = t - at(SC.rows);
+  const n = V ? 9 : 5, rh = H / (n + 0.2), mid = Math.floor(n / 2);
+  const size = V ? 54 : 64;
+  for (let k = 0; k < n; k++) {
+    const row = ROWS[k], y = rh * (k + 0.6);
+    const fade = k === mid ? 0.45 : 1;
+    let x = -row.off + row.dir * row.speed * d * 2 - 400;
+    const gap = size * 0.9;
+    // lay the row out twice over so it always fills the width
+    for (let rep = 0; rep < 3; rep++) for (const it of row.items) {
+      let w;
+      if (it.kind === "word") w = measure(it.s, size, 400);
+      else if (it.kind === "pill") w = measure(it.s, size * 0.7, 600) + size * 0.9;
+      else w = size * 1.7;
+      if (x + w > -50 && x < W + 50) {
+        g.save(); g.globalAlpha = fade;
+        if (it.kind === "word") text(it.s, x + w / 2, y, size, "#C4C4CF", { weight: 400 });
+        else if (it.kind === "pill") { rr(x, y - size * 0.55, w, size * 1.1, size * 0.55); g.fillStyle = "#E9E9F0"; g.fill(); text(it.s, x + w / 2, y, size * 0.7, "#B4B4C2", { weight: 600 }); }
+        else {
+          const c = [["#5B6CFF", "#8B7FF2"], ["#3B8BFF", "#5AB4FF"], ["#E8823A", "#F2A65A"]][it.hue];
+          const gr = g.createLinearGradient(x, y - w / 2, x + w, y + w / 2); gr.addColorStop(0, c[0]); gr.addColorStop(1, c[1]);
+          g.shadowColor = "rgba(60,60,140,0.25)"; g.shadowBlur = 18; g.shadowOffsetY = 6;
+          rr(x, y - w / 2, w, w, w * 0.26); g.fillStyle = gr; g.fill(); g.shadowBlur = 0; g.shadowOffsetY = 0;
+          text(it.s, x + w / 2, y, w * 0.5, WHITE, { weight: 800 });
+        }
+        g.restore();
+      }
+      x += w + gap;
+    }
+  }
+  // the middle line, bold, over a clear band
+  const yMid = rh * (mid + 0.6);
+  g.save(); const band = g.createLinearGradient(0, 0, W, 0);
+  band.addColorStop(0, "rgba(245,245,250,0)"); band.addColorStop(0.2, "rgba(245,245,250,0.96)"); band.addColorStop(0.8, "rgba(245,245,250,0.96)"); band.addColorStop(1, "rgba(245,245,250,0)");
+  g.fillStyle = band; g.fillRect(0, yMid - rh * 0.48, W, rh * 0.96); g.restore();
+  const two = t >= at(TL.rowLines[1]);
+  const dl = t - at(two ? TL.rowLines[1] : TL.rowLines[0]);
+  const list = two ? [["Pick", INK], ["one.", INK], ["Save", "#5B4FD6"], ["more.", "#5B4FD6"]] : [["Three", INK], ["ways", INK], ["to", INK], ["trim.", "#5B4FD6"]];
+  const s0 = V ? 96 : 104;
+  const fitS = Math.min(s0, s0 * (V ? W * 0.86 : W * 0.62) / list.reduce((a, [w]) => a + measure(w + " ", s0, 800), 0));
+  words2(list, CX, yMid, fitS, { weight: 800, scale: slam(dl, 1.3) });
+}
+
+// ---------- "Nothing lost.": a glassy check and confetti ----------
+const CONFETTI = (() => { const r = rng(77), list = [];
+  for (let k = 0; k < 90; k++) list.push({ a: r() * 6.283, sp: 600 + r() * 1300, rot: (r() - 0.5) * 18, size: 14 + r() * 46, depth: r(), col: ["#2F6BFF", "#56B6F7", "#1D3FD6", "#F3A6E8", "#8B7FF2"][Math.floor(r() * 5)], shape: Math.floor(r() * 3) });
+  return list; })();
+function drawCheck(t) {
+  const d = t - at(SC.check);
+  const cy = CY + (V ? 110 : 90), R = V ? 190 : 170;
+  // confetti: bursts out, then falls; the nearest pieces out of focus
+  CONFETTI.forEach((c) => {
+    const k = Math.max(0, d - 0.05);
+    if (k <= 0) return;
+    const e = outExpo(clamp(k / 0.6));
+    const x = CX + Math.cos(c.a) * c.sp * e * (V ? 0.6 : 1), y = cy + Math.sin(c.a) * c.sp * e * 0.6 + 380 * k * k;
+    g.save(); g.globalAlpha = 1 - clamp((k - 0.8) / 0.4);
+    const blur = c.depth > 0.75 ? (c.depth - 0.75) * 40 : 0;
+    if (blur > 0.5) g.filter = `blur(${blur.toFixed(1)}px)`;
+    g.translate(x, y); g.rotate(c.rot * k); g.scale(1, Math.cos(c.rot * k * 0.7));
+    const s = c.size * (0.6 + c.depth * 0.8);
+    g.fillStyle = c.col; g.beginPath();
+    if (c.shape === 0) { g.moveTo(-s / 2, -s / 3); g.lineTo(s / 2, -s / 2); g.lineTo(s / 3, s / 2); g.lineTo(-s / 2, s / 3); }
+    else if (c.shape === 1) g.ellipse(0, 0, s / 2, s / 3.2, 0, 0, 6.283);
+    else { g.moveTo(-s / 2, 0); g.quadraticCurveTo(0, -s / 2, s / 2, 0); g.quadraticCurveTo(0, s / 5, -s / 2, 0); }
+    g.fill(); g.restore();
+  });
+  // the glass circle
+  const sk = d < 0.1 ? lerp(0.5, 1.06, outExpo(d / 0.1)) : lerp(1.06, 1, outCubic(clamp((d - 0.1) / 0.14)));
+  g.save(); g.translate(CX, cy); g.scale(sk, sk);
+  g.shadowColor = "rgba(90,110,255,0.3)"; g.shadowBlur = 60; g.shadowOffsetY = 20;
+  const fillG = g.createRadialGradient(-R * 0.4, -R * 0.4, R * 0.1, 0, 0, R);
+  fillG.addColorStop(0, "#C9D2FF"); fillG.addColorStop(0.55, "#F1F3FF"); fillG.addColorStop(1, "#FFFFFF");
+  g.beginPath(); g.arc(0, 0, R, 0, 6.283); g.fillStyle = fillG; g.fill();
+  g.shadowBlur = 0; g.shadowOffsetY = 0;
+  const rim = g.createLinearGradient(-R, -R, R, R); rim.addColorStop(0, "#5C7CFF"); rim.addColorStop(1, "#CFE0FF");
+  g.lineWidth = R * 0.04; g.strokeStyle = rim; g.stroke();
+  // the tick, drawn on
+  const ck = outExpo(clamp((d - 0.12) / 0.22));
+  if (ck > 0) {
+    const p1 = [-R * 0.42, R * 0.02], p2 = [-R * 0.06, R * 0.34], p3 = [R * 0.46, -R * 0.3];
+    const l1 = Math.hypot(p2[0] - p1[0], p2[1] - p1[1]), l2 = Math.hypot(p3[0] - p2[0], p3[1] - p2[1]);
+    const tg = g.createLinearGradient(p1[0], 0, p3[0], 0); tg.addColorStop(0, "#8FB3FF"); tg.addColorStop(1, "#3B5BFF");
+    g.strokeStyle = tg; g.lineWidth = R * 0.07; g.lineCap = "round"; g.lineJoin = "round";
+    g.setLineDash([l1 + l2, l1 + l2]); g.lineDashOffset = (l1 + l2) * (1 - ck);
+    g.beginPath(); g.moveTo(...p1); g.lineTo(...p2); g.lineTo(...p3); g.stroke(); g.setLineDash([]);
+  }
+  g.restore();
+  const ty = cy - R - (V ? 170 : 150);
+  text("Nothing lost.", CX, ty, fit("Nothing lost.", V ? 130 : 140, V ? W * 0.86 : W * 0.6, 700), "grad", { weight: 700, scale: slam(d, 1.3) });
+}
+
+// ---------- the swoosh: a wide ribbon of gradient that carries a cut ----------
+function drawSwoosh(t) {
+  for (const s of TL.swooshes) {
+    const k = (t - at(s) + 0.3) / 0.55;
+    if (k <= 0 || k >= 1) continue;
+    const p = lerp(-1.1, 1.6, inOut(k)) * W;                        // the band's middle, crossing the screen
+    const half = W * 0.75;
+    g.save(); g.setTransform(1, 0, 0, 1, 0, 0);
+    const gr = g.createLinearGradient(p - half, 0, p + half, 0);
+    gr.addColorStop(0, "rgba(91,79,214,0)"); gr.addColorStop(0.12, "#4B44E8"); gr.addColorStop(0.6, "#3D4BFF"); gr.addColorStop(0.9, "#6F8CFF"); gr.addColorStop(1, "rgba(120,150,255,0)");
+    g.fillStyle = gr;
+    g.beginPath();
+    // flared at top and bottom, waisted in the middle, like the ribbon in the reference
+    for (let y = -40; y <= H + 40; y += 20) { const u = (y - CY) / H; g.lineTo(p - half * (0.8 + 1.4 * u * u), y); }
+    for (let y = H + 40; y >= -40; y -= 20) { const u = (y - CY) / H; g.lineTo(p + half * (0.8 + 1.4 * u * u) * 0.9, y); }
+    g.closePath(); g.fill();
+    g.restore();
+  }
+}
+
+// ---------- big faded words drifting behind a scene (after NIVO's "To delivery") ----------
+function bgWord(t, word, sub) {
+  const d = t - at(SC[sub]);
+  const size = V ? 300 : 360;
+  const x = CX + (V ? 260 : 520) - d * 90, y = V ? H * 0.5 : H * 0.56;
+  g.save(); g.globalAlpha = 0.07 * outExpo(clamp(d / 0.4));
+  text(word, x, y, size, "grad", { weight: 800 });
+  g.restore();
+}
+
+// ---------- the opening (after Dexatel's): a two-weight line typing on, prompts stacking up beside it ----------
+function drawOpening(t) {
+  const d = t - at(TL.openType.start), span = at(TL.openType.span);
+  const L1 = "Prompts are", L2 = "getting longer.";
+  const all = L1.length + L2.length, shown = Math.floor(clamp(d / span) * all + (d > 0 ? 1 : 0));
+  const s1 = V ? 118 : 150, x0 = V ? W * 0.08 : W * 0.07, y1 = V ? H * 0.17 : CY - s1 * 0.55;
+  const n1 = Math.min(shown, L1.length), n2 = Math.max(0, shown - L1.length);
+  text(L1.slice(0, n1), x0, y1, s1, INK, { weight: 300, align: "left" });
+  text(L2.slice(0, n2), x0, y1 + s1 * 1.08, s1, INK, { weight: 800, align: "left" });
+  // the stack of incoming prompts, each on its beat, the newest on top
+  const cw = V ? W * 0.84 : 700, ch = V ? 150 : 124, step = ch + (V ? 18 : 14);
+  const cx0 = V ? (W - cw) / 2 : W * 0.56, cy0 = V ? H * 0.36 : CY - (6 * step - 14) / 2;
+  TL.openCards.forEach((b2, i) => {
+    const k = outExpo(clamp((t - at(b2)) / 0.35));
+    if (k <= 0) return;
+    const [msg, n] = C.cards[i];
+    const x = cx0 + (V ? 0 : (i % 2 ? 50 : 0)) + (1 - k) * (V ? 0 : 500), y = cy0 + i * step + (V ? (1 - k) * 260 : 0);
+    g.save(); g.globalAlpha = clamp(k * 2);
+    g.shadowColor = "rgba(30,40,140,0.16)"; g.shadowBlur = 40; g.shadowOffsetY = 14;
+    rr(x, y, cw, ch, 22); g.fillStyle = "#FFFFFF"; g.fill(); g.shadowColor = "rgba(0,0,0,0)";
+    // a little badge, a label, the message, its count
+    rr(x + 26, y + 26, 34, 34, 9); g.fillStyle = BLUE; g.fill();
+    text("P", x + 43, y + 43, 20, WHITE, { weight: 800 });
+    text("New prompt", x + 76, y + 44, V ? 24 : 22, "#8A8D9E", { weight: 600, align: "left" });
+    const ms = fit(msg, V ? 36 : 30, cw - 60, 600);
+    text(msg, x + 28, y + ch * 0.68, ms, INK, { weight: 600, align: "left" });
+    const tag = `+${n} tokens`, tw = measure(tag, V ? 24 : 22, 700) + 26;
+    rr(x + cw - tw - 22, y + 26, tw, 36, 18); g.fillStyle = "#FFE9DC"; g.fill();
+    text(tag, x + cw - tw / 2 - 22, y + 44, V ? 24 : 22, ORANGE, { weight: 700 });
+    g.restore();
+  });
+}
+
+// ---------- the end card (after Dexatel's): a blue bloom, the mark, the name types on beside it ----------
+const MARK = new Image(); MARK.src = "../../frontend/assets/logo-mark.svg";
+function drawLogoEnd(t) {
+  const d = t - at(SC.logo);
+  // the soft blue bloom from the edges, clearing to white
+  const bl = 1 - outCubic(clamp(d / 0.7));
+  if (bl > 0) {
+    const rg = g.createRadialGradient(CX, CY, Math.min(W, H) * 0.2, CX, CY, Math.max(W, H) * 0.75);
+    rg.addColorStop(0, "rgba(255,255,255,0)"); rg.addColorStop(1, `rgba(47,91,255,${0.95 * bl})`);
+    g.fillStyle = rg; g.fillRect(0, 0, W, H);
+  }
+  const ms = V ? 210 : 190;
+  const name = "Tokenz", ns = V ? 170 : 170;
+  const nameW = measure(name, ns, 800), gap = ms * 0.08;
+  const open = inOut(clamp((d - at(1)) / 0.45));
+  const markX = lerp(CX, CX - (nameW + gap + ms * 0.46) / 2 + ms * 0.2, open);
+  const sk = d < 0.12 ? lerp(0.4, 1.08, outExpo(d / 0.12)) : lerp(1.08, 1, outCubic(clamp((d - 0.12) / 0.16)));
+  const y = V ? CY - 80 : CY - 50;
+  g.save(); g.translate(markX, y); g.scale(sk, sk);
+  if (MARK.complete && MARK.naturalWidth) g.drawImage(MARK, -ms / 2, -ms / 2, ms, ms);
+  g.restore();
+  // the name types on, a letter at a time, just right of the mark
+  const letters = Math.floor(clamp((d - at(1) - 0.1) / 0.5) * name.length + 0.0001);
+  if (letters > 0) text(name.slice(0, letters), markX + ms * 0.46 + gap, y + ns * 0.02, ns, INK, { weight: 800, align: "left" });
+  // the line, typing on inside an outlined pill
+  const td = t - at(SC.tagline);
+  if (td >= 0) {
+    const line = "Save tokens. Keep meaning.", ls = V ? 46 : 42;
+    const lw = measure(line, ls, 600) + ls * 1.6, lh = ls * 1.9, py = y + (V ? 200 : 170);
+    const k = outExpo(clamp(td / 0.25));
+    g.save(); g.globalAlpha = k;
+    rr(CX - lw / 2, py - lh / 2, lw, lh, lh / 2); g.lineWidth = 2.5; g.strokeStyle = INK; g.stroke();
+    const shown = Math.floor(clamp((td - 0.1) / 0.8) * line.length + 0.0001);
+    font(ls, 600); const fullW = g.measureText(line).width;
+    text(line.slice(0, shown), CX - fullW / 2, py, ls, INK, { weight: 600, align: "left" });
+    g.restore();
+  }
+}
+
+// ---------- the scenes ----------
+// background for each stretch, by beat
+const BGS = [[SC.open, "light"], [SC.s1, "blue"], [SC.s2, "light"], [SC.s3, "light"], [SC.s4, "light"], [SC.pct, "grad"],
+  [TL.punch[0], "light"], [TL.punch[1], "blue"], [TL.punch[2], "grad"], [TL.punch[3], "light"],
+  [SC.tunnel, "airy"], [SC.rows, "airy"], [SC.nlp, "light"], [SC.tfidf, "lav"], [SC.ai, "light"],
+  [TL.details[0], "light"], [TL.details[1], "blue"], [TL.details[2], "light"], [SC.check, "airy"], [SC.s7, "light"], [SC.s8, "lav"], [SC.logo, "light"]];
+const bgAt = (b) => { let k = "light"; for (const [s, kind] of BGS) if (b >= s) k = kind; return k; };
+
+function render(t) {
+  t = clamp(t, 0, DUR - 1e-6);
+  const b = t / B;
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  g.globalAlpha = 1; g.filter = "none"; g.globalCompositeOperation = "source-over";
+  const ink = background(bgAt(b));
+  if (b >= SC.end) return;
+
+  // camera: shake, and whip pans across the cuts that have them
+  const [sx, sy] = shake(t);
+  let wx = 0;
+  for (const w of TL.whips) {
+    const dIn = t - at(w), dOut = at(w) - t;
+    if (dIn >= 0 && dIn < 0.14) wx = W * 0.9 * (1 - outExpo(dIn / 0.14));
+    if (dOut > 0 && dOut < 0.09) wx = -W * 0.9 * inExpo(1 - dOut / 0.09);
+  }
+  g.setTransform(1, 0, 0, 1, sx + wx, sy);
+  const big = V ? 0.86 * W : 0.8 * W;
+
+  if (b < SC.s1) drawOpening(t);
+
+  // "27" slams in, "TOKENS" snaps beside it, on electric blue
+  else if (b < SC.s2) {
+    const d27 = t - at(SC.s1), dTok = t - at(SC.s1 + 1);
+    const snap = outExpo(clamp(dTok / 0.1));
+    const s27 = V ? 520 : 470, sTok = V ? 200 : 210;
+    const push = 1 + 0.06 * prog(t, at(SC.s1 + 2), at(2));
+    const wTok = measure("TOKENS", sTok), w27 = measure("27", s27);
+    if (V) {
+      text("27", CX, CY - lerp(0, 170, snap), s27 * push, WHITE, { weight: 900, scale: slam(d27) });
+      if (dTok >= 0) text("TOKENS", CX, CY + 230 * push, fit("TOKENS", sTok, big) * push, WHITE, { weight: 300, scale: slam(dTok, 1.3), alpha: clamp(dTok / 0.03) });
+    } else {
+      const gapX = 50, total = w27 + gapX + wTok;
+      text("27", lerp(CX, CX - total / 2 + w27 / 2, snap), CY, s27 * push, WHITE, { weight: 900, scale: slam(d27) });
+      if (dTok >= 0) text("TOKENS", lerp(CX + total / 2 - wTok / 2 + 160, CX + total / 2 - wTok / 2, snap), CY + s27 * 0.18, sTok * push, WHITE, { weight: 300, alpha: clamp(dTok / 0.03) });
+    }
+  }
+
+  // the long prompt races in, faster and faster; the counter spins up to 27
+  else if (b < SC.s3) {
+    let cur = -1;
+    LONG.forEach((w, i) => { if (t >= wordTime(i)) cur = i; });
+    const zoom = 1 + 6 * inExpo(prog(t, at(SC.s3) - 0.18, 0.18));
+    g.save(); g.translate(CX, CY); g.scale(zoom, zoom); g.translate(-CX, -CY);
+    for (let k = 0; k < 4; k++) {
+      const i = cur - k;
+      if (i < 0) break;
+      const w = LONG[i], dt = t - wordTime(i);
+      const size = k === 0 ? fit(w, V ? 230 : 250, big, 900) : (V ? 92 : 96) * (1 - 0.12 * k);
+      const y = k === 0 ? CY + (V ? 40 : 30) : CY - (V ? 160 : 150) - (k - 1) * 104;
+      const col = FILLER_IDX.has(i) ? ORANGE : ink;
+      text(w, CX, y, size, col, { weight: k === 0 ? 900 : 300, scale: k === 0 ? slam(dt, 1.35) : 1, alpha: k === 0 ? clamp(dt / 0.02) : 0.55 - 0.12 * k });
+    }
+    g.restore();
+    const n = counterS2(t);
+    let since = 9, prev = 0;
+    LONG.forEach((w, i) => { if (t >= wordTime(i)) { since = t - wordTime(i); prev = i ? TL.tokens[i - 1] : 0; } });
+    counter(V ? W - 70 : W - 90, V ? H - 230 : H - 150, n, prev, since, V ? 150 : 130, n >= 27 ? ORANGE : ink);
+  }
+
+  // the filler, one word at a time, zoomed into and shattered
+  else if (b < SC.s4) {
+    const i = Math.min(3, Math.floor(b - SC.s3));
+    const w = POPS[i], size = fit(w, V ? 260 : 300, big, 900);
+    const zin = t - at(SC.s3 + i), pop = t - at(TL.pops[i]);
+    if (pop < 0) {
+      const k = outExpo(clamp(zin / 0.16));
+      const s = lerp(0.08, 1, k) * (1 + 0.08 * zin) * (1 + 0.08 * Math.max(0, 1 - Math.abs(pop) / 0.06));
+      text(w, CX, CY, size, ORANGE, { weight: 900, scale: s, alpha: clamp(zin / 0.03) });
+    } else {
+      drawShatter(w, Math.round(size), CX, CY, pop);
+      ring(CX, CY, measure(w, size, 900) * 0.55, size * 0.6, pop, ORANGE);
+    }
+  }
+
+  // what's left snaps together; the counter flips 27 → 19; then −30%
+  else if (b < SC.drop) {
+    if (b < SC.pct) {
+      const size = V ? 70 : 74, maxW = V ? W * 0.84 : W * 0.72;
+      const lines = layout(SHORT, size, maxW);
+      const r = rng(3);
+      lines.forEach((p, j) => {
+        const st = at(TL.snap.start) + at(TL.snap.span) * (j / SHORT.length);
+        const k = clamp((t - st) / 0.16);
+        const a = r() * 6.283, dd = (V ? 900 : 1100) * (0.7 + r() * 0.5);
+        const e = k < 1 ? inExpo(k) : 1;
+        const over = Math.sin(clamp((t - st - 0.16) / 0.12) * Math.PI) * 6;
+        const x = lerp(p.x + Math.cos(a) * dd, p.x, e) + Math.cos(a) * -over;
+        const y = lerp(p.y + Math.sin(a) * dd * 0.6, p.y, e);
+        if (t >= st) text(p.w, x, y, size, ink, { weight: 700, align: "left", alpha: clamp(k * 4), blur: (1 - e) * 6 });
+      });
+      const fl = TL.flip, steps = 8;
+      let n = 27, prev = 27, since = 9;
+      for (let s = 1; s <= steps; s++) { const ft = at(fl.start + (s - 1) * fl.step); if (t >= ft) { prev = n; n = 27 - s; since = t - ft; } }
+      const cIn = t - (at(fl.start) - 0.12), cyy = V ? H - 360 : H - 200;
+      if (cIn >= 0) {
+        g.save(); g.translate(CX, cyy); g.scale(slam(cIn, 1.4), slam(cIn, 1.4)); g.translate(-CX, -cyy);
+        counter(CX, cyy, n, prev, since, V ? 150 : 130, n === 19 ? ACC : ORANGE, false, "center");
+        g.restore();
+      }
+    } else {
+      text("−30%", CX, CY, fit("−30%", V ? 420 : 520, big, 900), WHITE, { weight: 900, scale: slam(t - at(SC.pct), 1.8) });
+    }
+  }
+
+  // one word a beat: bold, then light
+  else if (b < SC.tunnel) {
+    const words = [[TL.punch[0], "SHORTER."], [TL.punch[1], "FASTER."], [TL.punch[2], "CHEAPER."], [TL.punch[3], "SAME MEANING."]];
+    let cur = words[0]; words.forEach((w) => { if (b >= w[0]) cur = w; });
+    const s = slam(t - at(cur[0]), 1.6);
+    const lines = V && cur[1] === "SAME MEANING." ? ["SAME", "MEANING."] : [cur[1]];
+    const size = Math.min(...lines.map((l) => fit(l, 300, big, 900)));
+    lines.forEach((l, i) => text(l, CX, CY + (i - (lines.length - 1) / 2) * size * 0.95, size, ink, { weight: 900, scale: s }));
+  }
+
+  else if (b < SC.rows) drawTunnel(t);
+  else if (b < SC.nlp) drawRows(t);
+  else if (b < SC.tfidf) drawNlp(t);
+  else if (b < SC.ai) drawTfidf(t);
+  else if (b < SC.s6) drawAi(t);
+
+  // what matters, locked in a ring
+  else if (b < SC.check) {
+    const items = [[TL.details[0], "FRIDAY", null], [TL.details[1], "100 WORDS", null], [TL.details[2], "NOT", ORANGE]];
+    let cur = items[0]; items.forEach((w) => { if (b >= w[0]) cur = w; });
+    const size = fit(cur[1], V ? 260 : 280, big, 900);
+    text(cur[1], CX, CY, size, cur[2] || ink, { weight: 900, scale: slam(t - at(cur[0]), 1.5) });
+    const lock = t - at(cur[0] + 0.5);
+    if (lock >= 0) ring(CX, CY, measure(cur[1], size, 900) * 0.6 + 40, size * 0.75, lock, cur[2] || (ink === WHITE ? WHITE : ACC));
+  }
+
+  else if (b < SC.s7) drawCheck(t);
+
+  // three streams race in and burst into one
+  else if (b < SC.s8) {
+    const words = b >= TL.lines[0];
+    drawStreams(t, words ? 0.3 : 1);
+    if (words) {
+      const two = b >= TL.lines[1];
+      const l = two ? (V ? ["AI when", "it counts."] : ["AI when it counts."]) : ["Local first."];
+      const d = t - at(two ? TL.lines[1] : TL.lines[0]);
+      const size = Math.min(...l.map((x) => fit(x, V ? 190 : 200, big, 900)));
+      l.forEach((x, i) => text(x, CX, CY + (i - (l.length - 1) / 2) * size, size, INK, { weight: 900, scale: slam(d, 1.5) }));
+    }
+  }
+
+  // glass blocks become a cube, lose their corners, compress, spin
+  else if (b < SC.logo) {
+    drawBlocks(t);
+    if (b < SC.s9) {
+      let n = 27, prev = 27, since = 9;
+      CORNERS.forEach((c, s) => { const ct = at(TL.corners.start + s * TL.corners.step); if (t >= ct) { prev = n; n = 26 - s; since = t - ct; } });
+      g.save(); g.globalAlpha = clamp(prog(t, at(SC.s8 + 0.5), 0.15));
+      counter(CX, V ? H - 260 : H - 130, n, prev, since, V ? 120 : 96, n === 19 ? ACC : INK, false, "center");
+      g.restore();
+    }
+  }
+
+  else drawLogoEnd(t);
+
+  drawSwoosh(t);
+  flashOn(t);
+}
+
+function flashOn(t) {
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  const a = flash(t);
+  if (a > 0) { g.globalAlpha = a; g.fillStyle = WHITE; g.fillRect(0, 0, W, H); g.globalAlpha = 1; }
+}
+
+// the short prompt laid out in lines, centred
+const layoutCache = {};
+function layout(words, size, maxW) {
+  const key = size + "|" + maxW;
+  if (layoutCache[key]) return layoutCache[key];
+  const space = measure(" ", size, 700) + size * 0.06;
+  const lines = [[]]; let lw = 0;
+  words.forEach((w) => {
+    const ww = measure(w, size, 700);
+    if (lw && lw + space + ww > maxW) { lines.push([]); lw = 0; }
+    lines[lines.length - 1].push([w, ww]); lw += (lw ? space : 0) + ww;
+  });
+  const lh = size * 1.22, top = CY - (lines.length - 1) * lh / 2;
+  const out = [];
+  lines.forEach((ln, li) => {
+    const total = ln.reduce((s, [, ww]) => s + ww, 0) + space * (ln.length - 1);
+    let x = CX - total / 2;
+    ln.forEach(([w, ww]) => { out.push({ w, x, y: top + li * lh }); x += ww + space; });
+  });
+  return (layoutCache[key] = out);
+}
+
+window.render = render;
+window.DUR = DUR;
+window.ready = MARK.decode().catch(() => {}).then(() => document.fonts.ready).then(() => Promise.all([900, 800, 700, 600, 300].map((w) => document.fonts.load(`${w} 100px Inter`)))).then(() => { render(0); return true; });
+</script>
+</body>
+</html>

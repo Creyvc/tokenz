@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tokenz showreel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=block" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; }
+  body { font-family: "Inter", sans-serif; -webkit-font-smoothing: antialiased; color: #fff; }
+  #stage { position: absolute; inset: 0; overflow: hidden; background: #000; }
+  #cam { position: absolute; inset: 0; transform-origin: 960px 540px; }
+  /* Only one scene is ever shown at a time (render picks it), so nothing is drawn over anything */
+  .scene { position: absolute; inset: 0; visibility: hidden; overflow: hidden; }
+
+  /* Big words, one per beat, in the middle */
+  .word { position: absolute; left: 0; right: 0; top: 50%; text-align: center; font-weight: 800; font-size: 210px; letter-spacing: -0.055em; line-height: 1; white-space: nowrap; transform-origin: 50% 50%; }
+  .word b { font-weight: 800; color: #8B7FF2; }
+  .label { position: absolute; left: 0; right: 0; text-align: center; font-weight: 500; font-size: 26px; letter-spacing: 0.22em; text-transform: uppercase; color: #8a8a8a; white-space: nowrap; }
+
+  /* Introducing, and the end card: the mark, and the word sliding out from behind it */
+  #intro-word { position: absolute; left: 0; right: 0; top: 50%; text-align: center; font-weight: 500; font-size: 72px; letter-spacing: -0.03em; color: #a0a0a0; }
+  .brand { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+  .brand .mark { position: absolute; width: 300px; height: 300px; left: 810px; top: 390px; transform-origin: 50% 50%; }
+  .brand .name-clip { position: absolute; top: 0; height: 1080px; overflow: hidden; }
+  .brand .name { position: absolute; top: 445px; font-weight: 800; font-size: 200px; letter-spacing: -0.055em; line-height: 1; white-space: nowrap; }
+  .brand .sub { position: absolute; left: 0; right: 0; top: 760px; text-align: center; font-weight: 500; font-size: 24px; letter-spacing: 0.3em; text-transform: uppercase; color: #8a8a8a; }
+
+  /* The site, in a browser window */
+  #win-wrap { position: absolute; inset: 0; perspective: 1700px; perspective-origin: 960px 400px; }
+  #win { position: absolute; left: 240px; top: 70px; width: 1440px; height: 940px; transform-origin: 0 0; border-radius: 18px; overflow: hidden; background: #fff; box-shadow: 0 50px 140px rgba(139, 127, 242, 0.28), 0 0 0 1px rgba(255, 255, 255, 0.08); }
+  #win-bar { position: absolute; left: 0; top: 0; right: 0; height: 40px; background: #EDEDEB; border-bottom: 1px solid #DCDCD8; }
+  #win-bar i { position: absolute; top: 14px; width: 12px; height: 12px; border-radius: 50%; }
+  #win-url { position: absolute; left: 50%; top: 8px; width: 420px; height: 24px; margin-left: -210px; border-radius: 7px; background: #fff; font-size: 13px; line-height: 24px; text-align: center; color: #6b6b6b; letter-spacing: 0.01em; }
+  #vp { position: absolute; left: 0; top: 40px; width: 1440px; height: 900px; overflow: hidden; background: #fff; }
+  #vp img { position: absolute; left: 0; top: 0; width: 1440px; height: 900px; display: none; }
+
+  /* Colour cards, one per beat */
+  .card-word { position: absolute; left: 0; right: 0; top: 50%; text-align: center; font-weight: 800; font-size: 280px; letter-spacing: -0.06em; line-height: 1; white-space: nowrap; color: #fff; transform-origin: 50% 50%; }
+
+  /* The count */
+  #count-num { position: absolute; left: 0; right: 0; top: 330px; text-align: center; font-weight: 800; font-size: 360px; letter-spacing: -0.06em; line-height: 1; font-variant-numeric: tabular-nums; }
+  #count-unit { top: 730px; }
+  #pct { position: absolute; left: 0; right: 0; top: 300px; text-align: center; font-weight: 800; font-size: 380px; letter-spacing: -0.065em; line-height: 1; color: #8B7FF2; transform-origin: 50% 50%; }
+  #pct-label { top: 760px; }
+
+  /* What we measure: one measure a beat, close up */
+  .measure { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; display: none; overflow: hidden; }
+  .measure img { position: absolute; width: 2304px; height: 1440px; }
+
+  /* The tagline, as on Home's first screen */
+  #TAG { background: #fff; }
+  .tag-line { position: absolute; left: 0; right: 0; text-align: center; overflow: hidden; padding: 0.06em 0 0.14em; }
+  .tag-line span { display: inline-block; font-weight: 800; font-size: 150px; letter-spacing: -0.045em; line-height: 1; text-transform: uppercase; color: #16171A; }
+  .tag-line .grad { background: linear-gradient(100deg, #16171A 0%, #3B3497 45%, #5B4FD6 75%, #8B7FF2 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  #tag-1 { top: 360px; } #tag-2 { top: 530px; }
+</style>
+</head>
+<body>
+<div id="stage">
+ <div id="cam">
+
+  <div class="scene" id="WORDS"><div class="word" id="w"></div></div>
+
+  <div class="scene" id="INTRO">
+    <div id="intro-word">Introducing</div>
+    <div class="brand" id="brand-in">
+      <div class="name-clip"><div class="name">Tokenz</div></div>
+      <img class="mark" src="../../frontend/assets/logo-mark-white.svg" alt="">
+    </div>
+  </div>
+
+  <div class="scene" id="WIN">
+    <div id="win-wrap">
+      <div id="win">
+        <div id="win-bar"><i style="left:18px;background:#FF5F57"></i><i style="left:38px;background:#FEBC2E"></i><i style="left:58px;background:#28C840"></i><div id="win-url">tokenz</div></div>
+        <div id="vp"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="scene" id="CAP"><div class="word" id="cap"></div></div>
+
+  <div class="scene" id="CARDS"><div class="card-word" id="card"></div></div>
+
+  <div class="scene" id="COUNT">
+    <div id="count-num">55</div>
+    <div class="label" id="count-unit">Tokens</div>
+    <div id="pct">−49%</div>
+    <div class="label" id="pct-label">AI rewrite · a real run on Compare</div>
+  </div>
+
+  <div class="scene" id="MEASURE"></div>
+
+  <div class="scene" id="TAG">
+    <div class="tag-line" id="tag-1"><span>Shorter prompts,</span></div>
+    <div class="tag-line" id="tag-2"><span><span class="grad">Same</span> request.</span></div>
+  </div>
+
+  <div class="scene" id="END">
+    <div class="brand" id="brand-end">
+      <div class="name-clip"><div class="name">Tokenz</div></div>
+      <img class="mark" src="../../frontend/assets/logo-mark-white.svg" alt="">
+      <div class="sub">Token saver</div>
+    </div>
+  </div>
+
+ </div>
+</div>
+
+<script>
+// The showreel, drawn from the time t alone (render(t)), so every frame is exact however long it
+// takes to draw. 125 BPM, 20 bars, 38.4 s; it loops (the last frame is black, the first beat
+// brings the first word). The music is score.py, on the same grid.
+const BEAT = 0.48, BAR = 4 * BEAT, BARS = 20, DUR = BARS * BAR;
+const bar = (n) => n * BAR;
+const beat = (n, k) => bar(n) + k * BEAT;
+const $ = (id) => document.getElementById(id);
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const prog = (t, a, d) => clamp((t - a) / d);
+const lerp = (a, b, k) => a + (b - a) * k;
+const outExpo = (k) => (k >= 1 ? 1 : 1 - Math.pow(2, -10 * k));
+const inExpo = (k) => (k <= 0 ? 0 : Math.pow(2, 10 * k - 10));
+const outCubic = (k) => 1 - Math.pow(1 - k, 3);
+// (for the big moves: quick but even, so nothing ever jumps far between two frames)
+const outQuart = (k) => 1 - Math.pow(1 - k, 4);
+const inOut = (k) => (k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
+const VIOLET = "#8B7FF2";
+
+// ---------- the scenes, in order: [first bar, bars long, id] ----------
+const SCENES = [[0, 3, "WORDS"], [3, 1, "INTRO"], [4, 2, "WIN"], [6, 1, "CAP"], [7, 2, "WIN"], [9, 1, "CARDS"],
+  [10, 2, "WIN"], [12, 2, "COUNT"], [14, 2, "WIN"], [16, 1, "MEASURE"], [17, 1, "WIN"], [18, 1, "TAG"], [19, 1, "END"]];
+const sceneEls = {};
+SCENES.forEach(([, , id]) => { sceneEls[id] = $(id); });
+
+// ---------- words: one per beat, cut on the beat ----------
+const WORDS = [
+  [beat(0, 0), "Hi!"], [beat(0, 1), "I hope"], [beat(0, 2), "you’re doing"], [beat(0, 3), "well."],
+  [beat(1, 0), "Could you"], [beat(1, 1), "please"], [beat(1, 2), "thank you"], [beat(1, 3), "so much!"],
+  [beat(2, 0), "Every word"], [beat(2, 2), "costs <b>tokens.</b>"],
+];
+// A word slams in: a touch big, settling in a quarter second (on top of a beat's camera punch)
+function slam(el, t, at, from = 1.16) {
+  const k = outExpo(prog(t, at, 0.3));
+  el.style.transform = `translateY(-50%) scale(${lerp(from, 1, k)})`;
+  el.style.opacity = prog(t, at, 0.045);
+}
+function wordsAt(t, list, el) {
+  let cur = null;
+  for (const item of list) if (t >= item[0]) cur = item;
+  if (!cur) { el.style.opacity = 0; return; }
+  if (el.dataset.html !== cur[1]) { el.innerHTML = cur[1]; el.dataset.html = cur[1]; }
+  slam(el, t, cur[0]);
+}
+
+// ---------- the brand: the mark, then the word sliding out from behind it ----------
+// open: 0 = the mark alone in the middle, 1 = the mark on the left and the word beside it
+function brand(root, open, markScale) {
+  const mark = root.querySelector(".mark"), clip = root.querySelector(".name-clip"), name = root.querySelector(".name");
+  const nameW = name.offsetWidth, gap = 26, markW = 300 * 0.86;          // the drawn mark is ~86% of its box
+  const total = markW + gap + nameW;
+  const markLeftOpen = 960 - total / 2 - (300 - markW) / 2;
+  const markLeft = lerp(810, markLeftOpen, open);
+  mark.style.left = markLeft + "px";
+  mark.style.transform = `scale(${markScale})`;
+  // the word is cut off at the mark's right edge, so it only ever shows beside it
+  const edge = markLeft + 300 - (300 - markW) / 2 + gap * 0.5;
+  clip.style.left = edge + "px";
+  clip.style.width = Math.max(0, 1920 - edge) + "px";
+  name.style.left = lerp(-nameW - gap, gap * 0.5, open) + "px";
+}
+
+// ---------- the site, in a window ----------
+const SHOTS = ["home-00000", "home-01575", "home-02925", "home-05400", "home-08325", "compare-typed", "compare-nlp-result",
+  "compare-ai-result", "results", "home-18750"];
+const shotEls = {};
+SHOTS.forEach((name) => { const img = new Image(); img.src = "shots/" + name + ".png"; $("vp").append(img); shotEls[name] = img; });
+// Each stretch in the window: its shots (each pushes the last one out to the left on its beat) and
+// where the window looks: focus point in the page (x, y), zoom, and tilt
+const REST = { x: 720, y: 430, s: 1, rx: 0, lift: 0 };
+const WIN = [
+  { from: 4, to: 6, url: "tokenz · Home", shots: [[beat(4, 0), "home-00000"]],
+    cam: (t) => {
+      const k = outQuart(prog(t, beat(4, 0), 1.0));
+      const push = inOut(prog(t, beat(4, 2), BAR * 1.5));
+      return { x: 720, y: lerp(430, 380, push), s: lerp(0.78, 1, k) * lerp(1, 1.16, push), rx: lerp(34, 0, k), lift: lerp(620, 0, k) };
+    } },
+  { from: 7, to: 9, url: "tokenz · Three Methods", shots: [[beat(7, 0), "home-01575"], [beat(7, 2), "home-02925"], [beat(8, 0), "home-05400"], [beat(8, 2), "home-08325"]],
+    cam: (t) => ({ ...REST, s: lerp(1.04, 1, outExpo(prog(t, beat(7, 0), 0.5))) * lerp(1, 1.05, prog(t, beat(7, 0), 2 * BAR)) }) },
+  { from: 10, to: 12, url: "tokenz · Compare", shots: [[beat(10, 0), "compare-typed"], [beat(10, 2), "compare-nlp-result"], [beat(11, 0), "compare-ai-result"]],
+    cam: (t) => {
+      const z1 = inOut(prog(t, beat(10, 2), 0.7)), z2 = inOut(prog(t, beat(11, 1), 0.9));
+      // onto the NLP result's number, back out for the AI rewrite, then in on its 49.1%
+      let v = { x: lerp(720, 470, z1), y: lerp(430, 260, z1), s: lerp(1, 1.9, z1) };
+      if (t >= beat(11, 0)) {
+        const back = outQuart(prog(t, beat(11, 0), 0.5));
+        v = { x: lerp(470, 720, back), y: lerp(260, 430, back), s: lerp(1.9, 1, back) };
+        v = { x: lerp(v.x, 570, z2), y: lerp(v.y, 200, z2), s: lerp(v.s, 2.2, z2) };
+      }
+      return { ...v, s: v.s * lerp(1.04, 1, outExpo(prog(t, beat(10, 0), 0.5))), rx: 0, lift: 0 };
+    } },
+  { from: 14, to: 16, url: "tokenz · Results", shots: [[beat(14, 0), "results"]],
+    cam: (t) => {
+      const k = outQuart(prog(t, beat(14, 0), 0.9)), z = inOut(prog(t, beat(14, 2), BAR * 1.2));
+      return { x: lerp(720, 760, z), y: lerp(430, 470, z), s: lerp(0.86, 1, k) * lerp(1, 1.45, z), rx: lerp(14, 0, k), lift: lerp(140, 0, k) };
+    } },
+  { from: 17, to: 18, url: "tokenz · Questions", shots: [[beat(17, 0), "home-18750"]],
+    cam: (t) => ({ x: 720, y: lerp(430, 470, inOut(prog(t, beat(17, 0), BAR))), s: lerp(1.05, 1, outExpo(prog(t, beat(17, 0), 0.5))) * lerp(1, 1.12, inOut(prog(t, beat(17, 0), BAR))), rx: 0, lift: 0 }) },
+];
+let shownShots = [];
+function windowAt(t) {
+  const seg = WIN.find((w) => t >= bar(w.from) && t < bar(w.to));
+  if (!seg) return;
+  if ($("win-url").textContent !== seg.url) $("win-url").textContent = seg.url;
+  // the shot on now, and the one before it while it's being pushed out
+  let i = 0;
+  seg.shots.forEach((s, j) => { if (t >= s[0]) i = j; });
+  const p = i > 0 ? outQuart(prog(t, seg.shots[i][0], 0.6)) : 1;
+  const want = [[seg.shots[i][1], 1440 * (1 - p)]];
+  if (p < 1) want.push([seg.shots[i - 1][1], -1440 * p]);
+  shownShots.forEach((name) => { if (!want.some((w) => w[0] === name)) shotEls[name].style.display = "none"; });
+  want.forEach(([name, x]) => { const el = shotEls[name]; el.style.display = "block"; el.style.transform = `translateX(${x}px)`; });
+  shownShots = want.map((w) => w[0]);
+  // the window: the focus point in the middle of the screen at the zoom, tilted back and lifted
+  const c = seg.cam(t);
+  const tx = 960 - 240 - c.s * c.x, ty = 540 - 70 - c.s * (c.y + 40) + c.lift;
+  $("win").style.transform = `translate(${tx}px, ${ty}px) rotateX(${c.rx}deg) scale(${c.s})`;
+}
+
+// ---------- captions, cards, count ----------
+const CAPS = [[beat(6, 0), "Three methods."], [beat(6, 2), "One <b>click.</b>"]];
+const CARDS = [
+  [beat(9, 0), "NLP.", "linear-gradient(135deg, #D4DAE2 0%, #8D99AA 45%, #4F5B6D 100%)"],
+  [beat(9, 1), "TF‑IDF.", "linear-gradient(135deg, #9BD3C2 0%, #2F8A76 50%, #154A40 100%)"],
+  [beat(9, 2), "AI Rewrite.", "linear-gradient(135deg, #CFC4FF 0%, #8B7FF2 45%, #4B3FC0 100%)"],
+  [beat(9, 3), "Your pick.", "#000"],
+];
+
+// ---------- What we measure: one a beat, close on its title, picture and line ----------
+// [beat, shot, the row's middle in the page (x, y)]
+const MEASURES = [[beat(16, 0), "home-11025", 800, 520], [beat(16, 1), "home-12600", 800, 445], [beat(16, 2), "home-14400", 800, 445], [beat(16, 3), "home-16650", 800, 445]];
+const measureEls = MEASURES.map(([, name]) => {
+  const box = document.createElement("div"); box.className = "measure";
+  const img = new Image(); img.src = "shots/" + name + ".png"; box.append(img);
+  $("MEASURE").append(box); return box;
+});
+
+function render(t) {
+  t = ((t % DUR) + DUR) % DUR;
+  const b = Math.floor(t / BAR);
+  const scene = SCENES.find(([from, len]) => b >= from && b < from + len)[2];
+  for (const id in sceneEls) sceneEls[id].style.visibility = id === scene ? "visible" : "hidden";
+
+  // a small camera punch on every beat, a bigger one on each bar's downbeat
+  const sinceBeat = t % BEAT, sinceBar = t % BAR;
+  const punch = 0.012 * (1 - outExpo(sinceBeat / 0.3)) + 0.02 * (1 - outExpo(sinceBar / 0.4));
+  $("cam").style.transform = scene === "WIN" ? "none" : `scale(${1 + punch})`;
+
+  if (scene === "WORDS") wordsAt(t, WORDS, $("w"));
+
+  if (scene === "INTRO") {
+    const iw = $("intro-word"), on = t < beat(3, 1);
+    iw.style.display = on ? "block" : "none";
+    if (on) { const k = outExpo(prog(t, beat(3, 0), 0.5)); iw.style.opacity = k; iw.style.transform = `translateY(calc(-50% + ${lerp(30, 0, k)}px))`; }
+    const root = $("brand-in");
+    root.style.display = on ? "none" : "block";
+    if (!on) brand(root, inOut(prog(t, beat(3, 2), 0.55)), lerp(1.35, 1, outExpo(prog(t, beat(3, 1), 0.4))));
+  }
+
+  if (scene === "WIN") windowAt(t);
+
+  if (scene === "CAP") wordsAt(t, CAPS, $("cap"));
+
+  if (scene === "CARDS") {
+    let cur = CARDS[0];
+    CARDS.forEach((c) => { if (t >= c[0]) cur = c; });
+    const card = $("card");
+    if (card.textContent !== cur[1]) card.textContent = cur[1];
+    $("CARDS").style.background = cur[2];
+    slam(card, t, cur[0], 1.22);
+  }
+
+  if (scene === "COUNT") {
+    const counting = t < bar(13);
+    ["count-num", "count-unit"].forEach((id) => { $(id).style.display = counting ? "block" : "none"; });
+    ["pct", "pct-label"].forEach((id) => { $(id).style.display = counting ? "none" : "block"; });
+    if (counting) {
+      const k = inOut(prog(t, beat(12, 1), 2 * BEAT));
+      const num = $("count-num");
+      num.textContent = String(Math.round(lerp(55, 28, k)));
+      num.style.color = k >= 1 ? VIOLET : "#fff";
+      const s = lerp(1.12, 1, outExpo(prog(t, beat(12, 0), 0.3)));
+      num.style.transform = `scale(${s})`;
+      $("count-unit").style.opacity = prog(t, beat(12, 0), 0.15);
+    } else {
+      const pct = $("pct");
+      pct.style.transform = `scale(${lerp(1.3, 1, outExpo(prog(t, beat(13, 0), 0.35)))})`;
+      pct.style.opacity = prog(t, beat(13, 0), 0.04);
+      const lk = outExpo(prog(t, beat(13, 2), 0.5));
+      $("pct-label").style.opacity = lk;
+      $("pct-label").style.transform = `translateY(${lerp(24, 0, lk)}px)`;
+    }
+  }
+
+  if (scene === "MEASURE") {
+    let i = 0;
+    MEASURES.forEach((m, j) => { if (t >= m[0]) i = j; });
+    measureEls.forEach((el, j) => { el.style.display = j === i ? "block" : "none"; });
+    const [at, , x, y] = MEASURES[i];
+    // the page's 1440 × 900 at 1.45 times: the row's middle in the middle of the screen, easing in a little
+    const s = lerp(1.55, 1.45, outExpo(prog(t, at, 0.35)));
+    const img = measureEls[i].firstChild;
+    img.style.width = 1440 * s + "px"; img.style.height = 900 * s + "px";
+    img.style.left = 960 - x * s + "px"; img.style.top = 540 - y * s + "px";
+  }
+
+  if (scene === "TAG") {
+    [["tag-1", beat(18, 0)], ["tag-2", beat(18, 2)]].forEach(([id, at]) => {
+      const k = outExpo(prog(t, at, 0.55));
+      $(id).firstChild.style.transform = `translateY(${lerp(110, 0, k)}%)`;
+    });
+  }
+
+  if (scene === "END") {
+    // the mark slams in, the word slides out from behind it, "Token saver" comes up; on the last
+    // beat it all goes back: the word slides in behind the mark, and the mark shrinks to nothing
+    const close = inExpo(prog(t, beat(19, 3), BEAT * 0.92));
+    const open = outExpo(prog(t, beat(19, 0) + 0.12, 0.6)) * (1 - inOut(prog(t, beat(19, 3), BEAT * 0.5)));
+    const scale = lerp(1.35, 1, outExpo(prog(t, beat(19, 0), 0.4))) * (1 - close);
+    brand($("brand-end"), open, scale);
+    const sk = outExpo(prog(t, beat(19, 1), 0.5)) * (1 - prog(t, beat(19, 3), 0.15));
+    const sub = $("brand-end").querySelector(".sub");
+    sub.style.opacity = sk; sub.style.transform = `translateY(${lerp(20, 0, sk)}px)`;
+  }
+}
+
+window.render = render;
+window.DUR = DUR;
+window.ready = Promise.all([document.fonts.ready, ...Array.from(document.images).map((img) => img.decode().catch(() => {}))]).then(() => { render(0); return true; });
+</script>
+</body>
+</html>
