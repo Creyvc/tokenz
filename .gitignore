@@ -1,3 +1,7 @@
 .DS_Store
 # Playwright CLI output (may contain credentials)
 .playwright-cli/
+
+# Film: rebuilt by each score.py, and Python caches
+film/**/score.wav
+film/__pycache__/

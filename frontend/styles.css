@@ -3609,6 +3609,51 @@ html.home-scroll .content.home.is-bare .home-intro {
   text-align: right;
 }
 
+/* Compare and Explore, side by side in the bottom-left corner of the window (level with the
+   sentence's last line on the right), coming up a little after the headline's last line */
+.home-actions {
+  display: none;
+}
+
+.content.home.is-bare .home-actions {
+  position: absolute;
+  left: 40px;
+  bottom: 26px;
+  display: flex;
+  gap: 12px;
+  pointer-events: auto;  /* (the text around them lets clicks through; these take them) */
+}
+
+/* Square like Compare's Run: Explore in a thin outline, Compare solid near-black */
+.home-actions a {
+  height: 44px;
+  padding: 0 22px;
+  border-radius: 0;
+  text-decoration: none;
+}
+
+.home-actions .wb-secondary {
+  border: 1px solid #16171A;
+  background: transparent;
+  color: #16171A;
+}
+
+.home-actions .wb-secondary:hover {
+  background: #F1F1EF;
+}
+
+html.home-text-waiting .content.home.is-bare .home-actions {
+  opacity: 0;
+  transform: translateY(14px);
+}
+
+html.home-text-on .content.home.is-bare .home-actions,
+html:not(.home-text-waiting):not(.home-text-on) .content.home.is-bare .home-actions {
+  opacity: 1;
+  transform: none;
+  transition: opacity 0.6s ease 0.45s, transform 0.75s cubic-bezier(0.33, 1, 0.68, 1) 0.45s;
+}
+
 /* (they keep their corners while scrolling: no drawing together) */
 html.home-scroll .content.home.is-bare .home-lede,
 html.home-scroll .content.home.is-bare .home-headline {

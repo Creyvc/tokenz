@@ -799,6 +799,7 @@
         copy = intro.cloneNode(true);
         copy.classList.add("is-copy");
         copy.setAttribute("aria-hidden", "true");
+        copy.inert = true;  // (its copy of the buttons can't be reached or clicked)
         panel.append(copy);
       }
       var y = window.scrollY, distance = window.innerHeight;
@@ -1176,7 +1177,21 @@
     if (wide.addEventListener) wide.addEventListener("change", function () { remask(); measure(); soon(); });
   }
 
+  // Explore, on the first screen: a smooth scroll down to where the Three Methods' white page
+  // has reached the top of the window (straight there with reduced motion)
+  function exploreButton() {
+    var button = document.querySelector("[data-explore]");
+    var next = document.querySelector(".home-next");
+    if (!button || !next) return;
+    button.addEventListener("click", function (event) {
+      event.preventDefault();
+      var top = next.getBoundingClientRect().top + window.scrollY;
+      window.scrollTo({ top: top, behavior: still ? "auto" : "smooth" });
+    });
+  }
+
   document.addEventListener("DOMContentLoaded", function () {
+    exploreButton();
     sidebarFromMethods();
     scrollEffect();
     mountMethodBackgrounds();
