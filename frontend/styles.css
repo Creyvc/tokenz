@@ -6121,3 +6121,54 @@ html.home-scroll .home-method-body {
   display: none;
 }
 
+/* Home's cursor (video-cursor.js): on the first screen only, a small rounded box playing the promo,
+   centred on the pointer. The system cursor is hidden just while the box shows; over anything
+   clickable the box shrinks away and the normal pointer comes back */
+html.video-cursor-on,
+html.video-cursor-on * {
+  cursor: none;
+}
+
+html.video-cursor-on :is(a[href], button, [role="button"], summary, label, input, select, textarea) {
+  cursor: pointer;
+}
+
+html.video-cursor-on :is(input, textarea) {
+  cursor: text;
+}
+
+.video-cursor {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 10000;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.video-cursor video {
+  position: absolute;
+  left: -112px;
+  top: -63px;
+  width: 224px;
+  height: 126px;
+  object-fit: cover;
+  border-radius: 16px;
+  background: #F5F6FA;
+  box-shadow: 0 14px 40px rgba(22, 23, 26, 0.22), 0 0 0 1px rgba(255, 255, 255, 0.6);
+  opacity: 0;
+  transform: scale(0.4);
+  transition: opacity 0.2s ease, transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.video-cursor.is-shown video {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* pressed: a small squeeze */
+.video-cursor.is-shown.is-pressed video {
+  transform: scale(0.92);
+}
+
