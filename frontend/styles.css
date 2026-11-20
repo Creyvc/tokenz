@@ -6172,3 +6172,51 @@ html.video-cursor-on :is(input, textarea) {
   transform: scale(0.92);
 }
 
+/* Home's film (video-cursor.js): scrolling down from the top, the cursor's box grows to fill the
+   window and plays the promo with sound. Home is taller for it, so the first screen holds while it
+   plays; the Three Methods page then slides up over it (the film sits just under that page, over
+   the first screen) */
+html.home-scroll.home-film .content.home.is-bare {
+  height: 360vh;
+}
+
+.video-cursor.is-film {
+  z-index: 11;
+}
+
+.video-cursor.is-film video,
+.video-cursor.is-film.is-pressed video {
+  opacity: 1;
+  transform: none;
+  transition: none;
+  box-shadow: 0 30px 80px rgba(22, 23, 26, 0.18);
+}
+
+/* "Sound on": only when the browser won't play the film's sound yet (nothing clicked on the page) */
+.film-sound {
+  position: fixed;
+  right: 32px;
+  bottom: 32px;
+  z-index: 11;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 10px 30px rgba(22, 23, 26, 0.18);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  color: #16171A;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(8px);
+  transition: opacity 0.25s ease, transform 0.25s ease, visibility 0s 0.25s;
+}
+
+.film-sound.is-shown {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
