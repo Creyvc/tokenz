@@ -15,7 +15,7 @@
   // Nearing these, the normal cursor comes back a little before the pointer reaches them, so the
   // box never covers them: Explore and Compare, and the cookie banner (its buttons and link)
   var NEAR = ".home-actions a, .consent";
-  var NEAR_PX = 90;
+  var NEAR_PX = 40;
   function nearAny() {
     return Array.prototype.some.call(document.querySelectorAll(NEAR), function (el) {
       var r = el.getBoundingClientRect();
