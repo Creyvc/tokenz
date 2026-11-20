@@ -2,18 +2,15 @@
 // screens and people who prefer less motion keep the normal cursor and the page as it was.
 //
 // - The cursor: on the first screen (the headline, Explore and Compare), the pointer is a small
-//   rounded box playing the promo (assets/promo-720.mp4, a 1280×720 copy of
+//   rounded box playing the promo (assets/promo-720.mp4, a silent 1280×720 copy of
 //   film/promo/tokenz-promo.mp4), easing after it. Over anything you can click, or close to Explore,
 //   Compare or the cookie banner, the box shrinks away and the normal cursor comes back. Not on the
 //   warning page or during the intro, and not once the Three Methods page has come up.
 // - The film: scrolling down from the top, the sentence, the headline's two lines and the buttons
 //   mask out one after another (each slides down behind its own edge), and the box grows from where
-//   the cursor was until it fills the window, playing the promo from the start, with sound. The
+//   the cursor was until it fills the window, playing the promo from the start, silently. The
 //   first screen holds while it plays (Home is taller for it, html.home-film in styles.css); scrolling
-//   on, the Three Methods page slides up over it and the sound fades away. Scrolling back up plays
-//   it all backwards.
-// - Sound: browsers only allow it once the page has been clicked, tapped or typed on (scrolling
-//   doesn't count). If it hasn't been, the film plays silently with a "Sound on" button.
+//   on, the Three Methods page slides up over it. Scrolling back up plays it all backwards.
 (function () {
   var root = document.documentElement;
   var fine = window.matchMedia("(hover: hover) and (pointer: fine)");
@@ -37,17 +34,12 @@
   video.playsInline = true;
   video.preload = "auto";
   box.appendChild(video);
-  var soundButton = document.createElement("button");
-  soundButton.type = "button";
-  soundButton.className = "film-sound";
-  soundButton.textContent = "Sound on";
-  document.body.append(box, soundButton);
+  document.body.append(box);
   var next = document.querySelector(".home-next");
   root.classList.add("home-film");
 
   var x = -500, y = -500, shownX = x, shownY = y, inside = false, overClickable = false, frame = 0;
   var filmFrom = null;    // where the box starts growing from (the cursor, or the middle)
-  var volume = 0;
 
   function nearAny() {
     return Array.prototype.some.call(document.querySelectorAll(NEAR), function (el) {
@@ -120,12 +112,6 @@
       // the watcher below would call this again, for ever)
       root.classList.toggle("video-cursor-on", false);
       if (video.paused) video.play().catch(function () {});
-      // sound once it fills the window, fading as the next page covers it
-      var full = f.grow > 0.98;
-      var canSound = navigator.userActivation ? navigator.userActivation.hasBeenActive : true;
-      if (full && canSound && video.muted) video.muted = false;
-      soundButton.classList.toggle("is-shown", full && video.muted && f.covered < 0.5);
-      setVolume((full ? 1 : 0) * (1 - f.covered));
       return;
     }
     // back to being the cursor
@@ -134,8 +120,6 @@
       ["left", "top", "width", "height", "borderRadius"].forEach(function (p) { video.style[p] = ""; });
       box.style.transform = "translate(" + shownX.toFixed(1) + "px, " + shownY.toFixed(1) + "px)";
     }
-    soundButton.classList.remove("is-shown");
-    setVolume(0);
     // (the first screen: before the film begins, above the top edge of the Three Methods page)
     var firstScreen = f.grow <= 0 && (!next || y < next.getBoundingClientRect().top);
     var show = inside && firstScreen && !overClickable && !nearAny() && !root.classList.contains("intro-play");
@@ -144,20 +128,6 @@
     root.classList.toggle("video-cursor-on", show);
     if (show && video.paused) video.play().catch(function () {});
     if (!show && !video.paused) video.pause();
-  }
-
-  // the volume eases to where it should be, and the film goes back to silent at nothing
-  var volumeFrame = 0, volumeTo = 0;
-  function setVolume(v) {
-    volumeTo = v;
-    if (!volumeFrame) volumeFrame = requestAnimationFrame(stepVolume);
-  }
-  function stepVolume() {
-    volume += (volumeTo - volume) * 0.18;
-    if (Math.abs(volumeTo - volume) < 0.01) volume = volumeTo;
-    video.volume = clamp(volume);
-    if (volume === 0 && volumeTo === 0 && !video.muted) video.muted = true;
-    volumeFrame = volume !== volumeTo ? requestAnimationFrame(stepVolume) : 0;
   }
 
   // The box eases after the pointer (a fifth of the way each frame), centred on it
@@ -184,11 +154,6 @@
   window.addEventListener("blur", function () { inside = false; update(); });
   window.addEventListener("scroll", update, { passive: true });
   window.addEventListener("resize", update);
-  soundButton.addEventListener("click", function () {
-    video.muted = false;
-    soundButton.classList.remove("is-shown");
-    update();
-  });
 
   // (the intro ends by removing a class from <html>: show the box then, if the pointer's in)
   new MutationObserver(update).observe(root, { attributes: true, attributeFilter: ["class"] });
