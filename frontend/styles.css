@@ -6149,12 +6149,12 @@ html.video-cursor-on :is(input, textarea) {
 
 .video-cursor video {
   position: absolute;
-  left: -112px;
-  top: -63px;
-  width: 224px;
-  height: 126px;
+  left: -160px;
+  top: -90px;
+  width: 320px;
+  height: 180px;
   object-fit: cover;
-  border-radius: 16px;
+  border-radius: 20px;
   background: #F5F6FA;
   box-shadow: 0 14px 40px rgba(22, 23, 26, 0.22), 0 0 0 1px rgba(255, 255, 255, 0.6);
   opacity: 0;

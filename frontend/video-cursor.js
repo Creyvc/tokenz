@@ -12,6 +12,18 @@
   if (!fine.matches || still.matches) return;
 
   var CLICKABLE = "a[href], button, [role='button'], summary, label, input, select, textarea";
+  // Nearing these, the normal cursor comes back a little before the pointer reaches them, so the
+  // box never covers them: Explore and Compare, and the cookie banner (its buttons and link)
+  var NEAR = ".home-actions a, .consent";
+  var NEAR_PX = 90;
+  function nearAny() {
+    return Array.prototype.some.call(document.querySelectorAll(NEAR), function (el) {
+      var r = el.getBoundingClientRect();
+      if (!r.width || !r.height) return false;
+      var dx = Math.max(r.left - x, 0, x - r.right), dy = Math.max(r.top - y, 0, y - r.bottom);
+      return Math.hypot(dx, dy) < NEAR_PX;
+    });
+  }
   var box = document.createElement("div");
   box.className = "video-cursor";
   box.setAttribute("aria-hidden", "true");
@@ -31,7 +43,7 @@
   function update() {
     // (the first screen: above the top edge of the Three Methods page as it scrolls up over it)
     var firstScreen = !next || y < next.getBoundingClientRect().top;
-    var show = inside && firstScreen && !overClickable && !root.classList.contains("intro-play");
+    var show = inside && firstScreen && !overClickable && !nearAny() && !root.classList.contains("intro-play");
     box.classList.toggle("is-shown", show);
     // the normal cursor is hidden only while the box stands in for it
     root.classList.toggle("video-cursor-on", show);
