@@ -13,6 +13,10 @@
 
   var box = document.querySelector("[data-results]");
   if (!box) return;
+  // When the bars and numbers start: after the box has grown in when the page opens that way
+  // (html.wb-arrive), at once otherwise. Fixed now, so it can't change when that class goes
+  // mid-animation (styles.css, --rs-wait)
+  box.style.setProperty("--rs-wait", document.documentElement.classList.contains("wb-arrive") ? "1.7s" : "0.15s");
 
   function make(tag, className, text) {
     var node = document.createElement(tag);
@@ -35,6 +39,37 @@
     var strip = make("div", "wb-card-foot");
     strip.append(make("span", "wb-count", text));
     return strip;
+  }
+
+  // A number that rolls in like a slot machine: each digit is a reel that spins through digits
+  // and stops on its own, the next a little later, with a small bounce (styles.css, .rs-slot).
+  // The real number is there as text for screen readers; with reduced motion it just shows
+  var still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var slotCount = 0;
+  function slot(node, text) {
+    node.textContent = "";
+    if (still) { node.textContent = text; return node; }
+    var real = make("span", "rs-sr", text);
+    var shown = make("span", "rs-slot-row");
+    shown.setAttribute("aria-hidden", "true");
+    var reel = 0, first = slotCount++;
+    text.split("").forEach(function (ch) {
+      if (!/\d/.test(ch)) { shown.append(make("span", "rs-slot-char", ch)); return; }
+      var cell = make("span", "rs-slot");
+      var strip = make("span", "rs-slot-strip");
+      // a couple of turns of random digits, then the real one
+      var spins = 14 + reel * 4;
+      for (var k = 0; k < spins; k++) strip.append(make("span", null, String(Math.floor(Math.random() * 10))));
+      strip.append(make("span", null, ch));
+      strip.style.setProperty("--cells", spins);
+      strip.style.setProperty("--reel", reel);
+      strip.style.setProperty("--slot", first);
+      cell.append(strip);
+      shown.append(cell);
+      reel++;
+    });
+    node.append(real, shown);
+    return node;
   }
 
   function compareLink(text) {
@@ -106,7 +141,7 @@
     var r = results[i];
     var one = card("section", "rs-card", NAMES[method]);
     one.head.append(make("span", "wb-pill is-" + r.status, OUTCOMES[r.status] || r.status));
-    one.box.append(make("p", "rs-card-num", r.reduction_percent.toFixed(1) + "%"),
+    one.box.append(slot(make("p", "rs-card-num"), r.reduction_percent.toFixed(1) + "%"),
       foot(r.original_target_tokens + " → " + r.candidate_target_tokens + " tokens · " + r.tokens_saved + " saved" +
         (method === "ai" && r.chosen ? " · " + r.chosen : "")));
     cards.append(one.box);
@@ -190,7 +225,7 @@
       fill.style.width = (100 * bar.tokens / top) + "%";
       fill.style.setProperty("--bar", bars.indexOf(bar));  // its turn to slide in (styles.css)
       track.append(fill);
-      row.append(make("span", "rs-bar-label", bar.label), track, make("span", "rs-bar-value", String(bar.tokens)));
+      row.append(make("span", "rs-bar-label", bar.label), track, slot(make("span", "rs-bar-value"), String(bar.tokens)));
       row.addEventListener("pointerenter", function (event) { showTip(bar, event.clientX, event.clientY); });
       row.addEventListener("pointermove", function (event) { placeTip(event.clientX, event.clientY); });
       row.addEventListener("pointerleave", hideTip);

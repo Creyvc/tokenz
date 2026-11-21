@@ -2606,16 +2606,12 @@ textarea.wb-input {
   background: #C9C8C3;
 }
 
-/* Every time the chart shows, each bar slides out from the left to its length, one after the
-   other from the top (--bar, results.js). When the page opens with its box growing in
-   (html.wb-arrive), they wait until the chart has risen into place */
+/* Every time the chart shows, each bar slides out from the left to its length, slowly (2.2s),
+   one after the other from the top (--bar, results.js). When the page opens with its box growing in
+   (html.wb-arrive), they wait until the chart has risen into place (--rs-wait, results.js) */
 .rs-bar-fill {
   transform-origin: left center;
-  animation: rs-bar-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) calc(0.15s + var(--bar, 0) * 0.1s) backwards;
-}
-
-html.wb-arrive .rs-bar-fill {
-  animation-delay: calc(1.7s + var(--bar, 0) * 0.1s);
+  animation: rs-bar-in 2.2s cubic-bezier(0.22, 1, 0.36, 1) calc(var(--rs-wait, 0.15s) + var(--bar, 0) * 0.25s) backwards;
 }
 
 @keyframes rs-bar-in {
@@ -2632,6 +2628,54 @@ html.wb-arrive .rs-bar-fill {
   font-variant-numeric: tabular-nums;
   text-align: right;
   color: #262626;
+}
+
+/* The numbers roll in like a slot machine (results.js): each digit is a reel, a window one digit
+   tall over a strip of digits that spins up and stops on the real one with a little bounce and a
+   blur while it's fast. The reels stop one after another, left to right, and each number starts a
+   moment after the one before (--slot); when the page opens with its box growing in, they wait
+   for it like the bars (--rs-wait) */
+.rs-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.rs-slot-row {
+  display: inline-flex;
+  align-items: flex-end;
+  line-height: 1;
+}
+
+.rs-slot {
+  display: inline-block;
+  height: 1em;
+  overflow: hidden;
+}
+
+.rs-slot-strip {
+  display: flex;
+  flex-direction: column;
+  animation: rs-slot-spin calc(1.6s + var(--reel, 0) * 0.35s) cubic-bezier(0.2, 0.7, 0.25, 1)
+             calc(var(--rs-wait, 0.15s) + var(--slot, 0) * 0.12s) both;
+}
+
+.rs-slot-strip > span {
+  display: block;
+  height: 1em;
+  line-height: 1;
+  text-align: center;
+}
+
+@keyframes rs-slot-spin {
+  0% { transform: translateY(0); filter: blur(0); }
+  12% { filter: blur(1.5px); }
+  80% { filter: blur(0.6px); }
+  90% { transform: translateY(calc((var(--cells) + 0.12) * -1em)); filter: blur(0); }
+  100% { transform: translateY(calc(var(--cells) * -1em)); }
 }
 
 /* The card that shows a bar's numbers while it's pointed at (results.js): white with a thin
