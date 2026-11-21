@@ -6201,6 +6201,26 @@ html.video-cursor-on :is(input, textarea) {
   pointer-events: none;
 }
 
+/* A letter of the first screen's headline or sentence decrypting (home-pixels.js): the letter
+   itself goes see-through, keeping its place, and a symbol shows over it in the text's colour */
+/* (the letter stays inline, so lines break as ever; the symbol fills the letter's own box, a
+   "normal" line high, so it sits on the same baseline) */
+.dec-letter {
+  position: relative;
+  color: transparent;
+}
+
+.dec-letter::after {
+  content: attr(data-glyph);
+  position: absolute;
+  inset: 0;
+  line-height: normal;
+  text-align: center;
+  text-indent: 0;
+  white-space: nowrap;
+  color: var(--dec-color);
+}
+
 /* On the black first screen the text and buttons turn light */
 .content.home.is-bare .home-intro:not(.is-copy) .home-headline,
 .content.home.is-bare .home-intro:not(.is-copy) .home-lede {

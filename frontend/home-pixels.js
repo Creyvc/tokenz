@@ -8,9 +8,11 @@
 // every few seconds, and a few glitch at random (after an AI site the owner liked). The headline sits in the black above it, the sentence in a
 // black corner cut out of it at the bottom right, and the buttons on the band itself. The band's
 // edges are ragged (stray squares out in the black, holes in the band, thinning out away from the
-// edge) and shift slowly, a square at a time. Scrolling down, the squares go out one by one in a
-// random order, and the black goes once the film has filled the window. With reduced motion it all
-// stays still.
+// edge) and shift slowly, a square at a time. Now and then a single letter of the headline or the
+// sentence decrypts: it runs through a few symbols and settles back (the letter itself stays in the
+// page, see-through, so nothing moves and screen readers read it as ever). Scrolling down, the
+// squares go out one by one in a random order, and the black goes once the film has filled the
+// window. With reduced motion it all stays still.
 (function () {
   var main = document.querySelector(".content.home.is-bare");
   if (!main) return;
@@ -181,7 +183,7 @@
       // one at a time
       var near = Math.min(Math.abs(my - top), Math.abs(my - low)) / size;
       if (near < RAGGED) {
-        var roll = still ? 0 : Math.floor(t * 0.06 + rnd(i, j) * 16);
+        var roll = still ? 0 : Math.floor(t * 0.1 + rnd(i, j) * 16);
         if (rnd(i * 7 + roll, j * 13 - roll) < STRAY * (1 - near / RAGGED)) inside = !inside;
       }
       lit.push(clear && inside);
@@ -247,4 +249,55 @@
   }, { passive: true });
   window.addEventListener("resize", function () { resize(); litKey = ""; if (still) redrawStill(); });
   requestAnimationFrame(draw);
+
+  // The letters decrypting: one starts every half second or so, at the top of the page with the
+  // text in, each showing four symbols in turn before it settles (styles.css, .dec-letter)
+  var GLYPHS = "@%#*+=-:.0123456789";
+  var BLOCKS = [".home-intro:not(.is-copy) .home-headline", ".home-intro:not(.is-copy) .home-lede"];
+  function letters() {
+    var found = [];
+    BLOCKS.forEach(function (sel) {
+      var el = document.querySelector(sel);
+      if (!el) return;
+      var walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+      for (var n = walk.nextNode(); n; n = walk.nextNode()) {
+        var up = n.parentNode;
+        if (up.closest(".hl-serif, .dec-letter")) continue;      // (not the gradient word, nor one going)
+        for (var k = 0; k < n.data.length; k++) if (/[A-Za-z0-9]/.test(n.data[k])) found.push([n, k]);
+      }
+    });
+    return found;
+  }
+  function decrypt() {
+    var all = letters();
+    if (!all.length) return;
+    var pick = all[Math.floor(Math.random() * all.length)], node = pick[0], at = pick[1];
+    var color = getComputedStyle(node.parentNode).color;
+    var letter = node.splitText(at);
+    letter.splitText(1);
+    var span = document.createElement("span");
+    span.className = "dec-letter";
+    span.style.setProperty("--dec-color", color);
+    letter.parentNode.replaceChild(span, letter);
+    span.appendChild(letter);
+    var turns = 0;
+    (function turn() {
+      if (turns++ < 4) {
+        span.setAttribute("data-glyph", GLYPHS[Math.floor(Math.random() * GLYPHS.length)]);
+        setTimeout(turn, 90);
+        return;
+      }
+      var up = span.parentNode;
+      if (!up) return;                                           // (the line was rebuilt meanwhile)
+      up.replaceChild(letter, span);
+      up.normalize();
+    })();
+  }
+  if (!still) {
+    (function next() {
+      var on = document.documentElement.classList.contains("home-text-on") || !document.documentElement.classList.contains("home-text-waiting");
+      if (on && window.scrollY < 4 && !document.hidden) decrypt();
+      setTimeout(next, 380 + Math.random() * 520);
+    })();
+  }
 })();
