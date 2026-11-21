@@ -3584,7 +3584,7 @@ html.home-scroll .content.home.is-bare .home-intro {
 .content.home.is-bare .home-headline {
   position: absolute;
   left: 40px;
-  bottom: 56%;
+  bottom: 63%;
   margin: 0;
 }
 
@@ -3634,7 +3634,8 @@ html.home-scroll .content.home.is-bare .home-intro {
 
 .home-actions .wb-secondary {
   border: 1px solid #16171A;
-  background: transparent;
+  /* (filled, so the cursor's dashed lines pass behind it rather than showing through) */
+  background: #ffffff;
   color: #16171A;
 }
 
@@ -5866,20 +5867,24 @@ html.wb-arrive :is(textarea, input).wb-text-rise {
   letter-spacing: -0.045em;
 }
 
+/* The lines start at the numbers (no empty run before them) and stop short of the window's
+   edge on the right, and the whole list sits a little to the left of its column */
 .qa-list {
+  margin-left: 40px;
+  margin-right: 64px;
   border-top: 1px solid color-mix(in srgb, currentColor 16%, transparent);
 }
 
 .qa-item {
   display: grid;
-  grid-template-columns: minmax(64px, 0.7fr) minmax(0, 2fr);
+  grid-template-columns: 96px minmax(0, 1fr);
   align-items: baseline;
   padding: 30px 0 36px;
   border-bottom: 1px solid color-mix(in srgb, currentColor 16%, transparent);
 }
 
 .qa-num {
-  justify-self: center;
+  justify-self: start;
   font-size: 14px;
   letter-spacing: 0.08em;
 }
@@ -5938,6 +5943,11 @@ html.home-scroll .faq {
     position: static;
     padding-right: 0;
     margin-bottom: 40px;
+  }
+
+  .qa-list {
+    margin-left: 0;
+    margin-right: 0;
   }
 
   .qa-item {
@@ -6180,6 +6190,48 @@ html.video-cursor-on :is(input, textarea) {
   transform: scale(0.92);
 }
 
+/* Home's first screen: black, with the field of square pixels behind the text (home-pixels.js),
+   under the text, the buttons and the cursor's dashed lines */
+.home-grid {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* On the black first screen the text and buttons turn light */
+.content.home.is-bare .home-intro:not(.is-copy) .home-headline,
+.content.home.is-bare .home-intro:not(.is-copy) .home-lede {
+  color: #F5F5F7;
+}
+
+.content.home.is-bare .home-intro:not(.is-copy) .home-headline .hl-serif {
+  background: linear-gradient(100deg, #D9D4FF 0%, #A99DFF 45%, #8B7FF2 75%, #6C5CFF 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.content.home.is-bare .home-actions .wb-primary {
+  background: #F5F5F7;
+  color: #16171A;
+}
+
+.content.home.is-bare .home-actions .wb-primary:hover {
+  background: #DCDCE0;
+}
+
+.content.home.is-bare .home-actions .wb-secondary {
+  border-color: #F5F5F7;
+  background: #0E0F12;
+  color: #F5F5F7;
+}
+
+.content.home.is-bare .home-actions .wb-secondary:hover {
+  background: #26272C;
+}
+
 /* With the cursor box (after roshan-sahu.com): a dashed line across the whole window and one down
    it, crossing at the box's middle and passing behind it */
 /* (drawn in white with a "difference" blend, they turn to the opposite of whatever they cross:
@@ -6189,7 +6241,8 @@ html.video-cursor-on :is(input, textarea) {
   position: fixed;
   left: 0;
   top: 0;
-  z-index: 9999;
+  /* under the first screen's text and buttons and the cookie banner (they're drawn over it) */
+  z-index: 5;
   pointer-events: none;
   opacity: 0;
   mix-blend-mode: difference;
@@ -6199,13 +6252,14 @@ html.video-cursor-on :is(input, textarea) {
 .vc-line.is-h {
   right: 0;
   height: 0;
-  border-top: 1px dashed rgba(255, 255, 255, 0.6);
+  /* (half a pixel: a hairline on sharp screens) */
+  border-top: 0.5px dashed rgba(255, 255, 255, 0.6);
 }
 
 .vc-line.is-v {
   bottom: 0;
   width: 0;
-  border-left: 1px dashed rgba(255, 255, 255, 0.6);
+  border-left: 0.5px dashed rgba(255, 255, 255, 0.6);
 }
 
 .vc-line.is-shown {
