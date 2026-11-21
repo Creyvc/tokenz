@@ -4220,6 +4220,11 @@ html.home-scroll .home-end {
 }
 
 /* The number takes the place of the frame's bottom-left corner: its foot on the corner's line */
+/* (without the scroll effect, a measure's card is only its contents, laid out as ever) */
+.measure-card {
+  display: contents;
+}
+
 .measure-num {
   position: absolute;
   top: 107px;
@@ -4598,14 +4603,15 @@ html.home-scroll .measure-text {
   color: #a3a3a3;
 }
 
-/* What We Measure with the scroll effect, after nickho-motorsports.nl's story section. The section
-   is several windows tall and what's in it stays pinned in the window as it scrolls past
-   (home.js sets its height):
-   - in the middle, the four drawings stand in a column that moves up with the scroll (--y), the
-     one in the middle bright and the others dimmed (--o), each about 38% of the window (--card)
-   - the current measure's name, big, on the left, and its description on the right, both
-     decrypting in as it takes over (is-active, home.js; the others are hidden)
-   - "What We Measure" small in the top-left corner, and a counter in the bottom-right */
+/* What We Measure with the scroll effect. The section is several windows tall and what's in it
+   stays pinned in the window as it scrolls past (home.js sets its height):
+   - the top half is the drawings': the current measure's stands in the middle of it, and as the
+     next takes over it slides up and fades while the next comes up into its place (--y, --o)
+   - the bottom half is the cards' (after atolldigital.com's services): one per measure, a big
+     number on the left and its name and description on the right, each sliding up from below the
+     window over the one before and stopping on it, so they stack (--slide, home.js); the one
+     under it darkens a little (--under)
+   - "What We Measure" small in the top-left corner, and a counter in the top-right */
 html.home-scroll .measure {
   position: sticky;
   top: 0;
@@ -4646,56 +4652,82 @@ html.home-scroll .measure-list {
   border: 0;
 }
 
-/* Each measure fills the window as three columns: name | drawing | description. They're
-   stacked on top of each other; only the current one's text shows */
+/* (a measure's drawing and card are placed apart, each in its own half) */
 html.home-scroll .measure-item,
 html.home-scroll .measure-item:nth-child(even) {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) var(--card, 38vh) minmax(0, 1fr);
-  column-gap: 5vw;
-  align-items: center;
-  max-width: none;
-  margin: 0;
-  padding: 0 64px 0 218px;
+  display: contents;
 }
 
+/* The drawing, in the middle of the top half (between the label and the cards), about 30% of the
+   window tall */
 html.home-scroll .measure-mark {
-  grid-area: 1 / 2;
-  width: var(--card, 38vh);
-  height: var(--card, 38vh);
+  position: absolute;
+  top: calc(45px + 25vh - var(--card, 30vh) / 2);
+  left: calc((218px + 100vw - 40px) / 2 - var(--card, 30vh) / 2);
+  width: var(--card, 30vh);
+  height: var(--card, 30vh);
   transform: translateY(var(--y, 0px));
   opacity: var(--o, 1);
 }
 
-/* The counter says which one it is instead */
+/* The cards: the bottom half, from the sidebar to near the right edge, light and dark in turn */
+html.home-scroll .measure-card {
+  position: absolute;
+  top: 50vh;
+  left: 218px;
+  right: 40px;
+  bottom: 24px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  column-gap: 5vw;
+  padding: 28px 40px 32px;
+  border-radius: 6px;
+  background: #D6D6DA;
+  color: #16171A;
+  transform: translateY(var(--slide, 0px));
+  filter: brightness(calc(1 - 0.35 * var(--under, 0)));
+}
+
+html.home-scroll .measure-item:nth-child(even) .measure-card {
+  background: #131A2C;
+  color: #ffffff;
+}
+
+/* Its number: big, in the top-left corner */
 html.home-scroll .measure-num {
-  display: none;
+  display: block;
+  position: static;
+  grid-area: 1 / 1 / 4 / 2;
+  align-self: start;
+  font-size: clamp(64px, 16vh, 170px);
+  font-weight: 500;
+  line-height: 0.82;
+  letter-spacing: -0.05em;
+  color: inherit;
 }
 
-/* Big and bold like "Three Methods" */
-/* Big, bold capitals */
+/* Its name, large, at the top of the right half */
 html.home-scroll .measure-name {
-  grid-area: 1 / 1;
+  grid-area: 1 / 2;
   margin: 0;
-  font-size: 4.6vw;
-  font-weight: 700;
-  line-height: 0.98;
-  letter-spacing: -0.04em;
-  text-transform: uppercase;
+  font-size: clamp(28px, 6.4vh, 64px);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.035em;
+  text-transform: none;
+  color: inherit;
 }
 
+/* Its description, at the bottom of the right half */
 html.home-scroll .measure-text {
-  grid-area: 1 / 3;
-  max-width: 32ch;
+  grid-area: 3 / 2;
+  max-width: 34ch;
   margin: 0;
   font-size: clamp(15px, 1.2vw, 19px);
-}
-
-html.home-scroll .measure-item:not(.is-active) .measure-name,
-html.home-scroll .measure-item:not(.is-active) .measure-text {
-  visibility: hidden;
+  line-height: 1.45;
+  color: inherit;
+  opacity: 0.78;
 }
 
 /* The counter only exists with the scroll effect */
@@ -4703,11 +4735,12 @@ html.home-scroll .measure-item:not(.is-active) .measure-text {
   display: none;
 }
 
-/* "1/4" with the squeeze mark beside it, in violet (assets/logo-mark.svg's own paths) */
+/* "1/4" with the squeeze mark beside it, in violet (assets/logo-mark.svg's own paths), in the
+   top-right corner, level with the label */
 html.home-scroll .measure-count {
   position: absolute;
-  right: 64px;
-  bottom: 40px;
+  right: 40px;
+  top: 34px;
   display: flex;
   align-items: center;
   gap: 10px;

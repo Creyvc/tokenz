@@ -334,13 +334,12 @@
     var faqWord = endCover ? endCover.querySelector(".faq-scroll") : null;
     var faqLine = endCover ? endCover.querySelector(".faq-line") : null;
     var compareLink = endCover ? endCover.querySelector(".faq-word.is-compare") : null;
-    // The measures, one at a time (after nickho-motorsports.nl's story section): see styles.css
+    // The measures, one at a time (a drawing above, cards stacking below, after atolldigital.com's
+    // services): see styles.css
     var measureItems = end ? Array.prototype.slice.call(end.querySelectorAll(".measure-item")) : [];
     var measureNow = end ? end.querySelector(".measure-count-now") : null;
     var MEASURE_STEP = 2;    // windows of scrolling from one measure to the next
-    var MEASURE_TAIL = 1.2;  // windows of scrolling with the last one shown, before the white comes:
-                             // its drawing keeps moving up with the scroll till the top of the
-                             // window cuts it in half
+    var MEASURE_TAIL = 1.2;  // windows of scrolling with the last one shown, before the white comes
     var MEASURE_WIPE = 0.8;  // windows of scrolling for the white to rise and fill the window
     var measureWipe = end ? end.querySelector(".measure-wipe") : null;
     var measureAt = null, measureAtTime = 0;  // which measure is in the middle (0 to 3), eased
@@ -771,8 +770,7 @@
         ["--wipe-top", "--wipe-mask", "--wipe-mask-off"].forEach(function (name) { root.style.removeProperty(name); });
         measureItems.forEach(function (item) {
           item.classList.remove("is-active");
-          item.style.removeProperty("--y");
-          item.style.removeProperty("--o");
+          ["--y", "--o", "--slide", "--under"].forEach(function (name) { item.style.removeProperty(name); });
         });
         measureAt = null;
         activeMeasure = playedMeasure = -1;
@@ -992,10 +990,10 @@
     }
 
     // What We Measure is a window, then MEASURE_STEP windows per measure after the first, then a
-    // little more with the last one shown, all of it pinned in the window. The drawings stand in
-    // a column that moves up with the scroll (--y), the one in the middle bright and the rest
-    // dimmed (--o). The one nearest the middle is the current one (is-active): its name and
-    // description show as it takes over, the name rising from behind masks and the description
+    // little more with the last one shown, all of it pinned in the window. The current drawing
+    // stands in the top half, the next sliding up in as it goes (--y, --o); in the bottom half
+    // each card slides up over the one before (--slide). The one nearest is the current one
+    // (is-active): as it takes over, its name rises from behind masks and its description
     // The rising white with its pixel edge (.measure-wipe, styles.css). Squares about an 18th of
     // the window tall; the edge's band is four rows deep: in the two rows just above the edge
     // some white squares poke up into the black, in the two just below some black squares are
@@ -1092,16 +1090,9 @@
       // the edge, white above it (home-wipe, styles.css)
       root.classList.toggle("home-wipe", wipe > 0);
       root.style.setProperty("--wipe-top", edge.toFixed(1) + "px");
-      // Past the last one, its drawing carries on up with the scroll until the top of the window
-      // cuts it in half, just as the white begins (--y beyond the last measure)
-      var card = Math.min(0.38 * H, 0.24 * window.innerWidth);
-      var pitch = card + 0.25 * H;
-      var last = measureItems[count - 1];
-      var lastMark = last.querySelector(".measure-mark") || last;
-      var restTop = lastMark.getBoundingClientRect().top - (parseFloat(last.style.getPropertyValue("--y")) || 0);
-      var beyond = Math.max(0, restTop + card / 2) / pitch;
-      var tail = clamp((-top - MEASURE_STEP * (count - 1) * H) / (MEASURE_TAIL * H));
-      var target = Math.min(count - 1, Math.max(0, -top / (MEASURE_STEP * H))) + beyond * tail;
+      // (the drawings about 30% of the window tall, in the top half)
+      var card = Math.min(0.3 * H, 0.22 * window.innerWidth);
+      var target = Math.min(count - 1, Math.max(0, -top / (MEASURE_STEP * H)));
       // (with the same short ease as the methods' row, so the steps of a mouse wheel blend)
       var now = performance.now();
       if (measureAt == null) measureAt = target;
@@ -1109,15 +1100,19 @@
       if (Math.abs(target - measureAt) < 0.001) measureAt = target;
       measureAtTime = now;
       if (measureAt !== target) soon();
-      // Square drawings, about 38% of the window tall, well apart: only the edge of the next
-      // one shows at the bottom of the window
+      // The drawings: the current one in place, the one before it gone up and out, the next coming
+      // up from below, each fading as it leaves the middle. The cards (after atolldigital.com): each
+      // comes up from below the window over the one before and stops on it, which darkens a little
+      // under it (--slide, --under)
       end.style.setProperty("--card", card.toFixed(1) + "px");
+      var rise = 0.55 * H;
       measureItems.forEach(function (item, i) {
         var off = i - measureAt;
-        item.style.setProperty("--y", (off * pitch).toFixed(1) + "px");
-        // (the last one stays bright while it carries on up)
-        var fade = i - Math.min(measureAt, count - 1);
-        item.style.setProperty("--o", (1 - 0.8 * Math.min(1, Math.abs(fade))).toFixed(3));
+        item.style.setProperty("--y", (off * 0.45 * card).toFixed(1) + "px");
+        item.style.setProperty("--o", Math.max(0, 1 - 2.2 * Math.abs(off)).toFixed(3));
+        var coming = clamp(off), eased = coming * coming * (3 - 2 * coming);
+        item.style.setProperty("--slide", (eased * rise).toFixed(1) + "px");
+        item.style.setProperty("--under", clamp(measureAt - i).toFixed(3));
       });
       var active = Math.round(Math.min(measureAt, count - 1));
       if (active !== activeMeasure) {
