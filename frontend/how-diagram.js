@@ -1,34 +1,42 @@
 // How it works: an exploded diagram of what happens to a prompt (after architectural exploded
-// axonometrics the owner liked): six isometric slabs in thin white line, one under another,
-// joined by dashed guides, each with a numbered callout on a leader line, the site's violet the
-// only colour. Top to bottom, in the order things really happen: the prompt (its filler marked),
-// the three methods that shorten its words (in a violet orbit), the shorter prompt, the tokenizer
-// that cuts both versions into tokens and counts them (the tokens saved left as dashed outlines),
-// the tokens' numbers, and the vectors the AI model it's sent to makes of them.
-// - The slabs are 3D chips (shaded sides with vents, a rim and corner dots). The page opens with
-//   them stacked right on top of each other, the whole drawing fitted to the window; the page
-//   doesn't scroll: the wheel opens the stack in place, the chips coming apart into their places
-//   and the callouts drawing in one after another; a violet dot keeps travelling down the middle.
-// - With reduced motion it's drawn in its places, still.
-// The same six steps are in the page as a list (.hw-layers): read out instead of the drawing, and
-// shown under it on a phone, where the callouts would be too small.
+// axonometrics the owner liked), drawn in 3D on a canvas so the camera can move round it: six chips
+// in thin white line, one under another, joined by dashed guides, each with a numbered callout,
+// the site's violet the only colour. Top to bottom, in the order things really happen: the prompt
+// (its filler marked), the three methods that shorten its words (in a violet orbit), the shorter
+// prompt, the tokenizer that cuts both versions into tokens and counts them (the tokens saved left
+// as dashed outlines), the tokens' numbers, and the vectors the AI model it's sent to makes of them.
+// The page doesn't scroll (styles.css): the wheel (a swipe, the arrow keys) plays a camera path,
+// and back again scrolling up:
+//   0 to 1  the stack, still closed, spins round once
+//   1 to 2  it comes apart; the callouts draw in
+//   2 to 3  the camera swings round low to the side, turning the other way
+//   3 to 4  up over the top, looking straight down, and in close to the top chip, the chips
+//           turning see-through (x-ray) to the circuitry inside them
+//   4 on    the dive: down through the stack a chip at a time to the last, each one passed
+//           swelling and fading as if flown through, the view turning slowly
+//   then    back out, turning round to where it started; the chips and the callouts come back
+// The callouts only show while the camera is at its first angle. On a phone, where the page
+// scrolls to the list of steps (.hw-layers, also what screen readers read), it's drawn open and
+// still; with reduced motion too.
 (function () {
   var stage = document.querySelector(".hw-diagram");
   if (!stage) return;
   var still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  var NS = "http://www.w3.org/2000/svg";
-  var W = 1200, H = 1370, CX = 600;
+  var phone = window.matchMedia("(max-width: 800px)").matches;
   var VIOLET = "#8B7FF2", LINE = "rgba(255,255,255,0.82)", DIM = "rgba(255,255,255,0.34)";
-  var C = 0.866, S = 0.5;   // the isometric axes
+  var DEG = Math.PI / 180, ISO = Math.atan(Math.SQRT1_2), SCALE = 1 / Math.cos(ISO);
+  var W0 = 1200, H0 = 1370;   // the drawing's own size at the first angle, in its units
+  var FONT = "Inter, system-ui, sans-serif";
 
-  // Where each slab sits once apart, and its half-size and thickness
+  // Each chip once apart (y: its top's height on screen at the first angle), its half-size and
+  // thickness
   var LAYERS = [
     { kind: "prompt", y: 140, a: 130, t: 26, num: "01", name: "Your prompt", side: -1,
       text: ["The prompt you'd send to an AI,", "pasted on Compare."] },
     { kind: "methods", y: 405, a: 160, t: 34, num: "02", name: "Three methods", side: 1, lift: 120,
       text: ["They work on your words: NLP trims", "filler, TF-IDF drops off-topic sentences,", "AI rewrite asks Groq and Google."] },
     { kind: "shorter", y: 605, a: 130, t: 26, num: "03", name: "Shorter prompt", side: -1,
-      text: ["Checked: numbers, limits and \u201cnot\u201ds", "must survive, or the original is kept."] },
+      text: ["Checked: numbers, limits and “not”s", "must survive, or the original is kept."] },
     { kind: "tokens", y: 800, a: 130, t: 26, num: "04", name: "Tokenizer", side: 1,
       text: ["Both versions cut into tokens and", "counted (o200k_base): the difference", "is what you save."] },
     { kind: "ids", y: 993, a: 130, t: 26, num: "05", name: "Token IDs", side: -1,
@@ -36,51 +44,23 @@
     { kind: "vectors", y: 1182, a: 130, t: 26, num: "06", name: "Embeddings", side: 1,
       text: ["In the AI model you send it to: each", "token becomes a vector, and you pay", "per token."] }
   ];
+  var METHODS = 1;
 
-  function el(tag, attrs, parent) {
-    var node = document.createElementNS(NS, tag);
-    for (var key in attrs) node.setAttribute(key, attrs[key]);
-    if (parent) parent.appendChild(node);
-    return node;
-  }
-  // a point on a slab's top face (local x, y from -a to a), raised by z
-  function P(x, y, z) { return [(x - y) * C, (x + y) * S - (z || 0)]; }
-  function pts(list) { return list.map(function (p) { return p[0].toFixed(1) + "," + p[1].toFixed(1); }).join(" "); }
-  function rect(g, x0, y0, x1, y1, attrs) {
-    return el("polygon", Object.assign({ points: pts([P(x0, y0), P(x1, y0), P(x1, y1), P(x0, y1)]) }, attrs), g);
-  }
-  function line(g, a, b, attrs) {
-    return el("line", Object.assign({ x1: a[0].toFixed(1), y1: a[1].toFixed(1), x2: b[0].toFixed(1), y2: b[1].toFixed(1) }, attrs), g);
-  }
-
-  // A slab: its top face, and the two sides that show, in thin line over the black
-  // A chip: a thick slab with shaded sides (the left one darker, as if lit from the right), rows
-  // of vents along each side, an inner rim and a dot in each corner of its top
-  function slab(g, a, t) {
-    var top = [P(-a, -a), P(a, -a), P(a, a), P(-a, a)];
-    var down = function (p, d) { return [p[0], p[1] + (d == null ? t : d)]; };
-    el("polygon", { points: pts([top[3], top[2], down(top[2]), down(top[3])]), fill: "url(#hw-side-l)", stroke: LINE, "stroke-width": 1 }, g);
-    el("polygon", { points: pts([top[2], top[1], down(top[1]), down(top[2])]), fill: "url(#hw-side-r)", stroke: LINE, "stroke-width": 1 }, g);
-    // vents: short upright lines near the far end of each side
-    for (var k = 0; k < 9; k++) {
-      var v = -a + 22 + k * 9;
-      line(g, down(P(v, a), t * 0.32), down(P(v, a), t * 0.72), { stroke: "rgba(255,255,255,0.32)", "stroke-width": 1 });
-      line(g, down(P(a, -v), t * 0.32), down(P(a, -v), t * 0.72), { stroke: "rgba(255,255,255,0.4)", "stroke-width": 1 });
+  // At first the chips sit right on top of each other: each one's top is its own thickness above
+  // the one under it
+  var STACK_BASE = 740, STACKED = [];
+  (function () {
+    var y = STACK_BASE;
+    for (var n = LAYERS.length - 1; n >= 0; n--) {
+      STACKED[n] = y;
+      if (n) y -= LAYERS[n - 1].t;
     }
-    el("polygon", { points: pts(top), fill: "url(#hw-top)", stroke: LINE, "stroke-width": 1.2 }, g);
-    var r = a - 12;
-    el("polygon", { points: pts([P(-r, -r), P(r, -r), P(r, r), P(-r, r)]), fill: "none", stroke: "rgba(255,255,255,0.12)", "stroke-width": 1 }, g);
-    [[-1, -1], [1, -1], [1, 1], [-1, 1]].forEach(function (c) {
-      var q = P(c[0] * (a - 6), c[1] * (a - 6));
-      el("circle", { cx: q[0].toFixed(1), cy: q[1].toFixed(1), r: 2.1, fill: "#ffffff", opacity: 0.85 }, g);
-    });
-  }
+  })();
+  var MID = 674;  // the middle of the drawing at the first angle (a height, on screen)
 
   // A deterministic shuffle, so the drawing is the same every time
   var seed = 7;
   function rnd() { seed = (seed * 16807) % 2147483647; return seed / 2147483647; }
-
-  // Rows of token tiles; with `cut`, the filler ones (violet on the tokenizer) are gone
   var TILES = [];
   (function () {
     for (var row = 0; row < 7; row++) {
@@ -93,219 +73,398 @@
       }
     }
   })();
-
-  // The prompt's lines: each a run of words, then (after `keep`) its filler, which the methods
-  // take out
+  var VECTORS = [];
+  for (var gx = 0; gx < 6; gx++) for (var gy = 0; gy < 4; gy++) {
+    VECTORS.push({ x: -95 + gx * 38, y: -78 + gy * 52, h: 12 + Math.round(rnd() * 40), violet: (gx + gy) % 5 === 0 });
+  }
   var PROSE = [[180, 120], [150, 150], [200, 140], [105, 60], [175, 175], [130, 80]];
+  var IDS = ["15900 259 79007 11", "2684 2616 13 17951", "89 180721 290 5018", "6391 842 328 261", "15226 2254 481 4952", "480 316 448 20837"];
 
-  function details(g, kind, a) {
-    if (kind === "prompt" || kind === "shorter") {
-      // lines of text: the filler on the end of some marked in violet; on the shorter prompt
-      // it's gone, a faint dashed trace where it was
-      PROSE.forEach(function (row, k) {
-        var y = -86 + k * 33, len = row[0], keep = row[1];
-        line(g, P(-100, y), P(-100 + keep, y), { stroke: k === 0 ? LINE : DIM, "stroke-width": 1.4, "stroke-linecap": "round" });
-        if (keep < len) {
-          line(g, P(-100 + keep + 6, y), P(-100 + len, y), kind === "prompt" ?
-            { stroke: VIOLET, "stroke-width": 1.4, "stroke-linecap": "round", opacity: 0.9 } :
-            { stroke: "rgba(255,255,255,0.16)", "stroke-width": 1, "stroke-dasharray": "2 4" });
-        }
-      });
-      if (kind === "prompt") rect(g, 34, 74, 41, 88, { fill: VIOLET, stroke: "none" });
-    } else if (kind === "tokens") {
-      // both versions' tokens: the ones the shorter one doesn't have are dashed outlines
-      TILES.forEach(function (tile) {
-        rect(g, tile.x, tile.y, tile.x + tile.w, tile.y + 21, tile.filler ?
-          { fill: "none", stroke: VIOLET, "stroke-width": 0.9, "stroke-dasharray": "2 3", opacity: 0.8 } :
-          { fill: "none", stroke: LINE, "stroke-width": 0.9 });
-      });
-    } else if (kind === "ids") {
-      // the numbers, written on the face
-      var ids = ["15900 259 79007 11", "2684 2616 13 17951", "89 180721 290 5018", "6391 842 328 261", "15226 2254 481 4952", "480 316 448 20837"];
-      var face = el("g", { transform: "matrix(" + C + " " + S + " " + -C + " " + S + " 0 0)" }, g);
-      ids.forEach(function (row, k) {
-        var text = el("text", { x: -104, y: -74 + k * 34, fill: k % 2 ? DIM : LINE, "font-size": 15, "letter-spacing": 1.3 }, face);
-        text.textContent = row;
-      });
-    } else if (kind === "methods") {
-      // the three methods: a module each, with its name on a pill over it
-      [["NLP", -85], ["TF-IDF", 0], ["AI REWRITE", 85]].forEach(function (m, k) {
-        var x = m[1], y = -m[1] * 0.35, b = 30, h = 30;
-        var top = [P(x - b, y - b, h), P(x + b, y - b, h), P(x + b, y + b, h), P(x - b, y + b, h)];
-        var base = [P(x - b, y + b), P(x + b, y + b), P(x + b, y - b)];
-        el("polygon", { points: pts([top[3], top[2], base[1], base[0]]), fill: "#0e0e12", stroke: LINE, "stroke-width": 1 }, g);
-        el("polygon", { points: pts([top[2], top[1], base[2], base[1]]), fill: "#141419", stroke: LINE, "stroke-width": 1 }, g);
-        el("polygon", { points: pts(top), fill: k === 2 ? "rgba(139,127,242,0.22)" : "#0b0b0e", stroke: k === 2 ? VIOLET : LINE, "stroke-width": 1.1 }, g);
-        var mid = P(x, y, h);
-        var pill = el("g", { transform: "translate(" + mid[0].toFixed(1) + "," + (mid[1] - 46).toFixed(1) + ")" }, g);
-        var wide = m[0].length * 8.4 + 22;
-        el("rect", { x: -wide / 2, y: -12, width: wide, height: 24, rx: 12, fill: "#0b0b0e", stroke: LINE, "stroke-width": 1 }, pill);
-        var label = el("text", { x: 0, y: 4.5, fill: "#ffffff", "font-size": 11, "letter-spacing": 1.6, "text-anchor": "middle" }, pill);
-        label.textContent = m[0];
-        line(g, [mid[0], mid[1] - 34], [mid[0], mid[1] - 4], { stroke: DIM, "stroke-width": 1 });
-      });
-    } else if (kind === "vectors") {
-      // a vector for each token: a row of bars standing up off the face
-      for (var gx = 0; gx < 6; gx++) for (var gy = 0; gy < 4; gy++) {
-        var x0 = -95 + gx * 38, y0 = -78 + gy * 52, hgt = 12 + Math.round(rnd() * 40);
-        line(g, P(x0, y0), P(x0, y0, hgt), { stroke: (gx + gy) % 5 === 0 ? VIOLET : LINE, "stroke-width": 1.4, "stroke-linecap": "round" });
-        el("circle", { cx: P(x0, y0, hgt)[0].toFixed(1), cy: P(x0, y0, hgt)[1].toFixed(1), r: 2.2, fill: (gx + gy) % 5 === 0 ? VIOLET : "#ffffff" }, g);
-      }
-    }
-  }
-
-  var svg = el("svg", { viewBox: "0 0 " + W + " " + H, class: "hw-diagram-svg", "aria-hidden": "true", focusable: "false" });
-  var defs = el("defs", {}, svg);
-  [["hw-side-l", "#17171c", "#08080a"], ["hw-side-r", "#22222a", "#0d0d11"], ["hw-top", "#131318", "#0b0b0e"]].forEach(function (d) {
-    var grad = el("linearGradient", { id: d[0], x1: 0, y1: 0, x2: 0, y2: 1 }, defs);
-    el("stop", { offset: 0, "stop-color": d[1] }, grad);
-    el("stop", { offset: 1, "stop-color": d[2] }, grad);
-  });
-  var guides = el("g", { class: "hw-guides" }, svg);
-  var orbitBack = el("g", {}, svg);
-  // (made bottom first, so each slab covers the one under it, as seen from above)
-  var layerGroups = [];
-  var slabs = el("g", {}, svg);
-  for (var n = LAYERS.length - 1; n >= 0; n--) {
-    var g = el("g", { class: "hw-layer" }, slabs);
-    slab(g, LAYERS[n].a, LAYERS[n].t);
-    // (what stands up off a chip, the method modules and the vectors, is in a group of its own:
-    // it would poke through the chip above while they're stacked, so it comes in as they part)
-    var tall = LAYERS[n].kind === "methods" || LAYERS[n].kind === "vectors";
-    var face = tall ? el("g", { class: "hw-raised" }, g) : g;
-    details(face, LAYERS[n].kind, LAYERS[n].a);
-    layerGroups[n] = g;
-  }
-  var orbitFront = el("g", {}, svg);
-  var dot = el("circle", { r: 4.5, fill: VIOLET, class: "hw-flow" });
-  var callouts = LAYERS.map(function (layer) {
-    var g = el("g", { class: "hw-callout" }, svg);
-    var lead = el("path", { fill: "none", stroke: DIM, "stroke-width": 1, pathLength: 1, class: "hw-lead" }, g);
-    var pin = el("circle", { r: 3.5, fill: "#0b0b0e", stroke: "#ffffff", "stroke-width": 1.3 }, g);
-    var right = layer.side > 0, x = right ? 905 : 295;
-    var anchor = right ? "start" : "end";
-    var head = el("text", { x: x, y: 0, fill: "#ffffff", "font-size": 18, "letter-spacing": 2.6, "text-anchor": anchor, "font-weight": 600 }, g);
-    var num = el("tspan", { fill: VIOLET }, head);
-    num.textContent = layer.num + "  ";
-    var nm = el("tspan", {}, head);
-    nm.textContent = layer.name.toUpperCase();
-    layer.text.forEach(function (lineText, k) {
-      var t = el("text", { x: x, y: 26 + k * 21, fill: "rgba(255,255,255,0.6)", "font-size": 20, "text-anchor": anchor }, g);
-      t.textContent = lineText;
-    });
-    return { g: g, lead: lead, pin: pin };
-  });
-  stage.appendChild(svg);
-
-  // The violet orbit round the methods: an ellipse behind the slab and its front half over it
-  function orbit(cy) {
-    orbitBack.innerHTML = orbitFront.innerHTML = "";
-    var attrs = { cx: CX, cy: cy + 6, fill: "none" };
-    el("ellipse", Object.assign({ rx: 370, ry: 104, stroke: VIOLET, "stroke-width": 1.1, opacity: 0.8 }, attrs), orbitBack);
-    el("ellipse", Object.assign({ rx: 300, ry: 78, stroke: VIOLET, "stroke-width": 1, "stroke-dasharray": "5 7", opacity: 0.7, class: "hw-orbit-dash" }, attrs), orbitBack);
-    // (the near half, in front of the slab)
-    el("path", { d: "M " + (CX - 370) + " " + (cy + 6) + " A 370 104 0 0 0 " + (CX + 370) + " " + (cy + 6), stroke: VIOLET, "stroke-width": 1.1, fill: "none", opacity: 0.8 }, orbitFront);
-  }
-
+  // how strongly the chip being drawn shows (in x-ray, the ones round the methods' chip recede)
+  var layerAlpha = 1;
   function clamp(x) { return Math.min(1, Math.max(0, x)); }
   function ease(x) { return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; }
+  function smooth(x) { return x * x * (3 - 2 * x); }
+  function mix(a, b, k) { return a + (b - a) * k; }
+  function spaced(text) { return text.split("").join(" "); }  // (letter-spaced capitals)
 
-  var METHODS = LAYERS.map(function (layer) { return layer.kind; }).indexOf("methods");
-  // At first the chips sit right on top of each other, a stack near the top of the window: each
-  // one's top face is its own thickness above the one under it
-  var STACK_BASE = 740;
-  var STACKED = [];
-  (function () {
-    var y = STACK_BASE;
-    for (var n = LAYERS.length - 1; n >= 0; n--) {
-      STACKED[n] = y;
-      if (n) y -= LAYERS[n - 1].t;
+  // The camera's path, step by step of the wheel (see the top): each step a pose, eased into
+  // from the one before. A pose: which way round (yaw), how high (pitch), how close (zoom), what
+  // it looks at (a height on screen at the first angle, or a chip by its place, fractions between
+  // two), how see-through the chips are (xray), and how far down the dive has got (dive: which
+  // chip, 0 to 5) and how much it shows (diveW)
+  var ISO_POSE = { yaw: 45, pitch: ISO / DEG, zoom: 1, focus: MID, xray: 0, dive: 0, diveW: 0 };
+  var SIDE_POSE = { yaw: -28, pitch: 9, zoom: 0.9, focus: MID, xray: 0, dive: 0, diveW: 0 };   // turning the other way
+  var TOP_POSE = { yaw: 135, pitch: 86, zoom: 2.1, focus: { chip: 0 }, xray: 1, dive: 0, diveW: 1 };
+  var DIVE_LEN = 3.5;                          // steps of the wheel to dive from the top chip to the last
+  var DIVE_TURN = 120;                         // degrees the view turns on the way down
+  var OUT_AT = 4 + DIVE_LEN, END = OUT_AT + 1;
+  var DONE_POSE = { yaw: 405, pitch: ISO / DEG, zoom: 1, focus: MID, xray: 0, dive: 5, diveW: 0 };
+
+  // The canvas, filling the stage (on a phone, the drawing's own shape)
+  var canvas = document.createElement("canvas");
+  canvas.className = "hw-diagram-canvas";
+  canvas.setAttribute("aria-hidden", "true");
+  stage.appendChild(canvas);
+  var g = canvas.getContext("2d");
+  var dpr = 1, CW = 0, CH = 0;
+  function fit() {
+    var r = stage.getBoundingClientRect();
+    var w = Math.round(r.width), h = Math.round(phone ? r.width * H0 / W0 : r.height);
+    if (w === CW && h === CH) return;
+    CW = w; CH = h;
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
+    canvas.style.height = h + "px";
+  }
+
+  // The camera for this frame (orthographic: at the first angle exactly the isometric drawing),
+  // and where a point in the world lands on the canvas: [x, y, how near the camera it is]
+  var cam = { cy: 1, sy: 0, sp: 0, cp: 1, k: 1, base: 1, fx: 0, fy: 0 };
+  function raw(x, y, z) {
+    var xr = x * cam.cy - y * cam.sy, yr = x * cam.sy + y * cam.cy;
+    return [SCALE * xr, SCALE * (cam.sp * yr - cam.cp * z), yr];
+  }
+  function setCamera(c, focusZ) {
+    cam.cy = Math.cos(c.yaw * DEG); cam.sy = Math.sin(c.yaw * DEG);
+    cam.sp = Math.sin(c.pitch * DEG); cam.cp = Math.cos(c.pitch * DEG);
+    cam.base = Math.min(CW / W0, CH / H0) * 0.98;
+    cam.k = cam.base * c.zoom;
+    var f = raw(0, 0, focusZ);
+    cam.fx = f[0]; cam.fy = f[1];
+  }
+  function P(x, y, z) {
+    var r = raw(x, y, z);
+    return [CW / 2 + cam.k * (r[0] - cam.fx), CH / 2 + cam.k * (r[1] - cam.fy), r[2]];
+  }
+  // how much a side faces the camera (more than 0: it shows)
+  function facing(nx, ny) { return nx * cam.sy + ny * cam.cy; }
+
+  function path(points) {
+    g.beginPath();
+    points.forEach(function (p, i) { if (i) g.lineTo(p[0], p[1]); else g.moveTo(p[0], p[1]); });
+    g.closePath();
+  }
+  function poly(points, fill, stroke, width, dash) {
+    path(points);
+    if (fill) { g.fillStyle = fill; g.fill(); }
+    if (stroke) {
+      g.strokeStyle = stroke; g.lineWidth = width || 1;
+      g.setLineDash(dash || []);
+      g.stroke();
+      g.setLineDash([]);
     }
-  })();
-  var current = [];
-  function place(p) {
-    // apart by p: from the stack to their places
-    current = LAYERS.map(function (layer, i) {
-      return STACKED[i] + (layer.y - STACKED[i]) * ease(p);
+  }
+  function seg(a, b, stroke, width, dash) {
+    g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]);
+    g.strokeStyle = stroke; g.lineWidth = width || 1;
+    g.setLineDash(dash || []);
+    g.stroke();
+    g.setLineDash([]);
+  }
+  function dot(p, r, fill) { g.beginPath(); g.arc(p[0], p[1], r, 0, 2 * Math.PI); g.fillStyle = fill; g.fill(); }
+
+  // A box (a chip, or a module on one): the sides that face the camera, shaded as if lit from the
+  // right, with vents, then its top; see-through by xray
+  var SIDES = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+  function box(x, y, z, a, t, xray, topFill, topStroke, vents) {
+    var solid = 1 - 0.86 * xray;
+    var corner = function (sx, sy, zz) { return P(x + sx * a, y + sy * a, zz); };
+    SIDES.forEach(function (n) {
+      if (facing(n[0], n[1]) <= 0.001) return;
+      var q = n[0] ? [[n[0], -1], [n[0], 1]] : [[-1, n[1]], [1, n[1]]];
+      var face = [corner(q[0][0], q[0][1], z), corner(q[1][0], q[1][1], z), corner(q[1][0], q[1][1], z - t), corner(q[0][0], q[0][1], z - t)];
+      var light = 12 + Math.round(20 * (0.5 + 0.5 * (n[0] * 0.8 - n[1] * 0.6)));
+      poly(face, "rgba(" + light + "," + light + "," + (light + 5) + "," + solid + ")", LINE, 1);
+      if (vents) {
+        for (var k = 0; k < 9; k++) {
+          var s = -1 + (22 + k * 9) / a;
+          var px = n[0] ? n[0] : s, py = n[0] ? -s : n[1];
+          seg(corner(px, py, z - t * 0.32), corner(px, py, z - t * 0.72), "rgba(255,255,255," + (0.34 * (1 - 0.5 * xray)).toFixed(3) + ")", 1);
+        }
+      }
     });
-    // the orbit, the guides and the travelling dot come in once the stack has opened a little
-    var opened = clamp((p - 0.3) / 0.3);
-    orbitBack.style.opacity = orbitFront.style.opacity = opened.toFixed(3);
-    guides.style.opacity = opened.toFixed(3);
-    svg.querySelectorAll(".hw-raised").forEach(function (part) { part.style.opacity = clamp((p - 0.42) / 0.2).toFixed(3); });
-    layerGroups.forEach(function (g, i) { g.setAttribute("transform", "translate(" + CX + "," + current[i].toFixed(1) + ")"); });
-    orbit(current[METHODS]);
-    // the guides: dashed uprights at the slabs' side corners, and the middle line they hang on
-    guides.innerHTML = "";
-    var top = current[0], bottom = current[current.length - 1] + 130;
-    [-225, 225].forEach(function (dx) {
-      el("line", { x1: CX + dx, y1: top, x2: CX + dx, y2: current[current.length - 1], stroke: "rgba(255,255,255,0.28)", "stroke-dasharray": "4 6" }, guides);
+    if (cam.sp > 0.02) {
+      poly([corner(-1, -1, z), corner(1, -1, z), corner(1, 1, z), corner(-1, 1, z)],
+        topFill || "rgba(15,15,19," + solid + ")", topStroke || LINE, 1.2);
+    }
+  }
+
+  // The inside of a chip, seen in x-ray: rings, traces out to the edges ending in vias, a core,
+  // half-way down
+  function bones(z, a, t, xray) {
+    if (xray < 0.02) return;
+    var zz = z - t / 2;
+    g.globalAlpha = xray * layerAlpha;
+    [0.28, 0.52, 0.76].forEach(function (r, i) {
+      var q = r * a;
+      poly([P(-q, -q, zz), P(q, -q, zz), P(q, q, zz), P(-q, q, zz)], null, i === 1 ? VIOLET : "rgba(255,255,255,0.4)", 1);
     });
-    el("line", { x1: CX, y1: top + 130, x2: CX, y2: bottom, stroke: "rgba(255,255,255,0.22)" }, guides);
-    guides.appendChild(dot);  // (the dot travels the middle line, behind the slabs)
-    // the callouts: a leader from the slab's outer corner out to its words, drawn in turn
-    callouts.forEach(function (c, i) {
-      var layer = LAYERS[i], y = current[i];
-      var cornerX = CX + layer.side * (layer.a * 2 * C - 40), cornerY = y + 10;
-      var endX = layer.side > 0 ? 890 : 310;
-      var labelY = y - 30 - (layer.lift || 0);
-      c.lead.setAttribute("d", "M " + cornerX.toFixed(1) + " " + cornerY.toFixed(1) + " L " + (endX - layer.side * 40) + " " + labelY.toFixed(1) + " L " + endX + " " + labelY.toFixed(1));
-      c.pin.setAttribute("cx", cornerX.toFixed(1));
-      c.pin.setAttribute("cy", cornerY.toFixed(1));
-      c.g.querySelectorAll("text").forEach(function (t, k) {
-        t.setAttribute("y", (labelY + 4 + (k ? 32 + (k - 1) * 27 : 0)).toFixed(1));
+    for (var k = 0; k < 12; k++) {
+      var side = k % 4, s = -0.7 + Math.floor(k / 4) * 0.7;
+      var from = [[0.28, s * 0.28], [-0.28, s * 0.28], [s * 0.28, 0.28], [s * 0.28, -0.28]][side];
+      var to = [[0.95, s * 0.9], [-0.95, s * 0.9], [s * 0.9, 0.95], [s * 0.9, -0.95]][side];
+      seg(P(from[0] * a, from[1] * a, zz), P(to[0] * a, to[1] * a, zz), k % 3 ? "rgba(139,127,242,0.75)" : "rgba(255,255,255,0.45)", 1);
+      var v = P(to[0] * a, to[1] * a, zz);
+      g.fillStyle = VIOLET; g.fillRect(v[0] - 2, v[1] - 2, 4, 4);
+    }
+    dot(P(0, 0, zz), 4, VIOLET);
+    g.globalAlpha = layerAlpha;
+  }
+
+  // Every edge of a chip, dashed over it in x-ray
+  function wire(z, a, t, xray) {
+    if (xray < 0.02) return;
+    var c = [[-1, -1], [1, -1], [1, 1], [-1, 1]], colour = "rgba(255,255,255," + (0.4 * xray).toFixed(3) + ")";
+    for (var i = 0; i < 4; i++) {
+      var p = c[i], q = c[(i + 1) % 4];
+      seg(P(p[0] * a, p[1] * a, z - t), P(q[0] * a, q[1] * a, z - t), colour, 1, [3, 4]);
+      seg(P(p[0] * a, p[1] * a, z), P(p[0] * a, p[1] * a, z - t), colour, 1, [3, 4]);
+    }
+  }
+
+  // What's on a chip's top: lines of text, token tiles, token numbers, the method modules or the
+  // vectors, then its inner rim and corner dots. Text is drawn flat on the face (the camera is
+  // orthographic, so a face's picture is just a slant of it)
+  function onTop(layer, z, raised, xray) {
+    var kind = layer.kind, flat = cam.sp > 0.05;
+    var fade = (1 - 0.45 * xray) * layerAlpha;
+    g.globalAlpha = fade;
+    if ((kind === "prompt" || kind === "shorter") && flat) {
+      PROSE.forEach(function (row, k) {
+        var y = -86 + k * 33, len = row[0], keep = row[1];
+        seg(P(-100, y, z), P(-100 + keep, y, z), k === 0 ? LINE : DIM, 1.4);
+        if (keep < len) {
+          if (kind === "prompt") seg(P(-100 + keep + 6, y, z), P(-100 + len, y, z), VIOLET, 1.4);
+          else seg(P(-100 + keep + 6, y, z), P(-100 + len, y, z), "rgba(255,255,255,0.16)", 1, [2, 4]);
+        }
       });
-      var show = still ? 1 : clamp((p - 0.45 - i * 0.07) / 0.25);
-      c.g.style.opacity = show.toFixed(3);
-      c.lead.style.strokeDasharray = "1 1";
-      c.lead.style.strokeDashoffset = (1 - show).toFixed(3);
+      if (kind === "prompt") poly([P(34, 74, z), P(41, 74, z), P(41, 88, z), P(34, 88, z)], VIOLET);
+    } else if (kind === "tokens" && flat) {
+      TILES.forEach(function (tile) {
+        var pts = [P(tile.x, tile.y, z), P(tile.x + tile.w, tile.y, z), P(tile.x + tile.w, tile.y + 21, z), P(tile.x, tile.y + 21, z)];
+        if (tile.filler) poly(pts, null, "rgba(139,127,242,0.8)", 0.9, [2, 3]);
+        else poly(pts, null, LINE, 0.9);
+      });
+    } else if (kind === "ids" && flat) {
+      var o = P(0, 0, z), ux = P(1, 0, z), vy = P(0, 1, z);
+      g.save();
+      g.setTransform(dpr * (ux[0] - o[0]), dpr * (ux[1] - o[1]), dpr * (vy[0] - o[0]), dpr * (vy[1] - o[1]), dpr * o[0], dpr * o[1]);
+      g.font = "400 15px " + FONT;
+      IDS.forEach(function (row, k) {
+        g.fillStyle = k % 2 ? DIM : LINE;
+        g.fillText(spaced(row), -104, -74 + k * 34);
+      });
+      g.restore();
+    } else if (kind === "methods" && raised > 0) {
+      g.globalAlpha = raised * fade;
+      [["NLP", -85], ["TF-IDF", 0], ["AI REWRITE", 85]].forEach(function (m, k) {
+        var x = m[1], y = -m[1] * 0.35;
+        box(x, y, z + 30, 30, 30, xray, k === 2 ? "rgba(139,127,242,0.25)" : null, k === 2 ? VIOLET : null, false);
+        // its name on a pill over it, upright to the camera (only when looking down on it)
+        if (cam.sp > 0.3) {
+          var top = P(x, y, z + 30), unit = cam.k;
+          var wide = (m[0].length * 8.4 + 22) * unit, py = top[1] - 46 * unit;
+          seg([top[0], py + 12 * unit], [top[0], top[1] - 4 * unit], DIM, 1);
+          g.beginPath();
+          g.roundRect(top[0] - wide / 2, py - 12 * unit, wide, 24 * unit, 12 * unit);
+          g.fillStyle = "#0b0b0e"; g.fill();
+          g.strokeStyle = LINE; g.lineWidth = 1; g.stroke();
+          g.fillStyle = "#ffffff";
+          g.font = "500 " + (11 * unit).toFixed(1) + "px " + FONT;
+          g.textAlign = "center"; g.textBaseline = "middle";
+          g.fillText(spaced(m[0]), top[0], py + 0.5);
+          g.textAlign = "start"; g.textBaseline = "alphabetic";
+        }
+      });
+    } else if (kind === "vectors" && raised > 0) {
+      g.globalAlpha = raised * fade;
+      VECTORS.forEach(function (v) {
+        var foot = P(v.x, v.y, z), head = P(v.x, v.y, z + v.h);
+        seg(foot, head, v.violet ? VIOLET : LINE, 1.4);
+        dot(head, 2.2, v.violet ? VIOLET : "#ffffff");
+      });
+    }
+    g.globalAlpha = layerAlpha;
+    if (flat) {
+      var r = layer.a - 12;
+      poly([P(-r, -r, z), P(r, -r, z), P(r, r, z), P(-r, r, z)], null, "rgba(255,255,255,0.12)", 1);
+      [[-1, -1], [1, -1], [1, 1], [-1, 1]].forEach(function (c) {
+        dot(P(c[0] * (layer.a - 6), c[1] * (layer.a - 6), z), 2.1, "rgba(255,255,255,0.85)");
+      });
+    }
+  }
+
+  // The violet orbit round the methods' chip: a ring and a dashed one inside it, level with it;
+  // the far half drawn before the chip, the near half after the whole stack
+  function orbit(z, near, alpha, time) {
+    if (alpha < 0.01) return;
+    [[300, 1.1, null, 0.8], [240, 1, [5, 7], 0.7]].forEach(function (ring) {
+      g.beginPath();
+      var started = false;
+      for (var k = 0; k <= 180; k++) {
+        var th = k / 180 * 2 * Math.PI;
+        var p = P(ring[0] * Math.cos(th), ring[0] * Math.sin(th), z);
+        if ((p[2] >= 0) === near) {
+          if (started) g.lineTo(p[0], p[1]); else { g.moveTo(p[0], p[1]); started = true; }
+        } else started = false;
+      }
+      g.strokeStyle = VIOLET; g.globalAlpha = ring[3] * alpha; g.lineWidth = ring[1];
+      if (ring[2]) { g.setLineDash(ring[2]); g.lineDashOffset = -time / 60; }
+      g.stroke();
+      g.setLineDash([]); g.lineDashOffset = 0; g.globalAlpha = 1;
     });
   }
 
-  var shown = -1, target = 0, at = still ? 1 : 0, last = 0;
-  // The page doesn't scroll (styles.css): the wheel, a swipe or the arrow keys open the stack and
-  // close it again, in place. On a phone, where the page scrolls to the list, it's open from the
-  // start. A hint shows until it starts opening
-  var phone = window.matchMedia("(max-width: 800px)").matches;
-  var wanted = phone ? 1 : 0;
+  // A callout: a pin near the chip's outer corner, a leader out to the side, the number and name
+  // and a few words; only at the first angle, and not on a phone (the list is there instead)
+  function callout(layer, z, alpha) {
+    if (alpha < 0.01 || phone) return;
+    var anchor = P(layer.side * 0.82 * layer.a, -layer.side * 0.82 * layer.a, z);
+    var base = cam.base, side = layer.side;
+    var endX = CW / 2 + side * 290 * base;
+    var labelY = anchor[1] - (30 + (layer.lift || 0)) * base;
+    g.globalAlpha = alpha;
+    g.beginPath();
+    g.moveTo(anchor[0], anchor[1]);
+    g.lineTo(endX - side * 40 * base, labelY);
+    g.lineTo(endX, labelY);
+    g.strokeStyle = DIM; g.lineWidth = 1; g.stroke();
+    g.beginPath(); g.arc(anchor[0], anchor[1], 3.5, 0, 2 * Math.PI);
+    g.fillStyle = "#0b0b0e"; g.fill(); g.strokeStyle = "#ffffff"; g.lineWidth = 1.3; g.stroke();
+    var x = endX + side * 15 * base, y = labelY + 6 * base;
+    g.font = "600 " + (18 * base).toFixed(1) + "px " + FONT;
+    var name = spaced(layer.name.toUpperCase()), num = spaced(layer.num) + "   ";
+    var numW = g.measureText(num).width, nameW = g.measureText(name).width;
+    var from = side > 0 ? x : x - numW - nameW;
+    g.fillStyle = VIOLET; g.fillText(num, from, y);
+    g.fillStyle = "#ffffff"; g.fillText(name, from + numW, y);
+    g.font = "400 " + (20 * base).toFixed(1) + "px " + FONT;
+    g.fillStyle = "rgba(255,255,255,0.6)";
+    g.textAlign = side > 0 ? "left" : "right";
+    layer.text.forEach(function (line, k) { g.fillText(line, x, y + (34 + k * 27) * base); });
+    g.textAlign = "start";
+    g.globalAlpha = 1;
+  }
+
+  // Where the wheel has got to: 0 to END (on a phone or with reduced motion, 2: open, still)
+  var fixed = phone || still;
+  var wanted = fixed ? 2 : 0, at = wanted, last = 0;
   var hint = document.querySelector(".hw-hint");
-  function nudge(by) { wanted = clamp(wanted + by); }
-  if (!phone && !still) {
+  function nudge(by) { wanted = Math.min(END, Math.max(0, wanted + by)); }
+  if (!fixed) {
     window.addEventListener("wheel", function (event) {
       event.preventDefault();
-      nudge((event.deltaMode === 1 ? event.deltaY * 30 : event.deltaY) / 1400);
+      nudge((event.deltaMode === 1 ? event.deltaY * 30 : event.deltaY) / 900);
     }, { passive: false });
     var touchY = null;
     window.addEventListener("touchstart", function (event) { touchY = event.touches[0].clientY; }, { passive: true });
     window.addEventListener("touchmove", function (event) {
       if (touchY == null) return;
       event.preventDefault();
-      nudge((touchY - event.touches[0].clientY) / 700);
+      nudge((touchY - event.touches[0].clientY) / 450);
       touchY = event.touches[0].clientY;
     }, { passive: false });
     window.addEventListener("keydown", function (event) {
-      var step = { ArrowDown: 0.12, PageDown: 0.35, " ": 0.35, ArrowUp: -0.12, PageUp: -0.35, End: 1, Home: -1 }[event.key];
+      var step = { ArrowDown: 0.15, PageDown: 0.5, " ": 0.5, ArrowUp: -0.15, PageUp: -0.5, End: END, Home: -END }[event.key];
       if (step == null || /^(INPUT|TEXTAREA|SELECT)$/.test((event.target || {}).tagName || "")) return;
       event.preventDefault();
       nudge(step);
     });
   }
-  function progress() {
-    if (hint) hint.classList.toggle("is-gone", wanted > 0.04);
-    return wanted;
+
+  // The pose at any point of the wheel
+  function blend(a, b, k) {
+    var out = { focusA: a.focus, focusB: b.focus, k: k };
+    ["yaw", "pitch", "zoom", "xray", "dive", "diveW"].forEach(function (key) { out[key] = mix(a[key], b[key], k); });
+    return out;
   }
+  function pose(w) {
+    // the closed stack spins round once (ending where it began), then opens
+    if (w <= 1) return blend(Object.assign({}, ISO_POSE, { yaw: 45 + 360 * smooth(clamp(w)) }), ISO_POSE, 0);
+    if (w <= 2) return blend(ISO_POSE, ISO_POSE, 0);
+    if (w <= 3) return blend(ISO_POSE, SIDE_POSE, smooth(w - 2));
+    if (w <= 4) return blend(SIDE_POSE, TOP_POSE, smooth(w - 3));
+    if (w <= OUT_AT) {
+      // the dive: down from chip to chip, easing to a stop on each; the view turning slowly
+      var d = (w - 4) / DIVE_LEN * 5, n = Math.min(4, Math.floor(d));
+      var chip = n + smooth(clamp(d - n));
+      return blend(TOP_POSE, Object.assign({}, TOP_POSE, { yaw: TOP_POSE.yaw + DIVE_TURN * (w - 4) / DIVE_LEN,
+        focus: { chip: chip }, dive: chip }), 1);
+    }
+    var bottom = Object.assign({}, TOP_POSE, { yaw: TOP_POSE.yaw + DIVE_TURN, focus: { chip: 5 }, dive: 5 });
+    return blend(bottom, DONE_POSE, smooth(clamp(w - OUT_AT)));
+  }
+
   function frame(now) {
-    target = still ? 1 : progress();
-    at += (target - at) * Math.min(1, (now - (last || now)) / 160);
+    fit();
+    at += (wanted - at) * Math.min(1, (now - (last || now)) / 170);
+    if (Math.abs(wanted - at) < 0.0005) at = wanted;
     last = now;
-    if (Math.abs(at - shown) > 0.0005) { place(at); shown = at; }
-    // the dot: down the middle line, again and again
-    var top = current[0] + 130, bottom = current[current.length - 1];
-    var k = still ? 0.5 : (now / 5200) % 1;
-    dot.setAttribute("cx", CX);
-    dot.setAttribute("cy", (top + (bottom - top) * k).toFixed(1));
-    if (!still) requestAnimationFrame(frame);
+    if (hint) hint.classList.toggle("is-gone", wanted > 0.04);
+    var opening = clamp(at - 1), open = ease(opening);
+    var tops = LAYERS.map(function (layer, i) { return -(STACKED[i] + (layer.y - STACKED[i]) * open); });
+    var middle = function (i) { return tops[i] - LAYERS[i].t / 2; };
+    var focusOf = function (f) {
+      if (typeof f === "number") return -f;
+      var lo = Math.floor(f.chip), hi = Math.min(LAYERS.length - 1, lo + 1);
+      return mix(middle(lo), middle(hi), f.chip - lo);
+    };
+    var c = pose(at);
+    setCamera(c, mix(focusOf(c.focusA), focusOf(c.focusB), c.k));
+    var xray = c.xray, kBase = cam.k;
+    var opened = clamp((opening - 0.3) / 0.3), raised = clamp((opening - 0.42) / 0.2);
+    // the callouts: in turn as it opens, gone once the camera moves, back at the very end
+    var first = 1 - clamp((at - 2) / 0.18), back = clamp((at - (END - 0.25)) / 0.25);
+    // each chip in the dive: the ones passed swell and fade, as if flown through; the ones still
+    // below look smaller, further off; the one in focus stands out, the others recede in x-ray
+    var focusChip = Math.round(c.dive);
+    var scale = [], alpha = [];
+    LAYERS.forEach(function (layer, i) {
+      var rel = (c.dive - i) * c.diveW;
+      scale[i] = rel > 0 ? 1 + 4 * rel * rel : 1 / (1 + 0.18 * -rel);
+      var passed = rel > 0 ? 1 - clamp(rel / 0.55) : 1;
+      alpha[i] = passed * (i === focusChip ? 1 : 1 - 0.72 * xray);
+    });
+
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.clearRect(0, 0, CW, CH);
+    g.lineJoin = "round"; g.lineCap = "round";
+    // the guides: dashed uprights at the chips' corners, the middle line, the dot going down it
+    var top = tops[0], bottom = tops[tops.length - 1];
+    g.globalAlpha = opened * (1 - 0.7 * c.diveW);
+    [[-1, -1], [1, -1], [1, 1], [-1, 1]].forEach(function (s) {
+      seg(P(s[0] * 130, s[1] * 130, top), P(s[0] * 130, s[1] * 130, bottom), "rgba(255,255,255,0.28)", 1, [4, 6]);
+    });
+    seg(P(0, 0, top - LAYERS[0].t), P(0, 0, bottom), "rgba(255,255,255,0.22)", 1);
+    var flow = fixed ? 0.5 : (now / 5200) % 1;
+    dot(P(0, 0, mix(top - LAYERS[0].t, bottom, flow)), 4.5, VIOLET);
+    g.globalAlpha = 1;
+    // the chips, bottom first, so each covers the one under it
+    for (var i = LAYERS.length - 1; i >= 0; i--) {
+      var layer = LAYERS[i], z = tops[i];
+      if (alpha[i] < 0.01) continue;
+      cam.k = kBase * scale[i];
+      if (i === METHODS) { g.globalAlpha = alpha[i]; orbit(z - layer.t / 2, false, opened * alpha[i], now); }
+      layerAlpha = alpha[i];
+      g.globalAlpha = layerAlpha;
+      box(0, 0, z, layer.a, layer.t, xray, null, null, true);
+      bones(z, layer.a, layer.t, xray);
+      onTop(layer, z, raised, xray);
+      wire(z, layer.a, layer.t, xray);
+      g.globalAlpha = 1;
+    }
+    layerAlpha = 1;
+    cam.k = kBase * scale[METHODS];
+    orbit(tops[METHODS] - LAYERS[METHODS].t / 2, true, opened * alpha[METHODS], now);
+    cam.k = kBase;
+    LAYERS.forEach(function (layer, i) {
+      var drawIn = fixed ? 1 : clamp((opening - 0.45 - i * 0.07) / 0.25);
+      callout(layer, tops[i], Math.max(drawIn * first, back));
+    });
+    if (!fixed) requestAnimationFrame(frame);
   }
-  place(at);
-  requestAnimationFrame(frame);
+  // (drawn once fonts are in, and again on resizing when it's still)
+  if (fixed) window.addEventListener("resize", function () { requestAnimationFrame(frame); });
+  (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(function () { requestAnimationFrame(frame); });
 })();

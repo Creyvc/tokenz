@@ -5631,7 +5631,7 @@ html.hw-still .hw-land {
     max-width: none;
   }
 
-  .hw-explode .hw-diagram-svg {
+  .hw-explode .hw-diagram-canvas {
     width: 100%;
     height: 100%;
   }
@@ -5760,12 +5760,9 @@ body:has(.content.how) .tz-bar {
   white-space: nowrap;
 }
 
-.hw-diagram-svg {
+.hw-diagram-canvas {
   display: block;
   width: 100%;
-  height: auto;
-  overflow: visible;
-  font-family: inherit;
 }
 
 .hw-orbit-dash {
