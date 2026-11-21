@@ -15,7 +15,8 @@
 //           turning see-through (x-ray) to the circuitry inside them
 //   4 on    the dive: down through the stack a chip at a time to the last, each one passed
 //           swelling and fading as if flown through, the view turning slowly; the x-ray is only
-//           for the view from the top, so diving the chips are solid again
+//           for the view from the top, so diving the chips are solid again; the chip in front
+//           has its number, name and words on the left
 //   then    back out, turning round to where it started; the chips and the callouts come back
 //   last    the stack closes up again, as at the start, and it all goes round again: a loop, both
 //           ways, with no end
@@ -358,6 +359,30 @@
     g.globalAlpha = 1;
   }
 
+  // In the dive, the chip in front of the camera has its caption on the left: number and name,
+  // then its words; it rises in as the camera gets to it and slides up and away as it passes
+  function caption(layer, alpha, shift) {
+    if (alpha < 0.01 || phone) return;
+    var x = 32, y = CH / 2 - 40 + shift;
+    g.globalAlpha = alpha;
+    g.textAlign = "left";
+    // (on a soft dark backing, so lines behind it never cross the words)
+    g.font = "400 16px " + FONT;
+    var wide = Math.max.apply(null, layer.text.map(function (line) { return g.measureText(line).width; })) + 40;
+    g.fillStyle = "rgba(11,11,12,0.82)";
+    g.beginPath();
+    g.roundRect(x - 20, y - 34, wide, 64 + layer.text.length * 24, 6);
+    g.fill();
+    g.font = "600 16px " + FONT;
+    var num = spaced(layer.num) + "   ";
+    g.fillStyle = VIOLET; g.fillText(num, x, y);
+    g.fillStyle = "#ffffff"; g.fillText(spaced(layer.name.toUpperCase()), x + g.measureText(num).width, y);
+    g.font = "400 16px " + FONT;
+    g.fillStyle = "rgba(255,255,255,0.6)";
+    layer.text.forEach(function (line, k) { g.fillText(line, x, y + 32 + k * 24); });
+    g.globalAlpha = 1;
+  }
+
   // Where the wheel has got to, round and round the loop (on a phone or with reduced motion, 2:
   // open, still)
   var fixed = phone || still;
@@ -481,6 +506,12 @@
     cam.k = kBase * scale[METHODS];
     orbit(tops[METHODS] - LAYERS[METHODS].t / 2, true, opened * alpha[METHODS], now);
     cam.k = kBase;
+    if (c.diveW > 0.01) {
+      LAYERS.forEach(function (layer, i) {
+        var off = c.dive - i;
+        caption(layer, (1 - clamp(Math.abs(off) / 0.4)) * c.diveW, -off * 60);
+      });
+    }
     LAYERS.forEach(function (layer, i) {
       var drawIn = fixed ? 1 : w >= END ? 0 : clamp((opening - 0.45 - i * 0.07) / 0.25);
       callout(layer, tops[i], Math.max(drawIn * first, back));

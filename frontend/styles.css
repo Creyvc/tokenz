@@ -5595,6 +5595,48 @@ html.hw-still .hw-land {
   opacity: 0;
 }
 
+/* The scroll sign over the word: a mouse in outline, its wheel a dot that glides down and fades,
+   again and again */
+.hw-hint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.hw-hint-mouse {
+  position: relative;
+  width: 18px;
+  height: 28px;
+  border: 1.5px solid currentColor;
+  border-radius: 9px;
+}
+
+.hw-hint-mouse::after {
+  content: "";
+  position: absolute;
+  top: 5px;
+  left: 50%;
+  width: 3px;
+  height: 6px;
+  margin-left: -1.5px;
+  border-radius: 2px;
+  background: currentColor;
+  animation: hw-wheel 1.8s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+@keyframes hw-wheel {
+  0% { transform: translateY(0); opacity: 1; }
+  70% { transform: translateY(9px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hw-hint-mouse::after {
+    animation: none;
+  }
+}
+
 .hw-hint {
   transition: opacity 0.4s ease;
 }
@@ -5654,6 +5696,48 @@ html.hw-still .hw-land {
 
 .hw-hint.is-gone {
   opacity: 0;
+}
+
+/* The scroll sign over the word: a mouse in outline, its wheel a dot that glides down and fades,
+   again and again */
+.hw-hint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.hw-hint-mouse {
+  position: relative;
+  width: 18px;
+  height: 28px;
+  border: 1.5px solid currentColor;
+  border-radius: 9px;
+}
+
+.hw-hint-mouse::after {
+  content: "";
+  position: absolute;
+  top: 5px;
+  left: 50%;
+  width: 3px;
+  height: 6px;
+  margin-left: -1.5px;
+  border-radius: 2px;
+  background: currentColor;
+  animation: hw-wheel 1.8s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+@keyframes hw-wheel {
+  0% { transform: translateY(0); opacity: 1; }
+  70% { transform: translateY(9px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hw-hint-mouse::after {
+    animation: none;
+  }
 }
 
 @media (max-width: 800px), (prefers-reduced-motion: reduce) {
