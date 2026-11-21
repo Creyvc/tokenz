@@ -5605,9 +5605,61 @@ html.hw-still .hw-land {
    dashed guides, each with a numbered callout; violet the only colour. The same six steps as a
    list, for screen readers, and shown instead of the callouts on a phone */
 .hw-explode {
+  position: relative;
   padding: 4vh 48px 18vh;
   background: #0b0b0c;
   color: #ffffff;
+}
+
+/* On a wide screen the page doesn't scroll: the drawing fills the window, fitted to its height,
+   and the wheel opens the stack in place (how-diagram.js) */
+@media (min-width: 801px) {
+  html:has(.content.how),
+  body:has(.content.how) {
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
+  .hw-explode {
+    height: 100vh;
+    padding: 2vh 24px;
+  }
+
+  .hw-explode .hw-diagram {
+    height: 100%;
+    max-width: none;
+  }
+
+  .hw-explode .hw-diagram-svg {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+/* "Scroll to open", small at the bottom middle, gone once the stack starts opening */
+.hw-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 3.5vh;
+  transform: translateX(-50%);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+.hw-hint.is-gone {
+  opacity: 0;
+}
+
+@media (max-width: 800px), (prefers-reduced-motion: reduce) {
+  .hw-hint {
+    display: none;
+  }
 }
 
 .hw-kicker {

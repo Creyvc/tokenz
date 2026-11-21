@@ -5,8 +5,10 @@
 // the three methods that shorten its words (in a violet orbit), the shorter prompt, the tokenizer
 // that cuts both versions into tokens and counts them (the tokens saved left as dashed outlines),
 // the tokens' numbers, and the vectors the AI model it's sent to makes of them.
-// - Scrolling it into view, the slabs come apart from a tight stack into their places, and the
-//   callouts draw in one after another; a violet dot keeps travelling down the middle line.
+// - The slabs are 3D chips (shaded sides with vents, a rim and corner dots). The page opens with
+//   them stacked right on top of each other, the whole drawing fitted to the window; the page
+//   doesn't scroll: the wheel opens the stack in place, the chips coming apart into their places
+//   and the callouts drawing in one after another; a violet dot keeps travelling down the middle.
 // - With reduced motion it's drawn in its places, still.
 // The same six steps are in the page as a list (.hw-layers): read out instead of the drawing, and
 // shown under it on a phone, where the callouts would be too small.
@@ -15,23 +17,23 @@
   if (!stage) return;
   var still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var NS = "http://www.w3.org/2000/svg";
-  var W = 1200, H = 1720, CX = 600;
+  var W = 1200, H = 1370, CX = 600;
   var VIOLET = "#8B7FF2", LINE = "rgba(255,255,255,0.82)", DIM = "rgba(255,255,255,0.34)";
   var C = 0.866, S = 0.5;   // the isometric axes
 
   // Where each slab sits once apart, and its half-size and thickness
   var LAYERS = [
-    { kind: "prompt", y: 220, a: 130, t: 14, num: "01", name: "Your prompt", side: -1,
+    { kind: "prompt", y: 140, a: 130, t: 26, num: "01", name: "Your prompt", side: -1,
       text: ["The prompt you'd send to an AI,", "pasted on Compare."] },
-    { kind: "methods", y: 505, a: 160, t: 24, num: "02", name: "Three methods", side: 1, lift: 120,
+    { kind: "methods", y: 405, a: 160, t: 34, num: "02", name: "Three methods", side: 1, lift: 120,
       text: ["They work on your words: NLP trims", "filler, TF-IDF drops off-topic sentences,", "AI rewrite asks Groq and Google."] },
-    { kind: "shorter", y: 790, a: 130, t: 14, num: "03", name: "Shorter prompt", side: -1,
+    { kind: "shorter", y: 605, a: 130, t: 26, num: "03", name: "Shorter prompt", side: -1,
       text: ["Checked: numbers, limits and \u201cnot\u201ds", "must survive, or the original is kept."] },
-    { kind: "tokens", y: 1050, a: 130, t: 14, num: "04", name: "Tokenizer", side: 1,
+    { kind: "tokens", y: 800, a: 130, t: 26, num: "04", name: "Tokenizer", side: 1,
       text: ["Both versions cut into tokens and", "counted (o200k_base): the difference", "is what you save."] },
-    { kind: "ids", y: 1300, a: 130, t: 14, num: "05", name: "Token IDs", side: -1,
+    { kind: "ids", y: 993, a: 130, t: 26, num: "05", name: "Token IDs", side: -1,
       text: ["Each token is a number in the", "AI model's vocabulary."] },
-    { kind: "vectors", y: 1540, a: 130, t: 14, num: "06", name: "Embeddings", side: 1,
+    { kind: "vectors", y: 1182, a: 130, t: 26, num: "06", name: "Embeddings", side: 1,
       text: ["In the AI model you send it to: each", "token becomes a vector, and you pay", "per token."] }
   ];
 
@@ -52,12 +54,26 @@
   }
 
   // A slab: its top face, and the two sides that show, in thin line over the black
+  // A chip: a thick slab with shaded sides (the left one darker, as if lit from the right), rows
+  // of vents along each side, an inner rim and a dot in each corner of its top
   function slab(g, a, t) {
     var top = [P(-a, -a), P(a, -a), P(a, a), P(-a, a)];
-    var down = function (p) { return [p[0], p[1] + t]; };
-    el("polygon", { points: pts([top[3], top[2], down(top[2]), down(top[3])]), fill: "#0d0d10", stroke: LINE, "stroke-width": 1 }, g);
-    el("polygon", { points: pts([top[2], top[1], down(top[1]), down(top[2])]), fill: "#121216", stroke: LINE, "stroke-width": 1 }, g);
-    el("polygon", { points: pts(top), fill: "#0b0b0e", stroke: LINE, "stroke-width": 1.2 }, g);
+    var down = function (p, d) { return [p[0], p[1] + (d == null ? t : d)]; };
+    el("polygon", { points: pts([top[3], top[2], down(top[2]), down(top[3])]), fill: "url(#hw-side-l)", stroke: LINE, "stroke-width": 1 }, g);
+    el("polygon", { points: pts([top[2], top[1], down(top[1]), down(top[2])]), fill: "url(#hw-side-r)", stroke: LINE, "stroke-width": 1 }, g);
+    // vents: short upright lines near the far end of each side
+    for (var k = 0; k < 9; k++) {
+      var v = -a + 22 + k * 9;
+      line(g, down(P(v, a), t * 0.32), down(P(v, a), t * 0.72), { stroke: "rgba(255,255,255,0.32)", "stroke-width": 1 });
+      line(g, down(P(a, -v), t * 0.32), down(P(a, -v), t * 0.72), { stroke: "rgba(255,255,255,0.4)", "stroke-width": 1 });
+    }
+    el("polygon", { points: pts(top), fill: "url(#hw-top)", stroke: LINE, "stroke-width": 1.2 }, g);
+    var r = a - 12;
+    el("polygon", { points: pts([P(-r, -r), P(r, -r), P(r, r), P(-r, r)]), fill: "none", stroke: "rgba(255,255,255,0.12)", "stroke-width": 1 }, g);
+    [[-1, -1], [1, -1], [1, 1], [-1, 1]].forEach(function (c) {
+      var q = P(c[0] * (a - 6), c[1] * (a - 6));
+      el("circle", { cx: q[0].toFixed(1), cy: q[1].toFixed(1), r: 2.1, fill: "#ffffff", opacity: 0.85 }, g);
+    });
   }
 
   // A deterministic shuffle, so the drawing is the same every time
@@ -139,6 +155,12 @@
   }
 
   var svg = el("svg", { viewBox: "0 0 " + W + " " + H, class: "hw-diagram-svg", "aria-hidden": "true", focusable: "false" });
+  var defs = el("defs", {}, svg);
+  [["hw-side-l", "#17171c", "#08080a"], ["hw-side-r", "#22222a", "#0d0d11"], ["hw-top", "#131318", "#0b0b0e"]].forEach(function (d) {
+    var grad = el("linearGradient", { id: d[0], x1: 0, y1: 0, x2: 0, y2: 1 }, defs);
+    el("stop", { offset: 0, "stop-color": d[1] }, grad);
+    el("stop", { offset: 1, "stop-color": d[2] }, grad);
+  });
   var guides = el("g", { class: "hw-guides" }, svg);
   var orbitBack = el("g", {}, svg);
   // (made bottom first, so each slab covers the one under it, as seen from above)
@@ -147,7 +169,11 @@
   for (var n = LAYERS.length - 1; n >= 0; n--) {
     var g = el("g", { class: "hw-layer" }, slabs);
     slab(g, LAYERS[n].a, LAYERS[n].t);
-    details(g, LAYERS[n].kind, LAYERS[n].a);
+    // (what stands up off a chip, the method modules and the vectors, is in a group of its own:
+    // it would poke through the chip above while they're stacked, so it comes in as they part)
+    var tall = LAYERS[n].kind === "methods" || LAYERS[n].kind === "vectors";
+    var face = tall ? el("g", { class: "hw-raised" }, g) : g;
+    details(face, LAYERS[n].kind, LAYERS[n].a);
     layerGroups[n] = g;
   }
   var orbitFront = el("g", {}, svg);
@@ -158,13 +184,13 @@
     var pin = el("circle", { r: 3.5, fill: "#0b0b0e", stroke: "#ffffff", "stroke-width": 1.3 }, g);
     var right = layer.side > 0, x = right ? 905 : 295;
     var anchor = right ? "start" : "end";
-    var head = el("text", { x: x, y: 0, fill: "#ffffff", "font-size": 13, "letter-spacing": 2.2, "text-anchor": anchor, "font-weight": 600 }, g);
+    var head = el("text", { x: x, y: 0, fill: "#ffffff", "font-size": 18, "letter-spacing": 2.6, "text-anchor": anchor, "font-weight": 600 }, g);
     var num = el("tspan", { fill: VIOLET }, head);
     num.textContent = layer.num + "  ";
     var nm = el("tspan", {}, head);
     nm.textContent = layer.name.toUpperCase();
     layer.text.forEach(function (lineText, k) {
-      var t = el("text", { x: x, y: 26 + k * 21, fill: "rgba(255,255,255,0.56)", "font-size": 15, "text-anchor": anchor }, g);
+      var t = el("text", { x: x, y: 26 + k * 21, fill: "rgba(255,255,255,0.6)", "font-size": 20, "text-anchor": anchor }, g);
       t.textContent = lineText;
     });
     return { g: g, lead: lead, pin: pin };
@@ -185,14 +211,28 @@
   function ease(x) { return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; }
 
   var METHODS = LAYERS.map(function (layer) { return layer.kind; }).indexOf("methods");
-  var MID = (LAYERS[0].y + LAYERS[LAYERS.length - 1].y) / 2;
+  // At first the chips sit right on top of each other, a stack near the top of the window: each
+  // one's top face is its own thickness above the one under it
+  var STACK_BASE = 740;
+  var STACKED = [];
+  (function () {
+    var y = STACK_BASE;
+    for (var n = LAYERS.length - 1; n >= 0; n--) {
+      STACKED[n] = y;
+      if (n) y -= LAYERS[n - 1].t;
+    }
+  })();
   var current = [];
   function place(p) {
-    // apart by p: from a tight stack around the middle to their places
+    // apart by p: from the stack to their places
     current = LAYERS.map(function (layer, i) {
-      var stacked = MID + (i - (LAYERS.length - 1) / 2) * 58;
-      return stacked + (layer.y - stacked) * ease(p);
+      return STACKED[i] + (layer.y - STACKED[i]) * ease(p);
     });
+    // the orbit, the guides and the travelling dot come in once the stack has opened a little
+    var opened = clamp((p - 0.3) / 0.3);
+    orbitBack.style.opacity = orbitFront.style.opacity = opened.toFixed(3);
+    guides.style.opacity = opened.toFixed(3);
+    svg.querySelectorAll(".hw-raised").forEach(function (part) { part.style.opacity = clamp((p - 0.42) / 0.2).toFixed(3); });
     layerGroups.forEach(function (g, i) { g.setAttribute("transform", "translate(" + CX + "," + current[i].toFixed(1) + ")"); });
     orbit(current[METHODS]);
     // the guides: dashed uprights at the slabs' side corners, and the middle line they hang on
@@ -213,7 +253,7 @@
       c.pin.setAttribute("cx", cornerX.toFixed(1));
       c.pin.setAttribute("cy", cornerY.toFixed(1));
       c.g.querySelectorAll("text").forEach(function (t, k) {
-        t.setAttribute("y", (labelY + 4 + (k ? 24 + (k - 1) * 21 : 0)).toFixed(1));
+        t.setAttribute("y", (labelY + 4 + (k ? 32 + (k - 1) * 27 : 0)).toFixed(1));
       });
       var show = still ? 1 : clamp((p - 0.45 - i * 0.07) / 0.25);
       c.g.style.opacity = show.toFixed(3);
@@ -223,9 +263,36 @@
   }
 
   var shown = -1, target = 0, at = still ? 1 : 0, last = 0;
+  // The page doesn't scroll (styles.css): the wheel, a swipe or the arrow keys open the stack and
+  // close it again, in place. On a phone, where the page scrolls to the list, it's open from the
+  // start. A hint shows until it starts opening
+  var phone = window.matchMedia("(max-width: 800px)").matches;
+  var wanted = phone ? 1 : 0;
+  var hint = document.querySelector(".hw-hint");
+  function nudge(by) { wanted = clamp(wanted + by); }
+  if (!phone && !still) {
+    window.addEventListener("wheel", function (event) {
+      event.preventDefault();
+      nudge((event.deltaMode === 1 ? event.deltaY * 30 : event.deltaY) / 1400);
+    }, { passive: false });
+    var touchY = null;
+    window.addEventListener("touchstart", function (event) { touchY = event.touches[0].clientY; }, { passive: true });
+    window.addEventListener("touchmove", function (event) {
+      if (touchY == null) return;
+      event.preventDefault();
+      nudge((touchY - event.touches[0].clientY) / 700);
+      touchY = event.touches[0].clientY;
+    }, { passive: false });
+    window.addEventListener("keydown", function (event) {
+      var step = { ArrowDown: 0.12, PageDown: 0.35, " ": 0.35, ArrowUp: -0.12, PageUp: -0.35, End: 1, Home: -1 }[event.key];
+      if (step == null || /^(INPUT|TEXTAREA|SELECT)$/.test((event.target || {}).tagName || "")) return;
+      event.preventDefault();
+      nudge(step);
+    });
+  }
   function progress() {
-    var r = stage.getBoundingClientRect(), vh = window.innerHeight;
-    return clamp((vh - r.top) / (vh * 1.1));
+    if (hint) hint.classList.toggle("is-gone", wanted > 0.04);
+    return wanted;
   }
   function frame(now) {
     target = still ? 1 : progress();
