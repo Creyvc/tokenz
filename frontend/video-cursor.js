@@ -11,6 +11,12 @@
 //   the cursor was until it fills the window, playing the promo from the start, silently. The
 //   first screen holds while it plays (Home is taller for it, html.home-film in styles.css); scrolling
 //   on, the Three Methods page slides up over it. Scrolling back up plays it all backwards.
+// - The tile: from Three Methods on, once the sidebar is in, the video sits as a small tile just right
+//   of the sidebar's black Tokenz badge (bottom left, a little gap between), half the badge's height,
+//   moving with the badge; it slides out from behind the badge only once the badge has slid in,
+//   still playing but pixelated, a mosaic you can't make out, until it's clicked: then it plays
+//   clear (another click hides it again).
+// - Sharp corners throughout.
 (function () {
   var root = document.documentElement;
   var fine = window.matchMedia("(hover: hover) and (pointer: fine)");
@@ -22,7 +28,9 @@
   // box never covers them: Explore and Compare, and the cookie banner (its buttons and link)
   var NEAR = ".home-actions a, .consent";
   var NEAR_PX = 40;
-  var BOX_W = 320, BOX_H = 180, RADIUS = 20;
+  var BOX_W = 320, BOX_H = 180, RADIUS = 0;
+  var MOSAIC_W = 24, MOSAIC_H = 14;   // the pixelated tile is drawn this small, then scaled up
+  var TILE_GAP = 12;                  // the space between the badge and the tile
 
   var box = document.createElement("div");
   box.className = "video-cursor";
@@ -33,8 +41,20 @@
   video.loop = true;
   video.playsInline = true;
   video.preload = "auto";
-  box.appendChild(video);
+  var mosaic = document.createElement("canvas");
+  mosaic.width = MOSAIC_W; mosaic.height = MOSAIC_H;
+  mosaic.className = "video-mosaic";
+  var mosaicCtx = mosaic.getContext("2d");
+  box.append(video, mosaic);
   document.body.append(box);
+  var revealed = false, mosaicFrame = 0;
+  // the mosaic copies the playing video, a few blocks across, every frame while the tile is pixelated
+  function drawMosaic() {
+    mosaicFrame = 0;
+    if (!box.classList.contains("is-dock") || revealed) return;
+    if (video.readyState >= 2) mosaicCtx.drawImage(video, 0, 0, MOSAIC_W, MOSAIC_H);
+    mosaicFrame = requestAnimationFrame(drawMosaic);
+  }
   var next = document.querySelector(".home-next");
   root.classList.add("home-film");
 
@@ -114,10 +134,29 @@
       if (video.paused) video.play().catch(function () {});
       return;
     }
-    // back to being the cursor
-    if (filmFrom) {
+    // past the first screen, with the sidebar in: the tile beside the badge
+    var badge = document.querySelector("header.nav:not(.nav-copy) .tz-lockup");
+    var r = badge ? badge.getBoundingClientRect() : null;
+    var docked = f.covered >= 1 && r && r.width > 0 && !root.classList.contains("home-nav-hidden") && !root.classList.contains("intro-play");
+    box.classList.toggle("is-dock", !!docked);
+    if (!docked && revealed) { revealed = false; box.classList.remove("is-revealed"); }
+    if (docked) {
       filmFrom = null;
-      ["left", "top", "width", "height", "borderRadius"].forEach(function (p) { video.style[p] = ""; });
+      box.style.transform = "none";
+      if (!tileFrame) tileFrame = requestAnimationFrame(trackTile);
+      if (!revealed && !mosaicFrame) mosaicFrame = requestAnimationFrame(drawMosaic);
+      box.classList.add("is-shown");
+      root.classList.toggle("video-cursor-on", false);
+      if (video.paused) video.play().catch(function () {});
+      return;
+    }
+    // back to being the cursor
+    tileIn = null; badgeLast = null;
+    if (filmFrom || video.style.width) {
+      filmFrom = null;
+      [video, mosaic].forEach(function (el) {
+        ["left", "top", "width", "height", "borderRadius", "transform", "clipPath", "transition", "opacity"].forEach(function (p) { el.style[p] = ""; });
+      });
       box.style.transform = "translate(" + shownX.toFixed(1) + "px, " + shownY.toFixed(1) + "px)";
     }
     // (the first screen: before the film begins, above the top edge of the Three Methods page)
@@ -130,11 +169,44 @@
     if (!show && !video.paused) video.pause();
   }
 
+  // The tile follows the badge every frame (so it moves with the sidebar as it slides in or out),
+  // and only once the badge has come to rest does the tile slide out from behind its right edge
+  var tileFrame = 0, tileIn = null, badgeLast = null, badgeStill = 0;
+  var TILE_IN = 450;   // ms for the tile to slide out
+  function trackTile(now) {
+    tileFrame = 0;
+    if (!box.classList.contains("is-dock")) return;
+    var badge = document.querySelector("header.nav:not(.nav-copy) .tz-lockup");
+    if (!badge) return;
+    var r = badge.getBoundingClientRect();
+    var tileH = Math.round(r.height / 2), tileW = Math.round(tileH * 16 / 9);
+    // the badge is at rest once it hasn't moved for a few frames, fully in view
+    var moved = !badgeLast || Math.abs(r.left - badgeLast.left) > 0.2 || Math.abs(r.top - badgeLast.top) > 0.2;
+    badgeStill = moved ? 0 : badgeStill + 1;
+    badgeLast = { left: r.left, top: r.top };
+    if (tileIn === null && badgeStill >= 3 && r.left >= -0.5 && r.width > 0) tileIn = now;
+    var k = tileIn === null ? 0 : Math.min(1, (now - tileIn) / TILE_IN);
+    var e = 1 - Math.pow(1 - k, 3);
+    [video, mosaic].forEach(function (el) {
+      el.style.transition = "none";
+      el.style.left = (r.right + TILE_GAP).toFixed(1) + "px";
+      el.style.top = (r.bottom - tileH).toFixed(1) + "px";
+      el.style.width = tileW + "px";
+      el.style.height = tileH + "px";
+      el.style.borderRadius = "0px";
+      // slid left by what's still hidden, and cut off at its own left edge: it comes out from the badge's side
+      el.style.transform = "translateX(" + (-(1 - e) * tileW).toFixed(1) + "px)";
+      el.style.clipPath = "inset(0 0 0 " + ((1 - e) * tileW).toFixed(1) + "px)";
+      el.style.opacity = k > 0 ? "1" : "0";
+    });
+    tileFrame = requestAnimationFrame(trackTile);
+  }
+
   // The box eases after the pointer (a fifth of the way each frame), centred on it
   function follow() {
     shownX += (x - shownX) * 0.22;
     shownY += (y - shownY) * 0.22;
-    if (!box.classList.contains("is-film")) box.style.transform = "translate(" + shownX.toFixed(1) + "px, " + shownY.toFixed(1) + "px)";
+    if (!box.classList.contains("is-film") && !box.classList.contains("is-dock")) box.style.transform = "translate(" + shownX.toFixed(1) + "px, " + shownY.toFixed(1) + "px)";
     frame = Math.abs(x - shownX) + Math.abs(y - shownY) > 0.3 ? requestAnimationFrame(follow) : 0;
   }
 
@@ -154,6 +226,13 @@
   window.addEventListener("blur", function () { inside = false; update(); });
   window.addEventListener("scroll", update, { passive: true });
   window.addEventListener("resize", update);
+  // the tile: a click shows the video clearly, another click pixelates it again
+  box.addEventListener("click", function () {
+    if (!box.classList.contains("is-dock")) return;
+    revealed = !revealed;
+    box.classList.toggle("is-revealed", revealed);
+    if (!revealed && !mosaicFrame) mosaicFrame = requestAnimationFrame(drawMosaic);
+  });
 
   // (the intro ends by removing a class from <html>: show the box then, if the pointer's in)
   new MutationObserver(update).observe(root, { attributes: true, attributeFilter: ["class"] });

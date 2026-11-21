@@ -6121,7 +6121,7 @@ html.home-scroll .home-method-body {
   display: none;
 }
 
-/* Home's cursor (video-cursor.js): on the first screen only, a small rounded box playing the promo,
+/* Home's cursor (video-cursor.js): on the first screen only, a small sharp-cornered box playing the promo,
    centred on the pointer. The system cursor is hidden just while the box shows; over anything
    clickable the box shrinks away and the normal pointer comes back */
 html.video-cursor-on,
@@ -6154,7 +6154,7 @@ html.video-cursor-on :is(input, textarea) {
   width: 320px;
   height: 180px;
   object-fit: cover;
-  border-radius: 20px;
+  border-radius: 0;
   background: #F5F6FA;
   box-shadow: 0 14px 40px rgba(22, 23, 26, 0.22), 0 0 0 1px rgba(255, 255, 255, 0.6);
   opacity: 0;
@@ -6182,6 +6182,42 @@ html.home-scroll.home-film .content.home.is-bare {
 
 .video-cursor.is-film {
   z-index: 11;
+}
+
+/* From Three Methods on: a small tile against the right side of the sidebar's black badge, over
+   the page, growing in from the badge's edge */
+.video-cursor.is-dock {
+  z-index: 40;
+}
+
+.video-cursor.is-dock video {
+  box-shadow: none;
+  transform-origin: left bottom;
+}
+
+/* The tile starts as a mosaic (a few blocks of the playing video, scaled up hard-edged) you can't
+   make out; clicking it shows the video clearly, clicking again pixelates it again */
+.video-mosaic {
+  position: absolute;
+  display: none;
+  image-rendering: pixelated;
+}
+
+.video-cursor.is-dock .video-mosaic {
+  display: block;
+}
+
+.video-cursor.is-dock.is-revealed .video-mosaic {
+  display: none;
+}
+
+.video-cursor.is-dock :is(video, .video-mosaic) {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.video-cursor.is-dock.is-pressed video {
+  transform: none;
 }
 
 .video-cursor.is-film video,
