@@ -679,6 +679,7 @@
     var svcNum = svc ? svc.querySelector(".svc-count-num") : null;
     var svcOf = svc ? svc.querySelector(".svc-count-of") : null;
     var svcIntro = row ? row.querySelector(".home-next-intro") : null;
+    var svcLines = svc ? svc.querySelectorAll(".svc-line") : [];
     function serviceAt(at) {
       if (at < slide.start) return -1 + ease(Math.max(0, at) / slide.start);
       var rest = at - slide.start, each = slide.hold + slide.move;
@@ -695,8 +696,8 @@
       var k = Math.max(0, Math.min(n - 1, t)), i = Math.min(n - 2, Math.floor(k)), f = k - i;
       if (n < 2) { i = 0; f = 0; }
       var at = words[i].offsetLeft + (n > 1 ? f * (words[i + 1].offsetLeft - words[i].offsetLeft) : 0);
-      // (before the first, it slides in from the right as the title leaves)
-      var x = spot - at + (t < 0 ? -t * 0.9 * window.innerWidth : 0);
+      // (before the first, it slides in from the right once the lines are down)
+      var x = spot - at + (t < 0 ? (1 - ease(clamp((clamp(t + 1) - 0.65) / 0.35))) * 0.9 * window.innerWidth : 0);
       svc.style.setProperty("--svc-x", x.toFixed(1) + "px");
       // A name fades away as it leaves the bright column to the left, gone by halfway to the next
       Array.prototype.forEach.call(svcRows, function (rowOf) {
@@ -704,11 +705,18 @@
           word.style.setProperty("--gone", clamp((t - j) * 2).toFixed(3));
         });
       });
+      // In three steps, one after the other, over the title's leaving (arrive 0 to 1): the title and
+      // its sentence slide away until they're gone (to 0.4); then the four thin lines slide down
+      // from the top of the window, one just after another (0.4 to 0.65); then the methods come in:
+      // the names from the right, the first gradient, the description and the counter (0.65 on)
       var arrive = clamp(t + 1);
-      svc.style.setProperty("--svc-in", ease(clamp((t + 0.75) / 0.6)).toFixed(3));
+      svc.style.setProperty("--svc-in", ease(clamp((arrive - 0.65) / 0.3)).toFixed(3));
+      Array.prototype.forEach.call(svcLines, function (line, j) {
+        line.style.setProperty("--drop", (1 - ease(clamp((arrive - 0.4 - 0.05 * j) / 0.2))).toFixed(4));
+      });
       if (svcIntro) {
-        svcIntro.style.setProperty("--svc-out", (ease(arrive) * 0.6 * window.innerWidth).toFixed(1) + "px");
-        svcIntro.style.setProperty("--svc-stay", (1 - ease(clamp(arrive / 0.7))).toFixed(3));
+        svcIntro.style.setProperty("--svc-out", (ease(clamp(arrive / 0.4)) * 0.6 * window.innerWidth).toFixed(1) + "px");
+        svcIntro.style.setProperty("--svc-stay", (1 - ease(clamp(arrive / 0.36))).toFixed(3));
       }
       // Its description and note fade up, the others away
       Array.prototype.forEach.call(svcDesc, function (p, j) {
@@ -717,7 +725,7 @@
       // Each gradient wipes in from the right over the last: the first as the row arrives, the
       // others as their name comes into the column
       boxes.forEach(function (box, j) {
-        box.style.setProperty("--wipe", (j === 0 ? ease(clamp((t + 0.6) / 0.6)) : clamp(t - (j - 1))).toFixed(4));
+        box.style.setProperty("--wipe", (j === 0 ? ease(clamp((arrive - 0.65) / 0.35)) : clamp(t - (j - 1))).toFixed(4));
       });
       // The counter: the name and number of the one in the column
       var now = Math.max(0, Math.min(n - 1, Math.round(t)));

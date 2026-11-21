@@ -5989,9 +5989,14 @@ html.home-scroll .svc {
   inset: 0;
   z-index: 0;
   pointer-events: none;
+}
+
+/* The names, the description and the counter come in last (--svc-in, home.js), after the lines */
+html.home-scroll :is(.svc-words, .svc-desc, .svc-count) {
   opacity: var(--svc-in, 0);
 }
 
+/* Each line slides down from the top of the window (--drop: 1 is all the way up, out of sight) */
 .svc-line {
   position: absolute;
   top: 0;
@@ -5999,6 +6004,7 @@ html.home-scroll .svc {
   left: calc(var(--left) + (var(--c) - 1) * var(--col));
   width: 1px;
   background: #ECEBE7;
+  transform: translateY(calc(-100% * var(--drop, 1)));
 }
 
 /* (the line between the last two columns stops where the picture across them starts) */
