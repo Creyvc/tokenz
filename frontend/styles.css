@@ -6181,8 +6181,7 @@ html.video-cursor-on :is(input, textarea) {
 }
 
 /* With the cursor box (after roshan-sahu.com): a dashed line across the whole window and one down
-   it, crossing at the box's middle and passing behind it, and "[SHOWREEL]" sitting on the across
-   line just left of the box, moving with it (video-cursor.js places it) */
+   it, crossing at the box's middle and passing behind it */
 /* (drawn in white with a "difference" blend, they turn to the opposite of whatever they cross:
    dark over the white page, light over the black headline and buttons, a contrasting tint over
    the violet) */
@@ -6210,23 +6209,6 @@ html.video-cursor-on :is(input, textarea) {
 }
 
 .vc-line.is-shown {
-  opacity: 1;
-}
-
-.vc-caption {
-  position: absolute;
-  left: 40px;
-  bottom: 8px;
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  color: #ffffff;
-  white-space: nowrap;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
-.vc-line.is-shown .vc-caption {
   opacity: 1;
 }
 

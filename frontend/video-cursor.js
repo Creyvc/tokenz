@@ -6,8 +6,7 @@
 //   film/promo/tokenz-promo.mp4), easing after it. Over anything you can click, or close to Explore,
 //   Compare or the cookie banner, the box shrinks away and the normal cursor comes back. Not on the
 //   warning page or during the intro, and not once the Three Methods page has come up. Dashed
-//   lines cross the whole window through the box's middle, and "[SHOWREEL]" sits on the across line
-//   just left of the box (after
+//   lines cross the whole window through the box's middle (after
 //   roshan-sahu.com).
 // - The film: scrolling down from the top, the sentence, the headline's two lines and the buttons
 //   mask out one after another (each slides down behind its own edge), and the box grows from where
@@ -18,7 +17,8 @@
 //   moving with it as it grows. The film and the next page
 //   dissolve into each other (after lukebaffait.fr): the page comes up with a soft edge, the film
 //   fades out from the bottom up.
-// - The tile: from Three Methods on, once the sidebar is in, the video sits as a small tile just right
+// - The tile (on every page with the sidebar: Home from Three Methods on, the other pages always),
+//   once the sidebar is in, the video sits as a small tile just right
 //   of the sidebar's black Tokenz badge (bottom left, a little gap between), about a third of the badge's height,
 //   moving with the badge; it slides out from behind the badge only once the badge has slid in, and
 //   going back up it stays with the badge and slides out of the window with it,
@@ -72,22 +72,14 @@
     marks.appendChild(plus);
   });
   // with the cursor box (after roshan-sahu.com): dashed lines across the whole window through its
-  // middle, passing behind it, and "[SHOWREEL]" sitting on the across line just left of the box
+  // middle, passing behind it
   var lineH = document.createElement("div"), lineV = document.createElement("div");
   lineH.className = "vc-line is-h"; lineV.className = "vc-line is-v";
   lineH.setAttribute("aria-hidden", "true"); lineV.setAttribute("aria-hidden", "true");
-  var caption = document.createElement("div");
-  caption.className = "vc-caption";
-  caption.textContent = "[SHOWREEL]";
-  lineH.appendChild(caption);
   document.body.append(lineH, lineV, box, marks, reelLabel);
   function placeLines() {
     lineH.style.transform = "translateY(" + shownY.toFixed(1) + "px)";
     lineV.style.transform = "translateX(" + shownX.toFixed(1) + "px)";
-    // the label ends 14px short of the box's left side; with no room there (40px from the window's
-    // edge), it sits just right of the box instead
-    var w = caption.offsetWidth, before = shownX - BOX_W / 2 - 14 - w;
-    caption.style.left = (before >= 40 ? before : shownX + BOX_W / 2 + 14).toFixed(1) + "px";
   }
   var revealed = false, mosaicFrame = 0;
   // the mosaic copies the playing video, a few blocks across, every frame while the tile is pixelated
@@ -98,7 +90,9 @@
     mosaicFrame = requestAnimationFrame(drawMosaic);
   }
   var next = document.querySelector(".home-next");
-  root.classList.add("home-film");
+  // Home has the cursor and the film; the other pages only the tile beside the sidebar's badge
+  var onHome = !!document.querySelector(".content.home");
+  if (onHome) root.classList.add("home-film");
 
   var x = -500, y = -500, shownX = x, shownY = y, inside = false, overClickable = false, frame = 0;
   var filmFrom = null;    // where the box starts growing from (the cursor, or the middle)
@@ -147,6 +141,8 @@
   // ---- how far into the film: the box's growth (0 to 1) and how much the next page covers it ----
   function filmState() {
     var H = window.innerHeight, scrollY = window.scrollY;
+    // (another page: no film, and the sidebar is always in)
+    if (!onHome) return { grow: 0, covered: 1, scrollY: scrollY, H: H };
     var grow = ease(clamp((scrollY - 0.12 * H) / (0.7 * H)));
     var covered = next ? clamp(1 - next.getBoundingClientRect().top / H) : 0;
     return { grow: grow, covered: covered, scrollY: scrollY, H: H };
@@ -236,7 +232,7 @@
     }
     // (the first screen: before the film begins, above the top edge of the Three Methods page)
     var firstScreen = f.grow <= 0 && (!next || y < next.getBoundingClientRect().top);
-    var show = inside && firstScreen && !overClickable && !nearAny() && !root.classList.contains("intro-play");
+    var show = onHome && inside && firstScreen && !overClickable && !nearAny() && !root.classList.contains("intro-play");
     box.classList.toggle("is-shown", show);
     lineH.classList.toggle("is-shown", show); lineV.classList.toggle("is-shown", show);
     if (show) placeLines();
