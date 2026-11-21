@@ -7,14 +7,18 @@
 // as dashed outlines), the tokens' numbers, and the vectors the AI model it's sent to makes of them.
 // The page doesn't scroll (styles.css): the wheel (a swipe, the arrow keys) plays a camera path,
 // and back again scrolling up:
-//   0 to 1  the stack, still closed, spins round once
+//   0 to 1  the stack, still closed, twists: each chip spins a whole turn, every other one the
+//           other way
 //   1 to 2  it comes apart; the callouts draw in
 //   2 to 3  the camera swings round low to the side, turning the other way
 //   3 to 4  up over the top, looking straight down, and in close to the top chip, the chips
 //           turning see-through (x-ray) to the circuitry inside them
 //   4 on    the dive: down through the stack a chip at a time to the last, each one passed
-//           swelling and fading as if flown through, the view turning slowly
+//           swelling and fading as if flown through, the view turning slowly; the x-ray is only
+//           for the view from the top, so diving the chips are solid again
 //   then    back out, turning round to where it started; the chips and the callouts come back
+//   last    the stack closes up again, as at the start, and it all goes round again: a loop, both
+//           ways, with no end
 // The callouts only show while the camera is at its first angle. On a phone, where the page
 // scrolls to the list of steps (.hw-layers, also what screen readers read), it's drawn open and
 // still; with reduced motion too.
@@ -99,6 +103,7 @@
   var DIVE_LEN = 3.5;                          // steps of the wheel to dive from the top chip to the last
   var DIVE_TURN = 120;                         // degrees the view turns on the way down
   var OUT_AT = 4 + DIVE_LEN, END = OUT_AT + 1;
+  var LOOP = END + 1;                          // then the stack closes again: back to the start
   var DONE_POSE = { yaw: 405, pitch: ISO / DEG, zoom: 1, focus: MID, xray: 0, dive: 5, diveW: 0 };
 
   // The canvas, filling the stage (on a phone, the drawing's own shape)
@@ -133,12 +138,18 @@
     var f = raw(0, 0, focusZ);
     cam.fx = f[0]; cam.fy = f[1];
   }
+  // (the chip being drawn can be turned on its own: about its upright middle)
+  var turn = { c: 1, s: 0 };
   function P(x, y, z) {
+    if (turn.s) { var tx = x * turn.c - y * turn.s; y = x * turn.s + y * turn.c; x = tx; }
     var r = raw(x, y, z);
     return [CW / 2 + cam.k * (r[0] - cam.fx), CH / 2 + cam.k * (r[1] - cam.fy), r[2]];
   }
   // how much a side faces the camera (more than 0: it shows)
-  function facing(nx, ny) { return nx * cam.sy + ny * cam.cy; }
+  function facing(nx, ny) {
+    var tx = nx * turn.c - ny * turn.s, ty = nx * turn.s + ny * turn.c;
+    return tx * cam.sy + ty * cam.cy;
+  }
 
   function path(points) {
     g.beginPath();
@@ -347,11 +358,14 @@
     g.globalAlpha = 1;
   }
 
-  // Where the wheel has got to: 0 to END (on a phone or with reduced motion, 2: open, still)
+  // Where the wheel has got to, round and round the loop (on a phone or with reduced motion, 2:
+  // open, still)
   var fixed = phone || still;
   var wanted = fixed ? 2 : 0, at = wanted, last = 0;
   var hint = document.querySelector(".hw-hint");
-  function nudge(by) { wanted = Math.min(END, Math.max(0, wanted + by)); }
+  // (no ends: past the last step it carries on round from the first, and back again)
+  var moved = false;
+  function nudge(by) { wanted += by; moved = true; }
   if (!fixed) {
     window.addEventListener("wheel", function (event) {
       event.preventDefault();
@@ -366,7 +380,7 @@
       touchY = event.touches[0].clientY;
     }, { passive: false });
     window.addEventListener("keydown", function (event) {
-      var step = { ArrowDown: 0.15, PageDown: 0.5, " ": 0.5, ArrowUp: -0.15, PageUp: -0.5, End: END, Home: -END }[event.key];
+      var step = { ArrowDown: 0.15, PageDown: 0.5, " ": 0.5, ArrowUp: -0.15, PageUp: -0.5, End: LOOP, Home: -LOOP }[event.key];
       if (step == null || /^(INPUT|TEXTAREA|SELECT)$/.test((event.target || {}).tagName || "")) return;
       event.preventDefault();
       nudge(step);
@@ -380,8 +394,8 @@
     return out;
   }
   function pose(w) {
-    // the closed stack spins round once (ending where it began), then opens
-    if (w <= 1) return blend(Object.assign({}, ISO_POSE, { yaw: 45 + 360 * smooth(clamp(w)) }), ISO_POSE, 0);
+    // the closed stack's chips spin (each on its own, frame() turns them), then it opens
+    if (w <= 1) return blend(ISO_POSE, ISO_POSE, 0);
     if (w <= 2) return blend(ISO_POSE, ISO_POSE, 0);
     if (w <= 3) return blend(ISO_POSE, SIDE_POSE, smooth(w - 2));
     if (w <= 4) return blend(SIDE_POSE, TOP_POSE, smooth(w - 3));
@@ -389,10 +403,11 @@
       // the dive: down from chip to chip, easing to a stop on each; the view turning slowly
       var d = (w - 4) / DIVE_LEN * 5, n = Math.min(4, Math.floor(d));
       var chip = n + smooth(clamp(d - n));
+      // (the x-ray is only for the view from the top: diving, the chips are solid again)
       return blend(TOP_POSE, Object.assign({}, TOP_POSE, { yaw: TOP_POSE.yaw + DIVE_TURN * (w - 4) / DIVE_LEN,
-        focus: { chip: chip }, dive: chip }), 1);
+        focus: { chip: chip }, dive: chip, xray: 1 - smooth(clamp((w - 4) / 0.35)) }), 1);
     }
-    var bottom = Object.assign({}, TOP_POSE, { yaw: TOP_POSE.yaw + DIVE_TURN, focus: { chip: 5 }, dive: 5 });
+    var bottom = Object.assign({}, TOP_POSE, { yaw: TOP_POSE.yaw + DIVE_TURN, focus: { chip: 5 }, dive: 5, xray: 0 });
     return blend(bottom, DONE_POSE, smooth(clamp(w - OUT_AT)));
   }
 
@@ -401,8 +416,10 @@
     at += (wanted - at) * Math.min(1, (now - (last || now)) / 170);
     if (Math.abs(wanted - at) < 0.0005) at = wanted;
     last = now;
-    if (hint) hint.classList.toggle("is-gone", wanted > 0.04);
-    var opening = clamp(at - 1), open = ease(opening);
+    if (hint) hint.classList.toggle("is-gone", moved);
+    // where in the loop: the open stack closes again over the last step, so it ends as it began
+    var w = ((at % LOOP) + LOOP) % LOOP;
+    var opening = w >= END ? 1 - clamp(w - END) : clamp(w - 1), open = ease(opening);
     var tops = LAYERS.map(function (layer, i) { return -(STACKED[i] + (layer.y - STACKED[i]) * open); });
     var middle = function (i) { return tops[i] - LAYERS[i].t / 2; };
     var focusOf = function (f) {
@@ -410,12 +427,13 @@
       var lo = Math.floor(f.chip), hi = Math.min(LAYERS.length - 1, lo + 1);
       return mix(middle(lo), middle(hi), f.chip - lo);
     };
-    var c = pose(at);
+    var c = pose(Math.min(w, END));
     setCamera(c, mix(focusOf(c.focusA), focusOf(c.focusB), c.k));
     var xray = c.xray, kBase = cam.k;
     var opened = clamp((opening - 0.3) / 0.3), raised = clamp((opening - 0.42) / 0.2);
     // the callouts: in turn as it opens, gone once the camera moves, back at the very end
-    var first = 1 - clamp((at - 2) / 0.18), back = clamp((at - (END - 0.25)) / 0.25);
+    var first = w >= END ? 0 : 1 - clamp((w - 2) / 0.18);
+    var back = clamp((w - (END - 0.25)) / 0.25) * (1 - clamp((w - END) / 0.3));
     // each chip in the dive: the ones passed swell and fade, as if flown through; the ones still
     // below look smaller, further off; the one in focus stands out, the others recede in x-ray
     var focusChip = Math.round(c.dive);
@@ -445,6 +463,9 @@
       var layer = LAYERS[i], z = tops[i];
       if (alpha[i] < 0.01) continue;
       cam.k = kBase * scale[i];
+      // the first stretch of the wheel: each chip a whole turn, every other one the other way
+      var spin = fixed || w >= END ? 0 : smooth(clamp((w - i * 0.04) / 0.8)) * 2 * Math.PI * (i % 2 ? -1 : 1);
+      turn.c = Math.cos(spin); turn.s = Math.abs(Math.sin(spin)) < 1e-9 ? 0 : Math.sin(spin);
       if (i === METHODS) { g.globalAlpha = alpha[i]; orbit(z - layer.t / 2, false, opened * alpha[i], now); }
       layerAlpha = alpha[i];
       g.globalAlpha = layerAlpha;
@@ -453,13 +474,14 @@
       onTop(layer, z, raised, xray);
       wire(z, layer.a, layer.t, xray);
       g.globalAlpha = 1;
+      turn.c = 1; turn.s = 0;
     }
     layerAlpha = 1;
     cam.k = kBase * scale[METHODS];
     orbit(tops[METHODS] - LAYERS[METHODS].t / 2, true, opened * alpha[METHODS], now);
     cam.k = kBase;
     LAYERS.forEach(function (layer, i) {
-      var drawIn = fixed ? 1 : clamp((opening - 0.45 - i * 0.07) / 0.25);
+      var drawIn = fixed ? 1 : w >= END ? 0 : clamp((opening - 0.45 - i * 0.07) / 0.25);
       callout(layer, tops[i], Math.max(drawIn * first, back));
     });
     if (!fixed) requestAnimationFrame(frame);
