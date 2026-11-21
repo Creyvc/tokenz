@@ -99,7 +99,9 @@
     nodes.forEach(function (node) {
       if (!node.nodeValue.trim()) return;
       var el = node.parentElement;
-      if (!el || el.closest("textarea, script, style, [hidden]")) return;
+      // (text drawn for show only, hidden from screen readers, like the rolling digits of Results'
+      // numbers, rises with the box around it, not piece by piece)
+      if (!el || el.closest("textarea, script, style, [hidden], [aria-hidden='true']")) return;
       while (el !== part && /^(inline|contents)$/.test(getComputedStyle(el).display)) el = el.parentElement;
       var button = el.closest("button, a, [role=tab], label:has(input[type=radio], input[type=checkbox])");
       if (button && button !== part && part.contains(button)) return;

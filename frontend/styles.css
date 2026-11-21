@@ -5599,16 +5599,137 @@ html.hw-still .hw-land {
   transition: opacity 0.4s ease;
 }
 
-/* After the jump: the three steps, on the black the hole opened into */
+/* The exploded diagram (how-diagram.js): a small label, a big line, then the drawing, on black,
+   after architectural exploded axonometrics: six slabs in thin white line pulled apart, joined by
+   dashed guides, each with a numbered callout; violet the only colour. The same six steps as a
+   list, for screen readers, and shown instead of the callouts on a phone */
+.hw-explode {
+  padding: 14vh 48px 6vh;
+  background: #0b0b0c;
+  color: #ffffff;
+}
+
+.hw-kicker {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #a3a3a3;
+}
+
+.hw-kicker::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  background: #8B7FF2;
+}
+
+.hw-headline {
+  margin-top: 18px;
+  max-width: 14ch;
+  font-size: clamp(40px, 5.4vw, 92px);
+  font-weight: 700;
+  line-height: 0.98;
+  letter-spacing: -0.05em;
+}
+
+.hw-diagram {
+  max-width: 1200px;
+  margin: 6vh auto 0;
+}
+
+.hw-diagram-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  font-family: inherit;
+}
+
+.hw-orbit-dash {
+  animation: hw-orbit 14s linear infinite;
+}
+
+@keyframes hw-orbit {
+  to { stroke-dashoffset: -240; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hw-orbit-dash {
+    animation: none;
+  }
+}
+
+/* (read out instead of the drawing; seen only on a phone) */
+.hw-layers {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  list-style: none;
+}
+
+.hw-layers li {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  padding: 18px 0;
+  border-top: 1px dashed rgba(255, 255, 255, 0.2);
+}
+
+.hw-layer-num {
+  grid-row: span 2;
+  font-size: 13px;
+  font-weight: 600;
+  color: #8B7FF2;
+}
+
+.hw-layers h2 {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.hw-layers p {
+  margin-top: 6px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #a3a3a3;
+}
+
+@media (max-width: 800px) {
+  .hw-explode {
+    padding: 12vh 16px 4vh;
+  }
+
+  .hw-callout {
+    display: none;
+  }
+
+  .hw-layers {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip-path: none;
+    margin-top: 32px;
+    padding: 0;
+  }
+}
+
+/* After the diagram: the three steps of using it */
 .hw-after {
-  min-height: 100vh;
-  padding: 18vh 48px 24vh;
+  padding: 10vh 48px 24vh;
   background: #0b0b0c;
   color: #ffffff;
 }
 
 .hw-title {
-  font-size: clamp(44px, 6vw, 104px);
+  font-size: clamp(32px, 3.6vw, 60px);
   font-weight: 700;
   line-height: 0.98;
   letter-spacing: -0.055em;
