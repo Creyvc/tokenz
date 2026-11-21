@@ -6017,7 +6017,6 @@ html.home-scroll :is(.svc-words, .svc-desc, .svc-count) {
   top: 22vh;
   left: 0;
   display: flex;
-  gap: calc(var(--col) * 0.55);
   white-space: nowrap;
   font-size: calc(var(--col) / 4.6);
   font-weight: 500;
@@ -6028,9 +6027,12 @@ html.home-scroll :is(.svc-words, .svc-desc, .svc-count) {
   will-change: transform;
 }
 
-/* A name fades away once it has gone left out of the bright column (--gone, home.js) */
+/* A name fades away once it has gone left out of the bright column (--gone, home.js). Each name
+   takes one column, so the next one always waits right at the next column's line (not too close
+   after a short name, nor pushed out of the window after a long one) */
 .svc-words span {
-  opacity: calc(1 - var(--gone, 0));
+  flex: 0 0 var(--col);
+  opacity: calc((1 - var(--gone, 0)) * (1 - var(--ahead, 0)));
 }
 
 /* The black copy, seen only inside the bright column */
@@ -6219,7 +6221,30 @@ html.home-scroll.home-film .content.home.is-bare {
 
 .video-cursor.is-dock :is(video, .video-mosaic) {
   pointer-events: auto;
-  cursor: pointer;
+  cursor: none;
+}
+
+/* Over the tile, the cursor is a small black box reading "Show reel", centred on the pointer */
+.reel-cursor {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 10001;
+  padding: 8px 14px;
+  background: #16171A;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 16px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.reel-cursor.is-shown {
+  opacity: 1;
 }
 
 .video-cursor.is-dock.is-pressed video {

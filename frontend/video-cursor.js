@@ -15,7 +15,8 @@
 //   of the sidebar's black Tokenz badge (bottom left, a little gap between), about a third of the badge's height,
 //   moving with the badge; it slides out from behind the badge only once the badge has slid in,
 //   still playing but pixelated, a mosaic you can't make out, until it's clicked: then it plays
-//   clear (another click hides it again).
+//   clear (another click hides it again). Over the tile the cursor becomes a small black box
+//   reading "Show reel".
 // - Sharp corners throughout.
 (function () {
   var root = document.documentElement;
@@ -48,7 +49,12 @@
   mosaic.className = "video-mosaic";
   var mosaicCtx = mosaic.getContext("2d");
   box.append(video, mosaic);
-  document.body.append(box);
+  // the cursor over the tile: a small box that reads "Show reel"
+  var reelLabel = document.createElement("div");
+  reelLabel.className = "reel-cursor";
+  reelLabel.setAttribute("aria-hidden", "true");
+  reelLabel.textContent = "Show reel";
+  document.body.append(box, reelLabel);
   var revealed = false, mosaicFrame = 0;
   // the mosaic copies the playing video, a few blocks across, every frame while the tile is pixelated
   function drawMosaic() {
@@ -223,12 +229,15 @@
     if (first) { shownX = x; shownY = y; }
     inside = true;
     overClickable = !!(event.target instanceof Element && event.target.closest(CLICKABLE));
+    var overTile = box.classList.contains("is-dock") && (event.target === video || event.target === mosaic);
+    reelLabel.classList.toggle("is-shown", overTile);
+    reelLabel.style.transform = "translate(" + x + "px, " + y + "px) translate(-50%, -50%)";
     update();
     if (!frame) frame = requestAnimationFrame(follow);
   });
   document.addEventListener("pointerdown", function () { box.classList.add("is-pressed"); });
   document.addEventListener("pointerup", function () { box.classList.remove("is-pressed"); });
-  document.documentElement.addEventListener("mouseleave", function () { inside = false; update(); });
+  document.documentElement.addEventListener("mouseleave", function () { inside = false; reelLabel.classList.remove("is-shown"); update(); });
   window.addEventListener("blur", function () { inside = false; update(); });
   window.addEventListener("scroll", update, { passive: true });
   window.addEventListener("resize", update);

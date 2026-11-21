@@ -703,6 +703,8 @@
       Array.prototype.forEach.call(svcRows, function (rowOf) {
         Array.prototype.forEach.call(rowOf.children, function (word, j) {
           word.style.setProperty("--gone", clamp((t - j) * 2).toFixed(3));
+          // (and one two places ahead stays hidden, fading in as it slides into the last column)
+          word.style.setProperty("--ahead", clamp(j - 1 - t).toFixed(3));
         });
       });
       // In three steps, one after the other, over the title's leaving (arrive 0 to 1): the title and
