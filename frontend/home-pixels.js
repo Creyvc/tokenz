@@ -19,7 +19,7 @@
 
   var BG = "#0E0F12", PIXEL = "#E6E6EA";
   var CELLS_ACROSS = 48;   // the squares' size: the window's width over this
-  var WOBBLE = 1.6;        // how far the edges wander, in squares
+  var WOBBLE = 1.1;        // how far the edges wander, in squares
   var RAGGED = 3.2;        // how far from the edge stray squares and holes reach, in squares
   var STRAY = 0.42;        // how likely a square right at the edge is to flip
   var DECRYPT_MS = 700;    // how long a token id takes to unscramble
@@ -102,7 +102,7 @@
   var last = "";
   function draw(now) {
     if (!W) resize();
-    var t = still ? 0 : Math.floor(now / 125) * 0.125;          // eight steps a second
+    var t = still ? 0 : Math.floor(now / 250) * 0.25;           // four steps a second
     var y = window.scrollY;
     var out = Math.min(1, y / (0.45 * H));                       // the squares going, as the film grows
     var dark = 1 - Math.min(1, Math.max(0, (y - 0.7 * H) / (0.15 * H)));  // the black, once it's full
@@ -119,15 +119,15 @@
         }
         // the square's middle against the two edges, each nudged by a slow wobble of its own
         var mx = (i + 0.5) / cols, my = (j + 0.5) * size;
-        var top = edge(TOP, mx) * H + (noise(i * 0.35 + t * 0.12, 3) - 0.5) * 2 * WOBBLE * size;
-        var low = edge(LOW, mx) * H + (noise(i * 0.35 - t * 0.1, 11) - 0.5) * 2 * WOBBLE * size;
+        var top = edge(TOP, mx) * H + (noise(i * 0.35 + t * 0.04, 3) - 0.5) * 2 * WOBBLE * size;
+        var low = edge(LOW, mx) * H + (noise(i * 0.35 - t * 0.035, 11) - 0.5) * 2 * WOBBLE * size;
         var inside = my > top && my < low;
         // ragged: near an edge, a square may flip (a stray out in the black, or a hole in the band),
         // likelier the closer it is; each square rolls again at its own moments, so they change
         // one at a time
         var near = Math.min(Math.abs(my - top), Math.abs(my - low)) / size;
         if (near < RAGGED) {
-          var roll = still ? 0 : Math.floor(t * 0.4 + rnd(i, j) * 16);
+          var roll = still ? 0 : Math.floor(t * 0.06 + rnd(i, j) * 16);
           if (rnd(i * 7 + roll, j * 13 - roll) < STRAY * (1 - near / RAGGED)) inside = !inside;
         }
         lit.push(clear && inside);
@@ -153,13 +153,13 @@
           if (!(idx in since)) since[idx] = now;
           seen[idx] = 1; numbered.push(idx);
           var settled = still || now - since[idx] >= DECRYPT_MS;
-          g.fillStyle = settled ? "rgba(255,255,255,0.32)" : "rgba(255,255,255,0.6)";
+          g.fillStyle = settled ? "rgba(255,255,255,0.32)" : "rgba(255,255,255,0.44)";
           g.fillText(tokenText(idx, now), px + size / 2, py + size / 2);
         }
       }
       for (var s in since) if (!seen[s]) delete since[s];       // gone from the edge: next time, new
-      // now and then, one settled id scrambles and settles again
-      if (!still && numbered.length && Math.random() < 0.5) since[numbered[Math.floor(Math.random() * numbered.length)]] = now;
+      // now and then (about once every two seconds), one settled id scrambles and settles again
+      if (!still && numbered.length && Math.random() < 0.12) since[numbered[Math.floor(Math.random() * numbered.length)]] = now;
       g.globalAlpha = 1;
     }
     if (window.scrollY < H) requestAnimationFrame(draw);
