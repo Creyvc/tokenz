@@ -2,9 +2,10 @@
 // crossed by a broad band of square pixels, rising in steps from the bottom-left corner to the
 // top-right one. The band isn't white: it's a muted, grainy glow (a greyed lavender at the top
 // through a dusty rose to a dark mauve at the bottom) whose light drifts slowly about, written over
-// with rows of token indexes (real o200k_base ids of the page's own words) in faint white, thicker in
-// some places than others, each row gliding sideways at its own slow pace; a few digits flicker
-// (after an AI site the owner liked). The headline sits in the black above it, the sentence in a
+// with columns of token indexes (real o200k_base ids of the page's own words, read downwards) in
+// white, streaming up or down, each at its own pace, with a bright head and a fading trail; the
+// characters come through ASCII (@ % # * + = - : .) as they decode, in sweeps that pass across
+// every few seconds, and a few glitch at random (after an AI site the owner liked). The headline sits in the black above it, the sentence in a
 // black corner cut out of it at the bottom right, and the buttons on the band itself. The band's
 // edges are ragged (stray squares out in the black, holes in the band, thinning out away from the
 // edge) and shift slowly, a square at a time. Scrolling down, the squares go out one by one in a
@@ -22,7 +23,10 @@
 
   var BG = "#0E0F12";
   var GLOW = [[0, "#BEBCCB"], [0.3, "#C8BAC4"], [0.52, "#BFA6AD"], [0.7, "#9E858C"], [0.86, "#54454C"], [1, "#221D21"]];
-  var CH_W = 9, CH_H = 14;  // the token indexes' character grid, in pixels
+  var CH_W = 10, CH_H = 13; // the token indexes' character grid, in pixels
+  var TRAIL = 16;           // a column's bright head and its fading trail, in characters
+  var RAMP = "@%#*+=-:.";   // what a character passes through as it decodes, densest first
+  var DECODE_EVERY = 4.5;   // a sweep of decoding passes across this often, in seconds
   var TOKENS = [15900, 259, 79007, 11, 2684, 2616, 13, 17951, 89, 180721, 290, 5018, 6391, 842, 328,
                 261, 15226, 2254, 481, 4952, 480, 316, 448, 20837, 11, 813, 480, 8844, 30732, 20290, 13,
                 30456, 481, 4843, 1652, 668, 5067, 261, 65701, 3719, 316, 922, 21642, 16054, 395, 261,
@@ -82,12 +86,12 @@
     gg.putImageData(img, 0, 0);
   })();
 
-  // The token indexes are drawn into a strip of rows a little wider than the window (whole
-  // characters, and the text and its gaps wrap around it), redrawn only when digits flicker; each
-  // frame slides every row along it by its own amount
+  // The token indexes are drawn into a sheet of columns a little taller than the window (whole
+  // trails, and the text and its gaps wrap around it), redrawn ten times a second as characters
+  // decode; each frame slides every column up or down it by its own amount
   var text = document.createElement("canvas"), tg = text.getContext("2d");
   var W = 0, H = 0, dpr = 1, size = 0, cols = 0, rows = 0, gone = [], grainFill = null;
-  var across = 0, down = 0, stripW = 0, bumps = 0, speeds = [];
+  var across = 0, down = 0, stripH = 0, bumps = 0, speeds = [];
   function resize() {
     dpr = Math.min(window.devicePixelRatio || 1, 2);
     W = window.innerWidth; H = window.innerHeight;
@@ -97,31 +101,47 @@
     seed = 7; gone = [];
     for (var c = 0; c < cols * rows; c++) gone.push(random());
     grainFill = g.createPattern(grain, "repeat");
-    across = Math.ceil(W / CH_W) + 8; down = Math.ceil(H / CH_H);
-    stripW = across * CH_W;
-    bumps = Math.max(1, Math.round(across * 0.07));            // the thick and thin patches per row
-    text.width = Math.round(stripW * dpr); text.height = Math.round(down * CH_H * dpr);
+    across = Math.ceil(W / CH_W);
+    down = (Math.ceil(Math.ceil(H / CH_H) / TRAIL) + 1) * TRAIL;   // whole trails, a little over the window
+    stripH = down * CH_H;
+    bumps = Math.max(1, Math.round(down * 0.06));               // the thick and thin patches per column
+    text.width = Math.round(across * CH_W * dpr); text.height = Math.round(stripH * dpr);
     speeds = [];
-    for (var r = 0; r < down; r++) speeds.push((5 + rnd(r, 21) * 13) * (rnd(r, 22) < 0.5 ? -1 : 1));  // px a second
+    for (var c = 0; c < across; c++) speeds.push((10 + rnd(c, 21) * 34) * (rnd(c, 22) < 0.5 ? -1 : 1));  // px a second
     textStep = -1;
   }
 
   var textStep = -1;
-  function drawText(step) {
+  function drawText(step, secs) {
     if (step === textStep) return;
     textStep = step;
     tg.setTransform(dpr, 0, 0, dpr, 0, 0);
-    tg.clearRect(0, 0, stripW, down * CH_H);
+    tg.clearRect(0, 0, across * CH_W, stripH);
     tg.font = "500 11px Inter, sans-serif";
     tg.textAlign = "center"; tg.textBaseline = "middle";
     tg.fillStyle = "#FFFFFF";
-    for (var r = 0; r < down; r++) {
-      var start = Math.floor(rnd(r, 9) * STREAM.length);
-      for (var c = 0; c < across; c++) {
-        var ch = STREAM[(start + c) % STREAM.length];
-        if (!still && rnd(c * 31 + step, r * 17 - step) < 0.012) ch = String(Math.floor(rnd(c + step, r) * 10));
-        if (ch === " " || noise(c * bumps / across, r * 0.2, bumps) < 0.34) continue;
-        tg.globalAlpha = 0.2 + 0.5 * noise(c * bumps / across * 0.6 + 40, r * 0.09 + 40, Math.max(1, Math.round(bumps * 0.6)));
+    var sweep = secs / DECODE_EVERY;
+    for (var c = 0; c < across; c++) {
+      var start = Math.floor(rnd(c, 9) * STREAM.length), up = speeds[c] < 0;
+      var head = Math.floor(rnd(c, 13) * TRAIL);
+      for (var r = 0; r < down; r++) {
+        var ch = STREAM[(start + r) % STREAM.length];
+        if (ch === " " || noise(r * bumps / down, c * 0.13, bumps) < 0.36) continue;
+        // the trail: brightest at the head (the leading end, whichever way the column runs)
+        var behind = ((up ? r - head : head - r) % TRAIL + TRAIL) % TRAIL;
+        var a = 0.12 + 0.6 * Math.pow(1 - behind / TRAIL, 1.6);
+        // decoding: a sweep crosses the screen at a slant; just behind its front a character runs
+        // down the ramp to its digit, brighter while it does
+        var phase = ((sweep - c / across * 0.6 - r / down * 0.25 - rnd(c, r) * 0.05) % 1 + 1) % 1;
+        if (!still && phase < 0.07) {
+          ch = RAMP[Math.min(RAMP.length - 1, Math.floor(phase / 0.07 * RAMP.length))];
+          a = Math.min(1, a + 0.35);
+        } else if (!still && rnd(c * 31 + step, r * 17 - step) < 0.006) {
+          ch = RAMP[Math.floor(rnd(c + step, r) * RAMP.length)];   // a stray glitch
+          a = Math.min(1, a + 0.25);
+        }
+        if (behind === 0) a = 0.95;
+        tg.globalAlpha = a;
         tg.fillText(ch, c * CH_W + CH_W / 2, r * CH_H + CH_H / 2);
       }
     }
@@ -176,7 +196,7 @@
     var out = Math.min(1, y / (0.45 * H));                       // the squares going, as the film grows
     var dark = 1 - Math.min(1, Math.max(0, (y - 0.7 * H) / (0.15 * H)));  // the black, once it's full
     if (litKey !== t + "|" + W) { litKey = t + "|" + W; workOut(t); }
-    drawText(Math.round(t * 4));
+    drawText(still ? 0 : Math.floor(now / 100), secs);
 
     g.setTransform(dpr, 0, 0, dpr, 0, 0);
     g.clearRect(0, 0, W, H);
@@ -200,13 +220,13 @@
     light.addColorStop(0, "rgba(255,255,255,0.16)"); light.addColorStop(1, "rgba(255,255,255,0)");
     g.fillStyle = light; g.fillRect(0, 0, W, H);
     g.fillStyle = grainFill; g.fillRect(0, 0, W, H);
-    // the token indexes, each row slid along by its own pace, wrapping round
-    for (var r = 0; r < down; r++) {
-      var shift = ((secs * speeds[r]) % stripW + stripW) % stripW;
-      var sy = r * CH_H * dpr, sh = CH_H * dpr;
-      // the strip from "shift" on, then its start again after it
-      g.drawImage(text, shift * dpr, sy, (stripW - shift) * dpr, sh, 0, r * CH_H, stripW - shift, CH_H);
-      g.drawImage(text, 0, sy, shift * dpr, sh, stripW - shift, r * CH_H, shift, CH_H);
+    // the token indexes, each column slid up or down by its own pace, wrapping round
+    for (var c = 0; c < across; c++) {
+      var shift = ((-secs * speeds[c]) % stripH + stripH) % stripH;
+      var sx = c * CH_W * dpr, sw = CH_W * dpr;
+      // the column from "shift" on, then its top again after it
+      g.drawImage(text, sx, shift * dpr, sw, (stripH - shift) * dpr, c * CH_W, 0, CH_W, stripH - shift);
+      g.drawImage(text, sx, 0, sw, shift * dpr, c * CH_W, stripH - shift, CH_W, shift);
     }
     g.restore();
     g.globalAlpha = 1;

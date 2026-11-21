@@ -6235,9 +6235,8 @@ html.video-cursor-on :is(input, textarea) {
 
 /* With the cursor box (after roshan-sahu.com): a dashed line across the whole window and one down
    it, crossing at the box's middle and passing behind it */
-/* (drawn in white with a "difference" blend, they turn to the opposite of whatever they cross:
-   dark over the white page, light over the black headline and buttons, a contrasting tint over
-   the violet) */
+/* (pure black, except where they cross something dark, where they turn white: each dash shows what's
+   behind it inverted and pushed to black or white, a "backdrop-filter" under a dash-shaped mask) */
 .vc-line {
   position: fixed;
   left: 0;
@@ -6245,13 +6244,11 @@ html.video-cursor-on :is(input, textarea) {
   /* under the first screen's text and buttons and the cookie banner (they're drawn over it) */
   z-index: 5;
   pointer-events: none;
-  opacity: 0;
-  mix-blend-mode: difference;
-  transition: opacity 0.2s ease;
 }
 
-/* (drawn dashes, 5px long with 4px gaps, a pixel thick and scaled to half of that: a hairline on
-   sharp screens; drawn on an inner layer, since the script moves the lines with "transform") */
+/* (dashes 5px long with 4px gaps, a pixel thick and scaled to half of that: a hairline on sharp
+   screens; drawn on an inner layer, since the script moves the lines with "transform", and faded
+   there too, since a fading parent would hide what's behind from the filter) */
 .vc-line.is-h {
   right: 0;
   height: 1px;
@@ -6266,19 +6263,25 @@ html.video-cursor-on :is(input, textarea) {
   content: "";
   position: absolute;
   inset: 0;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  -webkit-backdrop-filter: invert(1) grayscale(1) contrast(60);
+  backdrop-filter: invert(1) grayscale(1) contrast(60);
 }
 
 .vc-line.is-h::before {
   transform: scaleY(0.5);
-  background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.6) 0 5px, transparent 5px 9px);
+  -webkit-mask-image: repeating-linear-gradient(90deg, #000 0 5px, transparent 5px 9px);
+  mask-image: repeating-linear-gradient(90deg, #000 0 5px, transparent 5px 9px);
 }
 
 .vc-line.is-v::before {
   transform: scaleX(0.5);
-  background: repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.6) 0 5px, transparent 5px 9px);
+  -webkit-mask-image: repeating-linear-gradient(180deg, #000 0 5px, transparent 5px 9px);
+  mask-image: repeating-linear-gradient(180deg, #000 0 5px, transparent 5px 9px);
 }
 
-.vc-line.is-shown {
+.vc-line.is-shown::before {
   opacity: 1;
 }
 
