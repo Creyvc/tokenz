@@ -5885,11 +5885,6 @@ html.wb-arrive .content.results-page [data-results] > * {
   animation: wb-slide 0.7s cubic-bezier(0.22, 1, 0.36, 1) calc(1.2s + var(--rise, 0) * 75ms) backwards;
 }
 
-.wb-text-wrap {
-  display: inline-block;
-  max-width: 100%;
-}
-
 html.wb-arrive .wb-text-rise {
   animation: wb-rise 0.75s cubic-bezier(0.33, 1, 0.68, 1) calc(1.3s + var(--rise, 0) * 75ms) backwards;
 }
