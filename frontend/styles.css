@@ -6222,8 +6222,9 @@ html.video-cursor-on :is(input, textarea) {
   background: #DCDCE0;
 }
 
+/* (no white outline: the border stays, filled with the button's own black, so the size holds) */
 .content.home.is-bare .home-actions .wb-secondary {
-  border-color: #F5F5F7;
+  border-color: transparent;
   background: #0E0F12;
   color: #F5F5F7;
 }
