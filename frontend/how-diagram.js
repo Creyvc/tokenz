@@ -450,7 +450,8 @@
     g.lineJoin = "round"; g.lineCap = "round";
     // the guides: dashed uprights at the chips' corners, the middle line, the dot going down it
     var top = tops[0], bottom = tops[tops.length - 1];
-    g.globalAlpha = opened * (1 - 0.7 * c.diveW);
+    // (none in the dive: there's only the chip in front of the camera)
+    g.globalAlpha = opened * (1 - c.diveW);
     [[-1, -1], [1, -1], [1, 1], [-1, 1]].forEach(function (s) {
       seg(P(s[0] * 130, s[1] * 130, top), P(s[0] * 130, s[1] * 130, bottom), "rgba(255,255,255,0.28)", 1, [4, 6]);
     });
