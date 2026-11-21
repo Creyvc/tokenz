@@ -5599,12 +5599,13 @@ html.hw-still .hw-land {
   transition: opacity 0.4s ease;
 }
 
-/* The exploded diagram (how-diagram.js): a small label, a big line, then the drawing, on black,
+/* The exploded diagram (how-diagram.js): the whole page, on black (its title is for screen
+   readers only),
    after architectural exploded axonometrics: six slabs in thin white line pulled apart, joined by
    dashed guides, each with a numbered callout; violet the only colour. The same six steps as a
    list, for screen readers, and shown instead of the callouts on a phone */
 .hw-explode {
-  padding: 14vh 48px 6vh;
+  padding: 4vh 48px 18vh;
   background: #0b0b0c;
   color: #ffffff;
 }
@@ -5638,7 +5639,73 @@ html.hw-still .hw-land {
 
 .hw-diagram {
   max-width: 1200px;
-  margin: 6vh auto 0;
+  margin: 0 auto;
+}
+
+/* How it works is black all over: the page, and the sidebar too, in light text (its logo is the
+   white file, set in the page, so its diamond stays violet) with the badge turned over, as on
+   Home's black */
+body:has(.content.how) {
+  background: #0b0b0c;
+}
+
+body:has(.content.how) .nav {
+  background: #0b0b0c;
+}
+
+body:has(.content.how) .nav-links a {
+  color: rgba(255, 255, 255, 0.62);
+}
+
+body:has(.content.how) .nav-links a:hover,
+body:has(.content.how) .nav-links a.active {
+  color: #ffffff;
+}
+
+body:has(.content.how) .nav-links .nav-extra a {
+  color: rgba(255, 255, 255, 0.42);
+}
+
+body:has(.content.how) .nav-links .nav-extra a:hover {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+body:has(.content.how) .nav-dot {
+  background: #ffffff;
+}
+
+body:has(.content.how) .tz-lockup {
+  background: #ffffff;
+}
+
+body:has(.content.how) .tz-lockup svg path {
+  fill: #16171A;
+}
+
+body:has(.content.how) .tz-lockup svg path:last-child {
+  fill: #5B4FD6;
+}
+
+body:has(.content.how) .tz-word {
+  color: #16171A;
+}
+
+body:has(.content.how) .tz-desc {
+  color: #5c5c5c;
+}
+
+body:has(.content.how) .tz-bar {
+  background: #c8c8c8;
+}
+
+/* (the page's title, for screen readers: the drawing is the page) */
+.hw-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .hw-diagram-svg {

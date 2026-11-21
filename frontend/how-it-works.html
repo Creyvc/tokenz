@@ -17,7 +17,7 @@
 <body>
   <header class="nav">
     <a href="index.html" class="logo" aria-label="Tokenz home">
-      <img src="assets/logo-mark.svg" alt="" width="48" height="48">
+      <img src="assets/logo-mark-white.svg" alt="" width="48" height="48">
     </a>
     <nav class="nav-links">
       <a href="index.html" data-label="Home">Home</a>
@@ -38,36 +38,15 @@
 
   <main class="content how">
     <section class="hw-explode" aria-labelledby="hw-explode-title">
-      <p class="hw-kicker">How it works</p>
-      <h1 class="hw-headline" id="hw-explode-title">From your prompt to fewer tokens.</h1>
+      <h1 class="hw-sr" id="hw-explode-title">How it works</h1>
       <div class="hw-diagram"></div>
       <ol class="hw-layers">
         <li><span class="hw-layer-num">01</span><h2>Your prompt</h2><p>The prompt you'd send to an AI, pasted on Compare.</p></li>
-        <li><span class="hw-layer-num">02</span><h2>Tokenizer</h2><p>Cut into tokens, the pieces a model reads, and counted (o200k_base).</p></li>
-        <li><span class="hw-layer-num">03</span><h2>Token IDs</h2><p>Each token is a number in the model's vocabulary.</p></li>
-        <li><span class="hw-layer-num">04</span><h2>Three methods</h2><p>NLP trims filler, TF-IDF drops off-topic sentences; AI rewrite asks Groq and Google for a shorter version.</p></li>
-        <li><span class="hw-layer-num">05</span><h2>Fewer tokens</h2><p>Checked: numbers, limits and “not”s must survive, or the original is kept.</p></li>
-        <li><span class="hw-layer-num">06</span><h2>Embeddings</h2><p>The model turns each token into a vector: fewer to make, less to pay.</p></li>
-      </ol>
-    </section>
-    <section class="hw-after">
-      <h2 class="hw-title">In three steps</h2>
-      <ol class="hw-steps">
-        <li class="hw-step">
-          <span class="hw-num">01</span>
-          <h2 class="hw-name">Paste a prompt</h2>
-          <p class="hw-text">On the Compare page, paste the prompt you would send to an AI.</p>
-        </li>
-        <li class="hw-step">
-          <span class="hw-num">02</span>
-          <h2 class="hw-name">Choose a method</h2>
-          <p class="hw-text">NLP tidies the wording and TF-IDF cuts off-topic sentences, both on your computer. AI Rewrite sends your prompt to Groq and Google to be rewritten shorter.</p>
-        </li>
-        <li class="hw-step">
-          <span class="hw-num">03</span>
-          <h2 class="hw-name">Compare the two</h2>
-          <p class="hw-text">See the original and the shorter version side by side, with the tokens each one uses. Check the shorter one still asks the same thing before you use it.</p>
-        </li>
+        <li><span class="hw-layer-num">02</span><h2>Three methods</h2><p>They work on your words: NLP trims filler, TF-IDF drops off-topic sentences, AI rewrite asks Groq and Google.</p></li>
+        <li><span class="hw-layer-num">03</span><h2>Shorter prompt</h2><p>Checked: numbers, limits and “not”s must survive, or the original is kept.</p></li>
+        <li><span class="hw-layer-num">04</span><h2>Tokenizer</h2><p>Both versions cut into tokens and counted (o200k_base): the difference is what you save.</p></li>
+        <li><span class="hw-layer-num">05</span><h2>Token IDs</h2><p>Each token is a number in the AI model's vocabulary.</p></li>
+        <li><span class="hw-layer-num">06</span><h2>Embeddings</h2><p>In the AI model you send it to: each token becomes a vector, and you pay per token.</p></li>
       </ol>
     </section>
   </main>

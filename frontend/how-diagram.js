@@ -1,8 +1,10 @@
 // How it works: an exploded diagram of what happens to a prompt (after architectural exploded
 // axonometrics the owner liked): six isometric slabs in thin white line, one under another,
 // joined by dashed guides, each with a numbered callout on a leader line, the site's violet the
-// only colour. Top to bottom: the prompt, cut into tokens, the tokens' numbers, the three methods
-// (in a violet orbit), the fewer tokens left, and the vectors a model makes of them.
+// only colour. Top to bottom, in the order things really happen: the prompt (its filler marked),
+// the three methods that shorten its words (in a violet orbit), the shorter prompt, the tokenizer
+// that cuts both versions into tokens and counts them (the tokens saved left as dashed outlines),
+// the tokens' numbers, and the vectors the AI model it's sent to makes of them.
 // - Scrolling it into view, the slabs come apart from a tight stack into their places, and the
 //   callouts draw in one after another; a violet dot keeps travelling down the middle line.
 // - With reduced motion it's drawn in its places, still.
@@ -19,18 +21,18 @@
 
   // Where each slab sits once apart, and its half-size and thickness
   var LAYERS = [
-    { y: 220, a: 130, t: 14, num: "01", name: "Your prompt", side: -1,
+    { kind: "prompt", y: 220, a: 130, t: 14, num: "01", name: "Your prompt", side: -1,
       text: ["The prompt you'd send to an AI,", "pasted on Compare."] },
-    { y: 475, a: 130, t: 14, num: "02", name: "Tokenizer", side: 1,
-      text: ["Cut into tokens, the pieces a model", "reads, and counted (o200k_base)."] },
-    { y: 730, a: 130, t: 14, num: "03", name: "Token IDs", side: -1,
-      text: ["Each token is a number in the", "model's vocabulary."] },
-    { y: 1005, a: 160, t: 24, num: "04", name: "Three methods", side: 1, lift: 120,
-      text: ["NLP trims filler, TF-IDF drops off-topic", "sentences; AI rewrite asks Groq and", "Google for a shorter version."] },
-    { y: 1285, a: 130, t: 14, num: "05", name: "Fewer tokens", side: -1,
-      text: ["Checked: numbers, limits and “not”s", "must survive, or the original is kept."] },
-    { y: 1530, a: 130, t: 14, num: "06", name: "Embeddings", side: 1,
-      text: ["The model turns each token into a", "vector: fewer to make, less to pay."] }
+    { kind: "methods", y: 505, a: 160, t: 24, num: "02", name: "Three methods", side: 1, lift: 120,
+      text: ["They work on your words: NLP trims", "filler, TF-IDF drops off-topic sentences,", "AI rewrite asks Groq and Google."] },
+    { kind: "shorter", y: 790, a: 130, t: 14, num: "03", name: "Shorter prompt", side: -1,
+      text: ["Checked: numbers, limits and \u201cnot\u201ds", "must survive, or the original is kept."] },
+    { kind: "tokens", y: 1050, a: 130, t: 14, num: "04", name: "Tokenizer", side: 1,
+      text: ["Both versions cut into tokens and", "counted (o200k_base): the difference", "is what you save."] },
+    { kind: "ids", y: 1300, a: 130, t: 14, num: "05", name: "Token IDs", side: -1,
+      text: ["Each token is a number in the", "AI model's vocabulary."] },
+    { kind: "vectors", y: 1540, a: 130, t: 14, num: "06", name: "Embeddings", side: 1,
+      text: ["In the AI model you send it to: each", "token becomes a vector, and you pay", "per token."] }
   ];
 
   function el(tag, attrs, parent) {
@@ -76,25 +78,32 @@
     }
   })();
 
-  function details(g, i, a) {
-    if (i === 0) {
-      // lines of text and a caret
-      [180, 150, 200, 105, 175, 130].forEach(function (len, k) {
-        var y = -86 + k * 33;
-        line(g, P(-100, y), P(-100 + len, y), { stroke: k === 0 ? LINE : DIM, "stroke-width": 1.4, "stroke-linecap": "round" });
-      });
-      rect(g, 34, 74, 41, 88, { fill: VIOLET, stroke: "none" });
-    } else if (i === 1 || i === 4) {
-      TILES.forEach(function (tile) {
-        if (i === 4 && tile.filler) {
-          rect(g, tile.x, tile.y, tile.x + tile.w, tile.y + 21, { fill: "none", stroke: "rgba(255,255,255,0.12)", "stroke-dasharray": "2 3" });
-          return;
+  // The prompt's lines: each a run of words, then (after `keep`) its filler, which the methods
+  // take out
+  var PROSE = [[180, 120], [150, 150], [200, 140], [105, 60], [175, 175], [130, 80]];
+
+  function details(g, kind, a) {
+    if (kind === "prompt" || kind === "shorter") {
+      // lines of text: the filler on the end of some marked in violet; on the shorter prompt
+      // it's gone, a faint dashed trace where it was
+      PROSE.forEach(function (row, k) {
+        var y = -86 + k * 33, len = row[0], keep = row[1];
+        line(g, P(-100, y), P(-100 + keep, y), { stroke: k === 0 ? LINE : DIM, "stroke-width": 1.4, "stroke-linecap": "round" });
+        if (keep < len) {
+          line(g, P(-100 + keep + 6, y), P(-100 + len, y), kind === "prompt" ?
+            { stroke: VIOLET, "stroke-width": 1.4, "stroke-linecap": "round", opacity: 0.9 } :
+            { stroke: "rgba(255,255,255,0.16)", "stroke-width": 1, "stroke-dasharray": "2 4" });
         }
-        rect(g, tile.x, tile.y, tile.x + tile.w, tile.y + 21, i === 1 && tile.filler ?
-          { fill: "rgba(139,127,242,0.28)", stroke: VIOLET, "stroke-width": 1 } :
+      });
+      if (kind === "prompt") rect(g, 34, 74, 41, 88, { fill: VIOLET, stroke: "none" });
+    } else if (kind === "tokens") {
+      // both versions' tokens: the ones the shorter one doesn't have are dashed outlines
+      TILES.forEach(function (tile) {
+        rect(g, tile.x, tile.y, tile.x + tile.w, tile.y + 21, tile.filler ?
+          { fill: "none", stroke: VIOLET, "stroke-width": 0.9, "stroke-dasharray": "2 3", opacity: 0.8 } :
           { fill: "none", stroke: LINE, "stroke-width": 0.9 });
       });
-    } else if (i === 2) {
+    } else if (kind === "ids") {
       // the numbers, written on the face
       var ids = ["15900 259 79007 11", "2684 2616 13 17951", "89 180721 290 5018", "6391 842 328 261", "15226 2254 481 4952", "480 316 448 20837"];
       var face = el("g", { transform: "matrix(" + C + " " + S + " " + -C + " " + S + " 0 0)" }, g);
@@ -102,7 +111,7 @@
         var text = el("text", { x: -104, y: -74 + k * 34, fill: k % 2 ? DIM : LINE, "font-size": 15, "letter-spacing": 1.3 }, face);
         text.textContent = row;
       });
-    } else if (i === 3) {
+    } else if (kind === "methods") {
       // the three methods: a module each, with its name on a pill over it
       [["NLP", -85], ["TF-IDF", 0], ["AI REWRITE", 85]].forEach(function (m, k) {
         var x = m[1], y = -m[1] * 0.35, b = 30, h = 30;
@@ -119,7 +128,7 @@
         label.textContent = m[0];
         line(g, [mid[0], mid[1] - 34], [mid[0], mid[1] - 4], { stroke: DIM, "stroke-width": 1 });
       });
-    } else if (i === 5) {
+    } else if (kind === "vectors") {
       // a vector for each token: a row of bars standing up off the face
       for (var gx = 0; gx < 6; gx++) for (var gy = 0; gy < 4; gy++) {
         var x0 = -95 + gx * 38, y0 = -78 + gy * 52, hgt = 12 + Math.round(rnd() * 40);
@@ -138,7 +147,7 @@
   for (var n = LAYERS.length - 1; n >= 0; n--) {
     var g = el("g", { class: "hw-layer" }, slabs);
     slab(g, LAYERS[n].a, LAYERS[n].t);
-    details(g, n, LAYERS[n].a);
+    details(g, LAYERS[n].kind, LAYERS[n].a);
     layerGroups[n] = g;
   }
   var orbitFront = el("g", {}, svg);
@@ -175,6 +184,7 @@
   function clamp(x) { return Math.min(1, Math.max(0, x)); }
   function ease(x) { return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; }
 
+  var METHODS = LAYERS.map(function (layer) { return layer.kind; }).indexOf("methods");
   var MID = (LAYERS[0].y + LAYERS[LAYERS.length - 1].y) / 2;
   var current = [];
   function place(p) {
@@ -184,7 +194,7 @@
       return stacked + (layer.y - stacked) * ease(p);
     });
     layerGroups.forEach(function (g, i) { g.setAttribute("transform", "translate(" + CX + "," + current[i].toFixed(1) + ")"); });
-    orbit(current[3]);
+    orbit(current[METHODS]);
     // the guides: dashed uprights at the slabs' side corners, and the middle line they hang on
     guides.innerHTML = "";
     var top = current[0], bottom = current[current.length - 1] + 130;
