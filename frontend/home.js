@@ -344,6 +344,18 @@
     var measureWipe = end ? end.querySelector(".measure-wipe") : null;
     var measureAt = null, measureAtTime = 0;  // which measure is in the middle (0 to 3), eased
     var activeMeasure = -1, playedMeasure = -1;
+    // Each drawing's lines (not its frame, nor the typing dots) draw themselves in when its
+    // measure takes over and rub themselves out when it hands over (styles.css, .draw-part): each
+    // gets its own length to draw along (--len, measured: Chrome's pathLength goes wrong on the
+    // bubbles' curves), and its place in the order (--i)
+    measureItems.forEach(function (item) {
+      var parts = item.querySelectorAll(".measure-mark path:not(.measure-corner), .measure-mark ellipse, .measure-mark circle:not(.mark-dot)");
+      Array.prototype.forEach.call(parts, function (part, i) {
+        part.classList.add("draw-part");
+        part.style.setProperty("--i", i);
+        try { part.style.setProperty("--len", (part.getTotalLength() + 1).toFixed(1)); } catch (e) {}
+      });
+    });
     var BAR = 2, BAR_GAP = 7;  // px: each bar's width, and the space between them
     var barsFor = "", barsAt = -1;
     var lastBarsUp = -1, toCompare = 0;  // the bars last frame; the wait before going to Compare
@@ -991,7 +1003,7 @@
 
     // What We Measure is a window, then MEASURE_STEP windows per measure after the first, then a
     // little more with the last one shown, all of it pinned in the window. The current drawing
-    // stands in the top half, the next fading in in its place (--o); in the bottom half
+    // stands in the top half, the next drawing itself in in its place; in the bottom half
     // each card slides up over the one before (--slide). The one nearest is the current one
     // (is-active): as it takes over, its name rises from behind masks and its description
     // The rising white with its pixel edge (.measure-wipe, styles.css). Squares about an 18th of
@@ -1100,15 +1112,16 @@
       if (Math.abs(target - measureAt) < 0.001) measureAt = target;
       measureAtTime = now;
       if (measureAt !== target) soon();
-      // The drawings stay put: the current one shows, and as the next takes over they cross-fade
-      // in place. The cards (after atolldigital.com): each
+      // The drawings stay put: as the next takes over, the one there rubs its lines out and the
+      // next draws itself in (is-active, styles.css). The cards (after atolldigital.com): each
       // comes up from below the window over the one before and stops on it, which darkens a little
       // under it (--slide, --under)
       end.style.setProperty("--card", card.toFixed(1) + "px");
+      // (the lines' width in the drawing's own units, so they show 1.5px wide at this size)
+      end.style.setProperty("--mark-sw", (1.5 * 120 / card).toFixed(3));
       var rise = 0.55 * H;
       measureItems.forEach(function (item, i) {
         var off = i - measureAt;
-        item.style.setProperty("--o", clamp(1.5 - 2 * Math.abs(off)).toFixed(3));
         var coming = clamp(off), eased = coming * coming * (3 - 2 * coming);
         item.style.setProperty("--slide", (eased * rise).toFixed(1) + "px");
         item.style.setProperty("--under", clamp(measureAt - i).toFixed(3));
