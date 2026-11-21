@@ -1,9 +1,10 @@
 """The promo's track, "Glide": a hard-hitting SaaS-teaser beat in the manner of the reference the owner
-chose (refs/), written from scratch: 118 BPM, a deep 808 sub that glides between notes on a creeping
-minor line, a punchy kick, claps on 2 and 4, rolling hi-hats, half-beat drop-outs before the big cuts.
-Every hit sits on the picture's beats (timeline.js): typing clicks, a whoosh per card, a pop per
-shattered word, a tick per count, whooshes on the whip pans and swooshes, a beat of silence before
-the logo, then one big impact, and a cut on the last beat.
+chose (refs/), written from scratch: 120 BPM (from timeline.js), a deep 808 sub that glides between
+notes on a creeping minor line, a punchy kick, claps on 2 and 4, rolling hi-hats, half-beat drop-outs
+before the big cuts. Every hit sits on the picture's beats (timeline.js): a pop per token chip as
+the opening's diamond throws them out, a pop per shattered word, a tick per count, a whoosh on
+every transition, a half-beat drop before the logo with a swell into it, then one big impact; the
+groove carries on under the end card and runs straight back into the first bar.
 
   python score.py      writes score.wav (needs numpy)
 """
@@ -27,7 +28,7 @@ DUR = T["beats"] * B
 def at(b): return b * B
 
 S.N = int((DUR + 3) * SR)
-S.STOP, S.HIT, S.DUR = at(SCN["silence"]), at(SCN["logo"]), DUR   # the beat of silence before the logo
+S.STOP, S.HIT, S.DUR = at(SCN["silence"]), at(SCN["logo"]), DUR   # the half-beat drop before the logo
 
 # Our own line: two 808 notes a bar, creeping up by half steps and falling back (A minor)
 LINE = [(33, 34), (35, 36), (33, 31), (30, 35), (33, 34), (35, 38), (36, 35), (31, 33)]
@@ -72,10 +73,10 @@ def keyclick(m, g=1.0):
 
 
 def glide():
-    m = S.Mix(118)
+    m = S.Mix(T["bpm"])
     L = SCN
     bars = int(np.ceil(L["silence"] / 4))
-    LOOP_IN = L["logo"] + 4                                   # the last two bars, back into bar one
+    LOOP_IN = L["logo"]                                       # the end card's three bars, back into bar one
 
     # ---- the 808: two notes a bar, gliding, from the opening to the silence ----
     prev = None
@@ -114,7 +115,8 @@ def glide():
                 m.add(lp(hat(m, g=0.26 + 0.035 * k), 11000), at(hb), pan=-0.2, duck=False)
         if busy and bar_ % 2: m.add(hat(m, True, 0.4), at(b0 + 1.5), pan=0.3, duck=False)
 
-    # the last two bars: the 808 line and a lighter groove, running straight back into bar one
+    # under the end card: the 808 line and a lighter groove, running straight back into bar one (so
+    # the track never stops: only the half-beat drop before the logo)
     prev = None
     for bar_ in range(LOOP_IN // 4, T["beats"] // 4):
         a, b2 = LINE[bar_ % 8]
@@ -139,14 +141,23 @@ def glide():
     for b in (8, 24, 26, 30, 44, 52, 62, 68):
         m.add(impact(m, 0.6, 1.4), at(b), send=0.35, duck=False)
 
-    # ---- the opening: a click per letter as the line types, a soft whoosh per card ----
-    ot = T["openType"]; letters = len("Prompts are") + len("getting longer.")
-    for i in range(letters):
-        m.add(keyclick(m, 0.5 + 0.3 * (i % 3 == 0)), at(ot["start"]) + i * at(ot["span"]) / letters, pan=-0.3, duck=False)
-    for b in T["openCards"]:
-        m.add(whoosh(m, 0.3, 0.45), at(b) - 0.12, pan=0.5, duck=False)
-        m.add(click(m, 0.25, 2600), at(b) + 0.1, pan=0.5, duck=False)
+    # ---- the opening: a soft pop per token chip as the diamond throws it out, rising a little in
+    # pitch as they come; a whoosh as the line slams in ----
+    it = T["intro"]; chips = 27
+    for i in range(chips):
+        tt = at(it["emit"]) + i * at(it["span"]) / chips
+        m.add(pop(m, 0.32 + 0.1 * (i % 4 == 0)), tt, pan=0.45 * np.sin(i * 1.7), duck=False)
+        m.add(click(m, 0.16, 2600 + 30 * i), tt + 0.02, pan=0.45 * np.sin(i * 1.7), duck=False)
+    m.add(whoosh(m, 0.45, 0.8), at(it["title"]) - 0.25, duck=False)
+    m.add(click(m, 0.3, 2400), at(it["eyebrow"]), pan=-0.3, duck=False)
     m.add(swell(m, at(1.5), 0.7), at(L["s1"] - 1.5), send=0.3, duck=False)
+
+    # ---- a whoosh and a click on every shape transition (the iris, the flip, the shutters, the
+    # wipe and the pixels) ----
+    for b, kind in T["cuts"].items():
+        if kind in ("iris", "flip", "shutter", "wipe", "pixel"):
+            m.add(whoosh(m, 0.4, 0.85), at(float(b)) - 0.26, pan=0.2, duck=False)
+            m.add(click(m, 0.3, 2000), at(float(b)), duck=False)
 
     # ---- "27" / "TOKENS" ----
     m.add(stab([45, 57, 64, 69, 72], 0.3, 0.7, 1.1), at(L["s1"]), send=0.35)
@@ -238,13 +249,13 @@ def glide():
     for b in T["whips"]:
         m.add(whoosh(m, 0.3, 0.9), at(b) - 0.15, duck=False)
 
-    # ---- collapse, the silence, the logo ----
+    # ---- collapse, the half-beat drop, a swell into the logo ----
     m.add(whoosh(m, at(1), 0.9), at(L["s9"]), duck=False)
+    m.add(swell(m, at(1.5), 0.6), at(L["logo"] - 1.5), send=0.3, duck=False)
     m.add(impact(m, 1.4, 3.0), at(L["logo"]), send=0.6, duck=False)
     m.add(boom(m, 1.2), at(L["logo"]), duck=False)
-    m.add(sub808(33, at(4), None, 0.6), at(L["logo"]))
     m.add(stab([45, 57, 64, 69, 72, 76, 81], 1.6, 1.0, 1.4), at(L["logo"]), send=0.6)
-    m.add(pad([45, 57, 64, 69, 72], at(LOOP_IN - L["logo"]) + 0.3, 1.0, 2600), at(L["logo"]), send=0.6)
+    m.add(pad([45, 57, 64, 69, 72], at(4) + 0.3, 1.0, 2600), at(L["logo"]), send=0.6)
     for i in range(6):                                                    # "Tokenz" typing on
         m.add(keyclick(m, 0.6), at(L["logo"] + 1) + 0.1 + i * 0.5 / 6, duck=False)
     line = "Save tokens. Keep meaning."
@@ -256,7 +267,8 @@ def glide():
 
 def master_loop(m, path):
     """Like scores.Mix.master, without its hard tanh: the kick ducks the bed, a short room reverb,
-    the beat of silence, then a gentle bus compressor and a soft ceiling. Everything that rings on past
+    the half-beat drop before the logo, then a gentle bus compressor and a soft ceiling (its level
+    worked out round the loop, so the end and the start are at the same level). Everything that rings on past
     the end is folded back onto the start, so the loop point is seamless. Loudness is set later, when
     the video is made (ffmpeg's loudnorm, to -16 LUFS)."""
     N = S.N
@@ -270,7 +282,7 @@ def master_loop(m, path):
     size = 1 << int(np.ceil(np.log2(N + ir_n)))
     wet = np.fft.irfft(np.fft.rfft(m.SEND, size) * np.fft.rfft(ir, size), size)[:N] * 0.4
     Lc = Lc + m.DL + wet; Rc = Rc + m.DR + np.roll(wet, int(0.017 * SR))
-    # the beat of silence before the logo
+    # the half-beat drop before the logo
     i0, i1 = int(S.STOP * SR), int(S.HIT * SR); f = np.linspace(1, 0, int(0.012 * SR))
     for c in (Lc, Rc):
         c[i0:i0 + len(f)] *= f; c[i0 + len(f):i1] *= 0.03
@@ -286,10 +298,14 @@ def master_loop(m, path):
         mix[:, i:i + fd] *= np.linspace(1, 0.08, fd); mix[:, i + fd:j] *= 0.08; mix[:, j:j + fd] *= np.linspace(0.08, 1, fd)
     # bus glue: a slow, gentle compressor (2:1 above -14 dB of the peak)
     peak = np.max(np.abs(mix)) + 1e-9; x = mix / peak
-    env = np.sqrt(np.convolve((x ** 2).mean(0), np.ones(int(0.05 * SR)) / int(0.05 * SR), mode="same")) + 1e-9
+    def round_smooth(v, n):
+        # a moving average that wraps round the loop: the end is smoothed with the start
+        pad_ = n
+        return np.convolve(np.concatenate([v[-pad_:], v, v[:pad_]]), np.ones(n) / n, mode="same")[pad_:-pad_]
+    env = np.sqrt(round_smooth((x ** 2).mean(0), int(0.05 * SR))) + 1e-9
     thr = 10 ** (-14 / 20)
     gain = np.where(env > thr, (env / thr) ** (1 / 2 - 1), 1.0)
-    gain = np.convolve(gain, np.ones(int(0.03 * SR)) / int(0.03 * SR), mode="same")
+    gain = round_smooth(gain, int(0.03 * SR))
     x = x * gain
     # a soft ceiling: untouched below 0.6 of the peak, rounded off above
     a_ = np.abs(x); x = np.where(a_ < 0.6, x, np.sign(x) * (0.6 + 0.4 * np.tanh((a_ - 0.6) / 0.4)))

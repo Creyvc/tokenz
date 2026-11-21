@@ -719,8 +719,6 @@ function bgWord(t, word, sub) {
   g.restore();
 }
 
-// ---------- the opening (after Dexatel's): a two-weight line typing on, prompts stacking up beside it ----------
-
 // ---------- a faint dot grid, drifting: depth behind the light scenes ----------
 function dotGrid(alpha, ox = 0, oy = 0, step = 46) {
   g.save(); g.fillStyle = `rgba(30,40,120,${alpha})`;
@@ -728,78 +726,87 @@ function dotGrid(alpha, ox = 0, oy = 0, step = 46) {
   for (let y = y0 - step; y < H + step; y += step) for (let x = x0 - step; x < W + step; x += step) g.fillRect(x - 1, y - 1, 2.2, 2.2);
   g.restore();
 }
-
-// ---------- the opening: a caret, a two-weight line typing on, and a deck of incoming prompts ----------
-const OPEN = { s1: V ? 118 : 128, x0: V ? W * 0.08 : W * 0.07 };
 // the paper's dot grid drifts a whole number of dots over the film, so it's in the same place when it loops
 const paperDots = (t) => dotGrid(0.06, -t * 46 * 15 / DUR, 0);
-OPEN.y1 = V ? H * 0.17 : CY - OPEN.s1 * 0.55;
-// where the caret waits before the first letter (the loop ends on it too)
-function caretHome() { const s = OPEN.s1; return { x: OPEN.x0 + 4, y: OPEN.y1 - s * 0.42, w: 7, h: s * 0.84 }; }
-function caret(x, y, w, h, t, blink) {
-  const a = blink ? (Math.sin(t * Math.PI * 2 / (2 * B)) > 0 ? 1 : 0.15) : 1;
-  g.save(); g.globalAlpha *= a; rr(x, y, w, h, w / 2); g.fillStyle = "#5B4FD6"; g.fill(); g.restore();
-}
-function promptCard2(x, y, w, h, msg, n, alpha) {
+
+// ---------- the opening: the violet diamond (the logo's middle) throws out the prompt's tokens ----------
+// The film opens and ends on the same frame: the diamond in the middle of the paper, breathing on a
+// two-beat swell (a whole number of swells in the film, so it's at the same size on both ends)
+const DIAMOND = V ? 74 : 66;
+function diamond(x, y, r, alpha = 1) {
+  if (r <= 0.2) return;
   g.save(); g.globalAlpha *= alpha;
-  g.shadowColor = "rgba(30,40,120,0.16)"; g.shadowBlur = 48; g.shadowOffsetY = 18;
-  rr(x, y, w, h, 26); g.fillStyle = "#FFFFFF"; g.fill();
-  g.shadowColor = "rgba(0,0,0,0)"; g.lineWidth = 1.2; g.strokeStyle = "rgba(20,30,90,0.08)"; g.stroke();
-  // the app icon: a gradient tile with a speech bubble
-  const ix = x + 28, iy = y + 28, is = 48;
-  const ig = g.createLinearGradient(ix, iy, ix + is, iy + is); ig.addColorStop(0, "#3B6BFF"); ig.addColorStop(1, "#7C5CFF");
-  rr(ix, iy, is, is, 13); g.fillStyle = ig; g.fill();
-  rr(ix + 11, iy + 13, 26, 18, 6); g.fillStyle = "#FFFFFF"; g.fill();
-  g.beginPath(); g.moveTo(ix + 17, iy + 30); g.lineTo(ix + 15, iy + 37); g.lineTo(ix + 24, iy + 30); g.closePath(); g.fill();
-  text("New prompt", ix + is + 18, iy + 13, 23, INK, { weight: 700, align: "left" });
-  text("now", ix + is + 18 + measure("New prompt", 23, 700) + 12, iy + 13, 21, "#9A9DB0", { weight: 500, align: "left" });
-  text(msg, ix + is + 18, iy + 46, fit(msg, 26, w - is - 210, 500), "#30323F", { weight: 500, align: "left" });
-  const tag = `+${n} tokens`, tw = measure(tag, 21, 700) + 28;
-  rr(x + w - tw - 24, y + 26, tw, 36, 18); g.fillStyle = "#FFF0E6"; g.fill();
-  text(tag, x + w - tw / 2 - 24, y + 44, 21, "#F06A1A", { weight: 700 });
+  g.shadowColor = "rgba(91,79,214,0.35)"; g.shadowBlur = r * 0.9;
+  g.beginPath(); g.moveTo(x, y - r); g.lineTo(x + r, y); g.lineTo(x, y + r); g.lineTo(x - r, y); g.closePath();
+  g.fillStyle = "#5B4FD6"; g.fill();
   g.restore();
 }
-function drawOpening(t) {
+const breathe = (t) => 1 + 0.06 * Math.sin(2 * Math.PI * t / (2 * B));
+// the prompt's 27 real tokens (chips.js), the filler ones orange
+const INTRO_FILLER = new Set([0, 1, 2, 3, 4, 12, 13, 19]);
+function introLayout() {
+  const size = V ? 46 : 54, maxW = V ? W * 0.86 : W * 0.66;
+  const probe = chipLayout("intro-probe", [C.email], size, maxW, 0);
+  const top = CY - probe.height / 2 + (V ? 120 : 70);
+  return { size, lay: chipLayout("intro", [C.email], size, maxW, top), top };
+}
+function drawIntro(t) {
   paperDots(t);
-  const d = t - at(TL.openType.start), span = at(TL.openType.span);
-  const L1 = "Prompts are", L2 = "getting longer.";
-  const all = L1.length + L2.length, typed = d < 0 ? 0 : Math.min(all, Math.floor(clamp(d / span) * all) + 1);
-  const { s1, x0, y1 } = OPEN;
-  const n1 = Math.min(typed, L1.length), n2 = Math.max(0, typed - L1.length);
-  // the eyebrow
-  const ea = outExpo(clamp((t - at(0.5)) / 0.3));
-  g.save(); g.globalAlpha = ea;
-  rr(x0, y1 - s1 * 1.05 - 18, 12, 12, 3); g.fillStyle = BLUE; g.fill();
-  font(22, 700); g.letterSpacing = "4px"; g.textAlign = "left"; g.textBaseline = "middle"; g.fillStyle = BLUE;
-  g.fillText("THE PROBLEM", x0 + 24, y1 - s1 * 1.05 - 11);
-  g.restore();
-  text(L1.slice(0, n1), x0, y1, s1, INK, { weight: 300, align: "left" });
-  if (n2) text(L2.slice(0, n2), x0, y1 + s1 * 1.08, s1, INK, { weight: 800, align: "left" });
-  // the caret follows the typing, blinking while it waits
-  let cx = x0 + 4, cy = y1;
-  if (n2) { cx = x0 + measure(L2.slice(0, n2), s1, 800) + 10; cy = y1 + s1 * 1.08; }
-  else if (n1) cx = x0 + measure(L1.slice(0, n1), s1, 300) + 10;
-  const waiting = typed === 0 || typed === all;
-  if (t < at(SC.s1) - 0.25) caret(cx, cy - s1 * 0.42, 7, s1 * 0.84, t, waiting);
-  const la = outExpo(clamp((t - at(4.5)) / 0.4));
-  if (la > 0) text("Every extra word costs tokens.", x0, y1 + s1 * 1.95, 32, "#6E7183", { weight: 500, align: "left", alpha: la });
-  // the deck: each new prompt arrives at the front; the rest step back
-  const cw = V ? W * 0.84 : 640, ch = 116;
-  const bx = V ? (W - cw) / 2 : W * 0.6, by = V ? H * 0.62 : CY + 60;
-  const cards = TL.openCards.map((b2, i) => ({ i, k: outExpo(clamp((t - at(b2)) / 0.45)) })).filter((c) => c.k > 0);
-  const depthOf = (i) => cards.filter((c) => c.i > i).reduce((s, c) => s + c.k, 0);
-  cards.slice().sort((a, b2) => depthOf(b2.i) - depthOf(a.i)).forEach(({ i, k }) => {
-    const dep = depthOf(i);
-    if (dep > 3.6) return;
-    const sc = (1 - dep * 0.06) * lerp(1.06, 1, k);
-    const y = by - dep * 64 + (1 - k) * 170;
-    const alpha = clamp(k * 1.6) * (1 - clamp((dep - 2.6) / 1));
-    g.save(); g.translate(bx + cw / 2, y + ch / 2); g.scale(sc, sc); g.translate(-(bx + cw / 2), -(y + ch / 2));
-    if (dep > 0.3) g.filter = `blur(${(dep * 0.9).toFixed(1)}px)`;
-    const [msg, n] = C.cards[i];
-    promptCard2(bx, y, cw, ch, msg, n, alpha);
-    g.restore();
+  const it = TL.intro, N = C.email.length;
+  const e0 = at(it.emit), span = at(it.span), fly = at(0.6);
+  const { size, lay, top } = introLayout();
+  // the diamond: it pulses as each chip leaves it, then shrinks away once the last has gone
+  const last = Math.floor(clamp((t - e0) / span) * N - 1e-6);
+  const sinceEmit = t >= e0 ? t - (e0 + span * Math.max(0, last) / N) : 9;
+  const gone = inExpo(clamp((t - (e0 + span)) / at(0.6)));
+  const pulse = t >= e0 && t < e0 + span ? 0.16 * Math.exp(-sinceEmit / 0.07) : 0;
+  diamond(CX, CY, DIAMOND * breathe(t) * (1 + pulse) * (1 - gone));
+  // the chips: each flies out of the diamond on its own curve and settles into the prompt
+  let landed = 0, since = 9;
+  lay.items.forEach((c, i) => {
+    const e = e0 + span * i / N, k = clamp((t - e) / fly);
+    if (k <= 0) return;
+    const ek = outExpo(k);
+    const tx = c.x, ty = c.y, sx = CX - c.w / 2, sy = CY - c.h / 2;
+    const bend = (hash(i * 7 + 3) - 0.5) * (V ? 260 : 340) * Math.sin(Math.PI * ek);
+    const x = lerp(sx, tx, ek) + bend * 0.35, y = lerp(sy, ty, ek) - bend;
+    const filler = INTRO_FILLER.has(i);
+    chip(x, y, c.w, c.h, chipLabel(c.tok), size, filler ? "#FFE7D8" : PASTEL[i % PASTEL.length], filler ? ORANGE : INK,
+      lerp(0.25, 1, ek) * (1 + 0.05 * Math.sin(Math.PI * clamp(k * 1.4))), clamp(k * 4));
+    if (k >= 1) { landed = i + 1; since = t - (e + fly); }
   });
+  // the count, as they land
+  if (landed > 0) {
+    const prev = Math.max(0, landed - 1);
+    g.save(); g.globalAlpha = clamp((t - e0 - fly) / 0.2);
+    counter(V ? W - 70 : W - 90, V ? H - 230 : H - 150, landed, prev, since, V ? 130 : 112, landed >= N ? ORANGE : INK);
+    g.restore();
+  }
+  // the line slams in over the prompt, light then bold, and a small label over it
+  const td = t - at(it.title);
+  if (td >= 0) {
+    const ts = V ? 74 : 92, l1 = "Prompts keep ", l2 = "getting longer.";
+    const w1 = measure(l1, ts, 300), w2 = measure(l2, ts, 800), x0 = CX - (w1 + w2) / 2, ly = top - (V ? 150 : 130);
+    const s = slam(td, 1.25), k = outExpo(clamp(td / 0.3));
+    g.save(); g.translate(CX, ly); g.scale(s, s); g.translate(-CX, -ly);
+    g.beginPath(); g.rect(0, ly - ts, W, ts * 1.6); g.clip();
+    const rise = (1 - k) * ts;
+    text(l1, x0, ly + rise, ts, INK, { weight: 300, align: "left" });
+    text(l2, x0 + w1, ly + rise, ts, INK, { weight: 800, align: "left" });
+    g.restore();
+    const ed = t - at(it.eyebrow);
+    if (ed >= 0) {
+      const ea = outExpo(clamp(ed / 0.3));
+      g.save(); g.globalAlpha = ea;
+      const ey = ly - ts * 0.95;
+      font(22, 700); g.letterSpacing = "4px";
+      const ew = g.measureText("THE PROBLEM").width;
+      rr(CX - ew / 2 - 22, ey - 6, 12, 12, 3); g.fillStyle = BLUE; g.fill();
+      g.textAlign = "left"; g.textBaseline = "middle"; g.fillStyle = BLUE;
+      g.fillText("THE PROBLEM", CX - ew / 2 - 2, ey);
+      g.restore();
+    }
+  }
 }
 
 // ---------- streams of light, redesigned: three coloured ribbons with light flowing along them ----------
@@ -897,6 +904,7 @@ function camera(t, b) {
   let s = 1 + (b >= SC.logo ? 0.035 * env : 0.045 * p);
   let r = 0.0055 * Math.sin(t * 0.55 + s0) * env * (b < 1 ? clamp(b) : 1);
   let x = (6 * Math.sin(t * 0.9) * env + sx), y = (4 * Math.sin(t * 0.7) * env + sy);
+  let fx = 1;   // a horizontal squash, for the flip
   for (const c of CUTS) {
     const type = TL.cuts[c], dOut = at(c) - t, dIn = t - at(c);
     if (dOut > 0 && dOut < 0.22) {
@@ -905,6 +913,8 @@ function camera(t, b) {
       if (type === "spin") { r += 0.4 * k; s *= 1 + 0.5 * k; }
       if (type === "push") y -= H * 0.95 * k;
       if (type === "whip") x -= W * 0.9 * k;
+      // the flip: the scene turns edge-on, like a card, and the next comes round from the other side
+      if (type === "flip") { const f = inOut(1 - dOut / 0.22); fx *= Math.cos(f * Math.PI / 2); r += 0.03 * f; s *= 1 - 0.06 * f; }
     }
     if (dIn >= 0 && dIn < 0.32) {
       const k = outExpo(dIn / 0.32);
@@ -913,9 +923,10 @@ function camera(t, b) {
       if (type === "push") y += H * 0.9 * (1 - k);
       if (type === "whip") x += W * 0.9 * (1 - k);
       if (type === "swoosh") s *= lerp(1.08, 1, k);
+      if (type === "flip") { const f = inOut(dIn / 0.32); fx *= Math.sin(f * Math.PI / 2); r -= 0.03 * (1 - f); s *= lerp(0.94, 1, f); }
     }
   }
-  return { s, r, x, y };
+  return { s, r, x, y, fx: Math.max(0.002, fx) };
 }
 
 // ---------- the end card (after Dexatel's): a blue bloom, the mark, the name types on beside it ----------
@@ -936,15 +947,22 @@ function drawLogoEnd(t) {
   const sk = d < 0.12 ? lerp(0.4, 1.08, outExpo(d / 0.12)) : lerp(1.08, 1, outCubic(clamp((d - 0.12) / 0.16)));
   const y = V ? CY - 80 : CY - 50;
   // the loop: the camera dives into the mark's violet diamond until it fills the screen; the violet
-  // then shrinks into the caret the film opens on
+  // then folds back into the diamond the film opens on
   const dive = inExpo(clamp((t - at(SC.loop)) / at(1.25)));
   const after = t - at(SC.loop + 1.25);
   if (after >= 0) {
+    // the violet that filled the screen folds into the opening's diamond: its four corners slide
+    // in to the diamond's points, then it breathes as the film begins again
     paperDots(t);
-    const ck = caretHome(), k = inOut(clamp(after / at(1.75)));
-    const rx = lerp(-40, ck.x, k), ry = lerp(-40, ck.y, k), rw = lerp(W + 80, ck.w, k), rh = lerp(H + 80, ck.h, k);
-    if (k < 1) { rr(rx, ry, rw, rh, lerp(0, ck.w / 2, k)); g.fillStyle = "#5B4FD6"; g.fill(); }
-    else caret(ck.x, ck.y, ck.w, ck.h, t, true);
+    const k = inOut(clamp(after / at(1.75))), r = DIAMOND * breathe(t);
+    const from = [[-60, -60], [W + 60, -60], [W + 60, H + 60], [-60, H + 60]];
+    const to = [[CX, CY - r], [CX + r, CY], [CX, CY + r], [CX - r, CY]];
+    if (k < 1) {
+      g.save(); g.shadowColor = "rgba(91,79,214,0.35)"; g.shadowBlur = r * 0.9 * k;
+      g.beginPath();
+      from.forEach((p, i) => { const x = lerp(p[0], to[i][0], k), y = lerp(p[1], to[i][1], k); if (i) g.lineTo(x, y); else g.moveTo(x, y); });
+      g.closePath(); g.fillStyle = "#5B4FD6"; g.fill(); g.restore();
+    } else diamond(CX, CY, r);
     return;
   }
   g.save();
@@ -989,10 +1007,10 @@ function render(t) {
   // the camera: drift, push, and a transition across every cut
   const cam = camera(t, b);
   g.setTransform(1, 0, 0, 1, 0, 0);
-  g.translate(CX + cam.x, CY + cam.y); g.rotate(cam.r); g.scale(cam.s, cam.s); g.translate(-CX, -CY);
+  g.translate(CX + cam.x, CY + cam.y); g.rotate(cam.r); g.scale(cam.s * cam.fx, cam.s); g.translate(-CX, -CY);
   const big = V ? 0.86 * W : 0.8 * W;
 
-  if (b < SC.s1) drawOpening(t);
+  if (b < SC.s1) drawIntro(t);
 
   // "27" slams in, "TOKENS" snaps beside it, on electric blue
   else if (b < SC.s2) {
@@ -1135,7 +1153,76 @@ function render(t) {
   else drawLogoEnd(t);
 
   drawSwoosh(t);
+  drawTransition(t);
   flashOn(t);
+}
+
+// ---------- the shape transitions: a shape covers the end of one scene and opens on the next, in one
+// unbroken movement, so the cut never shows. Each kind is used once or twice in the film ----------
+const T_OUT = 0.28, T_IN = 0.4;
+function drawTransition(t) {
+  for (const c of CUTS) {
+    const type = TL.cuts[c];
+    if (!["iris", "shutter", "wipe", "pixel"].includes(type)) continue;
+    const dOut = at(c) - t, dIn = t - at(c);
+    let cover = -1, open = -1;
+    if (dOut > 0 && dOut < T_OUT) cover = inOut(1 - dOut / T_OUT);
+    else if (dIn >= 0 && dIn < T_IN) open = outCubic(dIn / T_IN);
+    else continue;
+    g.save(); g.setTransform(1, 0, 0, 1, 0, 0);
+    if (type === "iris") {
+      // the logo's violet diamond grows from the middle to fill the screen, then a diamond-shaped
+      // hole opens in it onto the next scene
+      const R = (W + H) / 2 * 1.08;
+      g.fillStyle = "#5B4FD6";
+      g.beginPath();
+      if (cover >= 0) {
+        const r = R * cover;
+        g.moveTo(CX, CY - r); g.lineTo(CX + r, CY); g.lineTo(CX, CY + r); g.lineTo(CX - r, CY); g.closePath();
+        g.fill();
+      } else {
+        const r = R * open;
+        g.rect(-10, -10, W + 20, H + 20);
+        g.moveTo(CX, CY - r); g.lineTo(CX - r, CY); g.lineTo(CX, CY + r); g.lineTo(CX + r, CY); g.closePath();
+        g.fill("evenodd");
+      }
+    } else if (type === "shutter") {
+      // seven ink bars slide in from the left one after another, then fold shut from the middle
+      const n = 7, bh = H / n;
+      g.fillStyle = INK;
+      for (let j = 0; j < n; j++) {
+        const lag = j * 0.07;
+        if (cover >= 0) {
+          const k = inOut(clamp((cover - lag) / (1 - 0.07 * (n - 1))));
+          g.fillRect(-2, j * bh - 1, (W + 4) * k, bh + 2);
+        } else {
+          const k = inOut(clamp((open - lag) / (1 - 0.07 * (n - 1))));
+          const hh = (bh + 2) * (1 - k);
+          g.fillRect(-2, j * bh + (bh - hh) / 2, W + 4, hh);
+        }
+      }
+    } else if (type === "wipe") {
+      // a slanted band of the gradient sweeps across: its front edge covers, its back edge uncovers
+      const slant = H * 0.42, span = W + slant * 2;
+      const front = -slant + span * (cover >= 0 ? cover : 1), back = open >= 0 ? -slant + span * open : -slant - 10;
+      g.fillStyle = gradFill(0, 0, W, H);
+      g.beginPath();
+      g.moveTo(back, -10); g.lineTo(front + slant, -10); g.lineTo(front, H + 10); g.lineTo(back - slant, H + 10);
+      g.closePath(); g.fill();
+    } else if (type === "pixel") {
+      // squares fill the screen in a scattered order (violet and blue, like the site's pixels), then
+      // go again in another order, uncovering the next scene
+      const cols = V ? 9 : 16, rows = V ? 16 : 9, cw = W / cols, ch = H / rows;
+      for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) {
+        const id = j * cols + i, h1 = hash(id * 3.1 + 7), h2 = hash(id * 5.7 + 2);
+        const on = cover >= 0 ? h1 < cover * 1.05 : h2 >= open * 1.05;
+        if (!on) continue;
+        g.fillStyle = (i + j) % 3 === 0 ? BLUE : "#5B4FD6";
+        g.fillRect(Math.floor(i * cw), Math.floor(j * ch), Math.ceil(cw) + 1, Math.ceil(ch) + 1);
+      }
+    }
+    g.restore();
+  }
 }
 
 function flashOn(t) {
