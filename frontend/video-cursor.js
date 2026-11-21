@@ -12,7 +12,7 @@
 //   first screen holds while it plays (Home is taller for it, html.home-film in styles.css); scrolling
 //   on, the Three Methods page slides up over it. Scrolling back up plays it all backwards.
 // - The tile: from Three Methods on, once the sidebar is in, the video sits as a small tile just right
-//   of the sidebar's black Tokenz badge (bottom left, a little gap between), half the badge's height,
+//   of the sidebar's black Tokenz badge (bottom left, a little gap between), about a third of the badge's height,
 //   moving with the badge; it slides out from behind the badge only once the badge has slid in,
 //   still playing but pixelated, a mosaic you can't make out, until it's clicked: then it plays
 //   clear (another click hides it again).
@@ -31,6 +31,7 @@
   var BOX_W = 320, BOX_H = 180, RADIUS = 0;
   var MOSAIC_W = 24, MOSAIC_H = 14;   // the pixelated tile is drawn this small, then scaled up
   var TILE_GAP = 12;                  // the space between the badge and the tile
+  var TILE_OF_BADGE = 0.42;           // the tile's height, as a share of the badge's
 
   var box = document.createElement("div");
   box.className = "video-cursor";
@@ -179,7 +180,10 @@
     var badge = document.querySelector("header.nav:not(.nav-copy) .tz-lockup");
     if (!badge) return;
     var r = badge.getBoundingClientRect();
-    var tileH = Math.round(r.height / 2), tileW = Math.round(tileH * 16 / 9);
+    var tileH = Math.round(r.height * TILE_OF_BADGE), tileW = Math.round(tileH * 16 / 9);
+    // never past the sidebar's right edge (the thin line there): the same gap from it as from the badge
+    var nav = badge.closest("header.nav"), room = nav ? nav.getBoundingClientRect().right - TILE_GAP - (r.right + TILE_GAP) : tileW;
+    if (tileW > room) { tileW = Math.round(room); tileH = Math.round(tileW * 9 / 16); }
     // the badge is at rest once it hasn't moved for a few frames, fully in view
     var moved = !badgeLast || Math.abs(r.left - badgeLast.left) > 0.2 || Math.abs(r.top - badgeLast.top) > 0.2;
     badgeStill = moved ? 0 : badgeStill + 1;
