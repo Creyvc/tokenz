@@ -4621,20 +4621,21 @@ html.home-scroll .measure {
   overflow: hidden;
 }
 
-/* A technical label in spaced-out capitals, led by a small violet square like the counter's */
+/* A label in the site's own type (Inter, as written, tight like the headings), led by a small
+   violet square like the counter's */
 html.home-scroll .measure-title {
   position: absolute;
-  top: 44px;
+  top: 40px;
   left: 218px;
   display: flex;
   align-items: center;
   gap: 14px;
-  font-size: 18px;
-  font-weight: 500;
+  font-size: 26px;
+  font-weight: 600;
   line-height: 1;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: #d4d4d4;
+  letter-spacing: -0.03em;
+  text-transform: none;
+  color: #ffffff;
 }
 
 html.home-scroll .measure-title::before {
@@ -4658,31 +4659,30 @@ html.home-scroll .measure-item:nth-child(even) {
   display: contents;
 }
 
-/* The drawing, in the middle of the top half (between the label and the cards), about 30% of the
-   window tall */
+/* The drawing, in the top half (between the label and the cards, a little above its middle),
+   about 30% of the window tall */
 html.home-scroll .measure-mark {
   position: absolute;
-  top: calc(45px + 25vh - var(--card, 30vh) / 2);
-  left: calc((218px + 100vw - 40px) / 2 - var(--card, 30vh) / 2);
+  top: calc(15px + 25vh - var(--card, 30vh) / 2);
+  left: calc((218px + 100vw) / 2 - var(--card, 30vh) / 2);
   width: var(--card, 30vh);
   height: var(--card, 30vh);
   opacity: var(--o, 1);
 }
 
-/* The cards: the bottom half, from the sidebar to near the right edge; grey, violet, white and
-   grey again, so each stands out from the one it covers */
+/* The cards: the bottom half, from the sidebar to the window's right edge, square-cornered; grey,
+   violet, white and grey again, so each stands out from the one it covers */
 html.home-scroll .measure-card {
   position: absolute;
   top: 50vh;
   left: 218px;
-  right: 40px;
+  right: 0;
   bottom: 24px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   grid-template-rows: auto minmax(0, 1fr) auto;
   column-gap: 5vw;
   padding: 28px 40px 32px;
-  border-radius: 6px;
   background: #D6D6DA;
   color: #16171A;
   transform: translateY(var(--slide, 0px));
