@@ -199,8 +199,8 @@
         var edge = (100 - c * 140).toFixed(1), soft = (100 - c * 140 + 45).toFixed(1);
         video.style.webkitMaskImage = video.style.maskImage = "linear-gradient(to bottom, #000 " + edge + "%, transparent " + soft + "%)";
         video.style.opacity = (1 - c * c).toFixed(3);
-        video.style.filter = "brightness(" + (1 - 0.72 * clamp(c * 2.2)).toFixed(3) + ")";
-        dim.style.opacity = (0.92 * clamp(c * 4)).toFixed(3);
+        video.style.filter = "brightness(" + (1 - 0.45 * clamp(c * 2.2)).toFixed(3) + ")";
+        dim.style.opacity = (0.6 * clamp(c * 4)).toFixed(3);
       } else {
         video.style.webkitMaskImage = video.style.maskImage = "";
         video.style.opacity = "";
