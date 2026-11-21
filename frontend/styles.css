@@ -5887,6 +5887,7 @@ html.wb-arrive .content.results-page [data-results] > * {
 
 .wb-text-wrap {
   display: inline-block;
+  max-width: 100%;
 }
 
 html.wb-arrive .wb-text-rise {

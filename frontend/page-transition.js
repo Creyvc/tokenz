@@ -82,17 +82,67 @@
       texts.forEach(function (text) {
         text.classList.remove("wb-text-rise");
         if (!text.className) text.removeAttribute("class");
-        // (words that were given a wrapper of their own go back as they were)
-        if (text.classList.contains("wb-text-wrap")) text.replaceWith(text.firstChild);
       });
+      // (contents that were given a wrapper of their own go back as they were, every one, rising
+      // or not)
+      wrappers.forEach(function (wrap) {
+        if (wrap.parentNode) wrap.replaceWith.apply(wrap, Array.prototype.slice.call(wrap.childNodes));
+        if (wrap.__box) delete wrap.__box.__riseWrap;
+      });
+      wrappers = [];
     }, 1300 + parts.length * 75 + 800);
   }
 
   // The pieces of text in a part, each whole (a label, a title, a sentence with its link), not
   // word by word: for every bit of words, the nearest box around it that isn't a plain run of
   // inline text (the page's own boxes, which can move), the outermost where they nest. When that
-  // box is a shape of its own (a tile, a tab, a button: it has a fill or an outline), the shape
-  // slides with its part and only its words rise, in a wrapper of their own for the while
+  // box is a control or a shape of its own (a tab, a button, a tile: it has a fill or an outline),
+  // the box stays and everything in it, words and icons together, rises as one piece, in a
+  // wrapper laid out like the box for the while (so an icon and its label, or a number and its
+  // name, go up together, the same distance)
+  var wrappers = [];
+  function wrapContents(el) {
+    if (el.__riseWrap && el.__riseWrap.parentNode === el) return el.__riseWrap;
+    var style = getComputedStyle(el);
+    var wrap = document.createElement("span");
+    wrap.className = "wb-text-wrap";
+    if (/flex|grid/.test(style.display)) {
+      wrap.style.display = /grid/.test(style.display) ? "grid" : "flex";
+      ["flexDirection", "flexWrap", "alignItems", "justifyContent", "gap", "rowGap", "columnGap",
+       "gridTemplateColumns", "gridTemplateRows", "gridAutoFlow", "justifyItems"].forEach(function (prop) {
+        wrap.style[prop] = style[prop];
+      });
+    }
+    // (in a box that spans its line, the wrapper spans it too, so what's set to its ends stays there)
+    if (/^(block|flex|grid|list-item)$/.test(style.display)) wrap.style.width = "100%";
+    while (el.firstChild) wrap.appendChild(el.firstChild);
+    el.appendChild(wrap);
+    el.__riseWrap = wrap;
+    wrap.__box = el;
+    wrappers.push(wrap);
+    return wrap;
+  }
+
+  // The deepest box in a control that still holds all of what shows in it (its words and icons),
+  // so the wrapper goes there and the page's own styles for the control's parts still apply
+  // (a tab's or tile's "label > span", say)
+  function innermost(box) {
+    var shown = [];
+    var walk = document.createTreeWalker(box, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT);
+    for (var n = walk.nextNode(); n; n = walk.nextNode()) {
+      if (n.nodeType === 3 ? n.nodeValue.trim() : /^(svg|img)$/i.test(n.tagName)) shown.push(n);
+    }
+    var at = box;
+    for (;;) {
+      var next = null;
+      for (var c = at.firstElementChild; c; c = c.nextElementSibling) {
+        if (shown.every(function (n) { return c.contains(n); })) { next = c; break; }
+      }
+      if (!next || /^(svg|img)$/i.test(next.tagName)) return at;
+      at = next;
+    }
+  }
+
   function textsIn(part) {
     var found = [], nodes = [];
     var walk = document.createTreeWalker(part, NodeFilter.SHOW_TEXT);
@@ -102,13 +152,10 @@
       var el = node.parentElement;
       if (!el || el.closest("textarea, script, style, [hidden]")) return;
       while (el !== part && /^(inline|contents)$/.test(getComputedStyle(el).display)) el = el.parentElement;
-      if (el !== part && isShape(el)) {
-        var wrap = document.createElement("span");
-        wrap.className = "wb-text-wrap";
-        node.replaceWith(wrap);
-        wrap.append(node);
-        el = wrap;
-      }
+      // (the control it's in, the nearest one inside the part; or else its box, if that's a shape)
+      var box = el.closest("button, label, a, [role=tab]");
+      if (!box || box === part || !part.contains(box)) box = el !== part && isShape(el) ? el : null;
+      if (box) el = wrapContents(innermost(box));
       if (el === part || !el.getClientRects().length || found.indexOf(el) >= 0) return;
       found.push(el);
     });
