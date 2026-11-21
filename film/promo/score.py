@@ -256,6 +256,11 @@ def glide():
     m.add(boom(m, 1.2), at(L["logo"]), duck=False)
     m.add(stab([45, 57, 64, 69, 72, 76, 81], 1.6, 1.0, 1.4), at(L["logo"]), send=0.6)
     m.add(pad([45, 57, 64, 69, 72], at(4) + 0.3, 1.0, 2600), at(L["logo"]), send=0.6)
+    # the chevrons sliding in and locking round the diamond, and the mark opening again at the end
+    m.add(whoosh(m, 0.35, 0.6), at(L["logo"]), pan=-0.4, duck=False)
+    m.add(whoosh(m, 0.35, 0.6), at(L["logo"]), pan=0.4, duck=False)
+    m.add(click(m, 0.45, 1800), at(L["logo"] + 0.75), duck=False)
+    m.add(whoosh(m, at(2), 0.55), at(L["loop"] + 0.5), duck=False)
     for i in range(6):                                                    # "Tokenz" typing on
         m.add(keyclick(m, 0.6), at(L["logo"] + 1) + 0.1 + i * 0.5 / 6, duck=False)
     line = "Save tokens. Keep meaning."

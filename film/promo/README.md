@@ -32,9 +32,9 @@ in Tokenz's look, not copied: no footage, logos, people or watermarks from them.
 | 62–64 | "Nothing lost.": a glassy check, confetti | a chime, confetti crackle |
 | 64–72 | three coloured ribbons of light, labelled in glass pills (Local NLP and TF‑IDF "Local", AI rewrite "Cloud"), race in with light flowing along them and merge at a glowing node holding the Tokenz mark; "Local first." "AI when it counts." | whooshes |
 | 72–82 | 27 glass blocks lock into a cube; its 8 corners pop (27 → 19); it compresses and spins | an arpeggio, ticks, a riser |
-| 82–84 | it collapses to a point | a half-beat drop, a swell into the logo |
-| 84–92 | a blue bloom; the Tokenz mark, "Tokenz" types on beside it; "Save tokens. Keep meaning." in an outlined pill | one big impact, typing; the groove carries on |
-| 92–96 | the camera dives into the mark's violet diamond; the violet folds back into the opening's diamond | the last bar, back into the first |
+| 82–84 | it collapses to a point, which grows into the violet diamond | a half-beat drop, a swell into the logo |
+| 84–92 | a soft blue bloom; the mark's two chevrons (cut from the logo file) slide in and lock round the diamond as it shrinks into the mark's middle; "Tokenz" types on beside it; "Save tokens. Keep meaning." in an outlined pill | one big impact, a whoosh each side, a click as they lock, typing; the groove carries on |
+| 92–96 | the words sink away, then the mark opens: the chevrons glide out to the sides and the diamond travels back to the middle at the opening's size: the film's first frame | a soft whoosh; the last bar, back into the first |
 
 The music, "Glide" (`score.py`), is our own, written to the reference track's shape (measured, not
 copied): 120 BPM, a gliding, warm 808 on a creeping minor line, kick, claps on 2 and 4, rolling hats,

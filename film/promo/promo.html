@@ -929,64 +929,79 @@ function camera(t, b) {
   return { s, r, x, y, fx: Math.max(0.002, fx) };
 }
 
-// ---------- the end card (after Dexatel's): a blue bloom, the mark, the name types on beside it ----------
+// ---------- the end card (after Dexatel's): one thread runs through it, the violet diamond ----------
+// The cube's last point grows into the opening's diamond; on the logo's beat the mark's two chevrons
+// (cut from the logo file itself) slide in and lock round it while it shrinks into the mark's middle;
+// "Tokenz" and the line type on beside it. To end, the mark opens again: the chevrons glide out to the
+// sides, the words sink and fade, and the diamond travels back to the middle at the opening's size,
+// the paper's dots coming back under it: the film's first frame.
+const MARK_D = 4.5 / 64;   // the mark's diamond: half its width, as a share of the mark (logo-mark.svg)
+function chevrons(x, y, ms, spread, alpha) {
+  if (alpha <= 0.01 || !(MARK.complete && MARK.naturalWidth)) return;
+  g.save(); g.globalAlpha *= alpha;
+  // the left chevron: the left 42% of the mark; the right one: the right 41% (the middle diamond
+  // is drawn on its own)
+  g.save(); g.translate(-spread, 0);
+  g.beginPath(); g.rect(x - ms / 2, y - ms / 2, ms * 0.42, ms); g.clip();
+  g.drawImage(MARK, x - ms / 2, y - ms / 2, ms, ms); g.restore();
+  g.save(); g.translate(spread, 0);
+  g.beginPath(); g.rect(x - ms / 2 + ms * 0.59, y - ms / 2, ms * 0.41, ms); g.clip();
+  g.drawImage(MARK, x - ms / 2, y - ms / 2, ms, ms); g.restore();
+  g.restore();
+}
+// the cube's last point growing into the diamond, over the collapse (drawn from the cube's scene)
+function pointToDiamond(t) {
+  const k = inOut(clamp((t - at(SC.s9 + 1)) / at(SC.logo - SC.s9 - 1)));
+  if (k > 0) diamond(CX, CY, DIAMOND * breathe(t) * k);
+}
 function drawLogoEnd(t) {
   const d = t - at(SC.logo);
-  // the soft blue bloom from the edges, clearing to white
+  // a soft blue bloom from the edges on the logo's beat, clearing to the paper
   const bl = 1 - outCubic(clamp(d / 0.7));
   if (bl > 0) {
-    const rg = g.createRadialGradient(CX, CY, Math.min(W, H) * 0.2, CX, CY, Math.max(W, H) * 0.75);
-    rg.addColorStop(0, "rgba(255,255,255,0)"); rg.addColorStop(1, `rgba(47,91,255,${0.95 * bl})`);
+    const rg = g.createRadialGradient(CX, CY, Math.min(W, H) * 0.25, CX, CY, Math.max(W, H) * 0.75);
+    rg.addColorStop(0, "rgba(255,255,255,0)"); rg.addColorStop(1, `rgba(47,91,255,${0.5 * bl})`);
     g.fillStyle = rg; g.fillRect(0, 0, W, H);
   }
-  const ms = V ? 210 : 190;
-  const name = "Tokenz", ns = V ? 170 : 170;
+  const ms = V ? 210 : 190, rMark = ms * MARK_D;
+  const name = "Tokenz", ns = 170;
   const nameW = measure(name, ns, 800), gap = ms * 0.08;
-  const open = inOut(clamp((d - at(1)) / 0.45));
-  const markX = lerp(CX, CX - (nameW + gap + ms * 0.46) / 2 + ms * 0.2, open);
-  const sk = d < 0.12 ? lerp(0.4, 1.08, outExpo(d / 0.12)) : lerp(1.08, 1, outCubic(clamp((d - 0.12) / 0.16)));
   const y = V ? CY - 80 : CY - 50;
-  // the loop: the camera dives into the mark's violet diamond until it fills the screen; the violet
-  // then folds back into the diamond the film opens on
-  const dive = inExpo(clamp((t - at(SC.loop)) / at(1.25)));
-  const after = t - at(SC.loop + 1.25);
-  if (after >= 0) {
-    // the violet that filled the screen folds into the opening's diamond: its four corners slide
-    // in to the diamond's points, then it breathes as the film begins again
-    paperDots(t);
-    const k = inOut(clamp(after / at(1.75))), r = DIAMOND * breathe(t);
-    const from = [[-60, -60], [W + 60, -60], [W + 60, H + 60], [-60, H + 60]];
-    const to = [[CX, CY - r], [CX + r, CY], [CX, CY + r], [CX - r, CY]];
-    if (k < 1) {
-      g.save(); g.shadowColor = "rgba(91,79,214,0.35)"; g.shadowBlur = r * 0.9 * k;
-      g.beginPath();
-      from.forEach((p, i) => { const x = lerp(p[0], to[i][0], k), y = lerp(p[1], to[i][1], k); if (i) g.lineTo(x, y); else g.moveTo(x, y); });
-      g.closePath(); g.fillStyle = "#5B4FD6"; g.fill(); g.restore();
-    } else diamond(CX, CY, r);
-    return;
-  }
-  g.save();
-  if (dive > 0) { g.translate(markX, y); g.scale(1 + 90 * dive, 1 + 90 * dive); g.translate(-markX, -y); }
-  g.save(); g.translate(markX, y); g.scale(sk, sk);
-  if (MARK.complete && MARK.naturalWidth) g.drawImage(MARK, -ms / 2, -ms / 2, ms, ms);
-  g.restore();
-  // the name types on, a letter at a time, just right of the mark
+  // the lockup moves left to make room for the name
+  const openK = inOut(clamp((d - at(1)) / 0.45));
+  const markX = lerp(CX, CX - (nameW + gap + ms * 0.46) / 2 + ms * 0.2, openK);
+  // coming in: the chevrons slide in from off the sides and lock; the diamond shrinks into the mark
+  const inK = outExpo(clamp(d / at(0.75))), lockK = inOut(clamp(d / at(0.75)));
+  // going out: first the words sink away, then the mark opens and the diamond goes back to the
+  // middle at the opening's size (so the chevrons never cross the words)
+  const wordsOut = inOut(clamp((t - at(SC.loop)) / at(0.7)));
+  const outK = inOut(clamp((t - at(SC.loop + 0.5)) / at(2)));
+  const spread = (1 - inK) * W * 0.62 + outK * W * 0.7;
+  const fade = 1 - clamp(outK * 1.6);
+  if (outK > 0) { g.save(); g.globalAlpha = outK; paperDots(t); g.restore(); }
+  chevrons(markX, y, ms, spread, fade);
+  // the diamond: from the opening's size in the middle, into the mark, and back out
+  const big = DIAMOND * breathe(t);
+  let r = lerp(big, rMark, lockK), dx = lerp(CX, markX, lockK), dy = lerp(CY, y, lockK);
+  if (outK > 0) { r = lerp(rMark, big, outK); dx = lerp(markX, CX, outK); dy = lerp(y, CY, outK); }
+  diamond(dx, dy, r);
+  // the name types on, a letter at a time, just right of the mark; at the end it sinks and fades
+  const sink = wordsOut * 70, wordsA = 1 - wordsOut;
   const letters = Math.floor(clamp((d - at(1) - 0.1) / 0.5) * name.length + 0.0001);
-  if (letters > 0) text(name.slice(0, letters), markX + ms * 0.46 + gap, y + ns * 0.02, ns, INK, { weight: 800, align: "left" });
+  if (letters > 0 && wordsA > 0) text(name.slice(0, letters), markX + ms * 0.46 + gap, y + ns * 0.02 + sink, ns, INK, { weight: 800, align: "left", alpha: wordsA });
   // the line, typing on inside an outlined pill
   const td = t - at(SC.tagline);
-  if (td >= 0) {
+  if (td >= 0 && wordsA > 0) {
     const line = "Save tokens. Keep meaning.", ls = V ? 46 : 42;
-    const lw = measure(line, ls, 600) + ls * 1.6, lh = ls * 1.9, py = y + (V ? 200 : 170);
+    const lw = measure(line, ls, 600) + ls * 1.6, lh = ls * 1.9, py = y + (V ? 200 : 170) + sink * 1.3;
     const k = outExpo(clamp(td / 0.25));
-    g.save(); g.globalAlpha = k;
+    g.save(); g.globalAlpha = k * wordsA;
     rr(CX - lw / 2, py - lh / 2, lw, lh, lh / 2); g.lineWidth = 2.5; g.strokeStyle = INK; g.stroke();
     const shown = Math.floor(clamp((td - 0.1) / 0.8) * line.length + 0.0001);
     font(ls, 600); const fullW = g.measureText(line).width;
     text(line.slice(0, shown), CX - fullW / 2, py, ls, INK, { weight: 600, align: "left" });
     g.restore();
   }
-  g.restore();
 }
 
 // ---------- the scenes ----------
@@ -1141,6 +1156,7 @@ function render(t) {
   // glass blocks become a cube, lose their corners, compress, spin
   else if (b < SC.logo) {
     drawBlocks(t);
+    pointToDiamond(t);
     if (b < SC.s9) {
       let n = 27, prev = 27, since = 9;
       CORNERS.forEach((c, s) => { const ct = at(TL.corners.start + s * TL.corners.step); if (t >= ct) { prev = n; n = 26 - s; since = t - ct; } });

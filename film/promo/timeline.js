@@ -21,7 +21,7 @@ window.TL = {
   "details": [56, 58, 60],
   "streams": [64, 65, 66], "burst": 68, "lines": [68, 70],
   "blocks": { "start": 72, "span": 3 }, "corners": { "start": 76, "step": 0.25 }, "compress": 78, "spin": 80,
-  "flashes": [24, 26, 68, 84],
+  "flashes": [24, 26, 68],
   "impacts": [8, 10, 20, 24, 26, 30, 34, 38, 44, 50, 52, 56, 58, 60, 62, 68, 72, 78, 84],
   "whips": [12, 34, 56],
   "cuts": { "8": "iris", "12": "whip", "16": "zoom", "20": "flip", "24": "shutter", "26": "push", "30": "zoom", "34": "whip",
