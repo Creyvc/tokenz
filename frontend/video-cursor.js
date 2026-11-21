@@ -6,7 +6,8 @@
 //   film/promo/tokenz-promo.mp4), easing after it. Over anything you can click, or close to Explore,
 //   Compare or the cookie banner, the box shrinks away and the normal cursor comes back. Not on the
 //   warning page or during the intro, and not once the Three Methods page has come up. Dashed
-//   lines cross the whole window through the box's middle, and "[SHOWREEL]" sits under it (after
+//   lines cross the whole window through the box's middle, and "[SHOWREEL]" sits on the across line
+//   just left of the box (after
 //   roshan-sahu.com).
 // - The film: scrolling down from the top, the sentence, the headline's two lines and the buttons
 //   mask out one after another (each slides down behind its own edge), and the box grows from where
@@ -19,7 +20,8 @@
 //   fades out from the bottom up.
 // - The tile: from Three Methods on, once the sidebar is in, the video sits as a small tile just right
 //   of the sidebar's black Tokenz badge (bottom left, a little gap between), about a third of the badge's height,
-//   moving with the badge; it slides out from behind the badge only once the badge has slid in,
+//   moving with the badge; it slides out from behind the badge only once the badge has slid in, and
+//   going back up it stays with the badge and slides out of the window with it,
 //   still playing but pixelated, a mosaic you can't make out, until it's clicked: then it plays
 //   clear (another click hides it again). Over the tile the cursor becomes a small black box
 //   reading "Show reel".
@@ -35,7 +37,7 @@
   // box never covers them: Explore and Compare, and the cookie banner (its buttons and link)
   var NEAR = ".home-actions a, .consent";
   var NEAR_PX = 40;
-  var BOX_W = 320, BOX_H = 180, RADIUS = 0;
+  var BOX_W = 240, BOX_H = 135, RADIUS = 0;
   var MOSAIC_W = 24, MOSAIC_H = 14;   // the pixelated tile is drawn this small, then scaled up
   var TILE_GAP = 12;                  // the space between the badge and the tile
   var TILE_OF_BADGE = 0.42;           // the tile's height, as a share of the badge's
@@ -70,18 +72,22 @@
     marks.appendChild(plus);
   });
   // with the cursor box (after roshan-sahu.com): dashed lines across the whole window through its
-  // middle, passing behind it, and "[SHOWREEL]" under it
+  // middle, passing behind it, and "[SHOWREEL]" sitting on the across line just left of the box
   var lineH = document.createElement("div"), lineV = document.createElement("div");
   lineH.className = "vc-line is-h"; lineV.className = "vc-line is-v";
   lineH.setAttribute("aria-hidden", "true"); lineV.setAttribute("aria-hidden", "true");
   var caption = document.createElement("div");
   caption.className = "vc-caption";
   caption.textContent = "[SHOWREEL]";
-  box.appendChild(caption);
+  lineH.appendChild(caption);
   document.body.append(lineH, lineV, box, marks, reelLabel);
   function placeLines() {
     lineH.style.transform = "translateY(" + shownY.toFixed(1) + "px)";
     lineV.style.transform = "translateX(" + shownX.toFixed(1) + "px)";
+    // the label ends 14px short of the box's left side; with no room there (40px from the window's
+    // edge), it sits just right of the box instead
+    var w = caption.offsetWidth, before = shownX - BOX_W / 2 - 14 - w;
+    caption.style.left = (before >= 40 ? before : shownX + BOX_W / 2 + 14).toFixed(1) + "px";
   }
   var revealed = false, mosaicFrame = 0;
   // the mosaic copies the playing video, a few blocks across, every frame while the tile is pixelated
@@ -149,8 +155,19 @@
   function update() {
     var f = filmState();
     maskOut(f.scrollY, f.H);
-    var film = f.grow > 0 && f.covered < 1 && !root.classList.contains("intro-play");
+    // Going back up, the tile stays with the badge and slides out with it, the film only taking over
+    // once the badge has gone (or the page has scrolled well back)
+    var badgeNow = document.querySelector("header.nav:not(.nav-copy) .tz-lockup");
+    var badgeRect = badgeNow ? badgeNow.getBoundingClientRect() : null;
+    var leavingWithBadge = box.classList.contains("is-dock") && tileIn !== null && badgeRect && badgeRect.right > 1 && f.covered > 0.3;
+    var film = !leavingWithBadge && f.grow > 0 && f.covered < 1 && !root.classList.contains("intro-play");
     box.classList.toggle("is-film", film);
+    // (the film taking over from the tile: the tile's mosaic and its place go)
+    if (film && box.classList.contains("is-dock")) {
+      box.classList.remove("is-dock", "is-revealed");
+      revealed = false; tileIn = null; badgeLast = null;
+      ["left", "top", "width", "height", "borderRadius", "transform", "clipPath", "transition", "opacity"].forEach(function (p) { mosaic.style[p] = ""; video.style[p] = ""; });
+    }
     if (film) { lineH.classList.toggle("is-shown", false); lineV.classList.toggle("is-shown", false); }
     if (!film) marks.style.opacity = "0";
     if (film) {
@@ -194,7 +211,7 @@
     // past the first screen, with the sidebar in: the tile beside the badge
     var badge = document.querySelector("header.nav:not(.nav-copy) .tz-lockup");
     var r = badge ? badge.getBoundingClientRect() : null;
-    var docked = f.covered >= 1 && r && r.width > 0 && !root.classList.contains("home-nav-hidden") && !root.classList.contains("intro-play");
+    var docked = leavingWithBadge || (f.covered >= 1 && r && r.width > 0 && !root.classList.contains("home-nav-hidden") && !root.classList.contains("intro-play"));
     box.classList.toggle("is-dock", !!docked);
     if (docked) { lineH.classList.toggle("is-shown", false); lineV.classList.toggle("is-shown", false); }
     if (!docked && revealed) { revealed = false; box.classList.remove("is-revealed"); }
@@ -239,6 +256,8 @@
     var badge = document.querySelector("header.nav:not(.nav-copy) .tz-lockup");
     if (!badge) return;
     var r = badge.getBoundingClientRect();
+    // (leaving with the sidebar: once the badge is out of the window, let the page decide what's next)
+    if (tileIn !== null && r.right <= 1 && filmState().covered < 1) { update(); return; }
     var tileH = Math.round(r.height * TILE_OF_BADGE), tileW = Math.round(tileH * 16 / 9);
     // it fills the space between the badge and the thin line just right of the sidebar (at its edge
     // plus 8px), with the same gap on both sides
@@ -251,6 +270,9 @@
     if (tileIn === null && badgeStill >= 3 && r.left >= -0.5 && r.width > 0) tileIn = now;
     var k = tileIn === null ? 0 : Math.min(1, (now - tileIn) / TILE_IN);
     var e = 1 - Math.pow(1 - k, 3);
+    // going out, the tile draws back behind the badge as far as the badge has left the window
+    var out = tileIn === null ? 0 : clamp(-r.left / Math.max(1, r.width));
+    e = Math.min(e, 1 - out);
     [video, mosaic].forEach(function (el) {
       el.style.transition = "none";
       el.style.left = (r.right + TILE_GAP).toFixed(1) + "px";

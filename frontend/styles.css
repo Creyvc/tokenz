@@ -6157,10 +6157,10 @@ html.video-cursor-on :is(input, textarea) {
 
 .video-cursor video {
   position: absolute;
-  left: -160px;
-  top: -90px;
-  width: 320px;
-  height: 180px;
+  left: -120px;
+  top: -67.5px;
+  width: 240px;
+  height: 135px;
   object-fit: cover;
   border-radius: 0;
   background: #F5F6FA;
@@ -6181,7 +6181,11 @@ html.video-cursor-on :is(input, textarea) {
 }
 
 /* With the cursor box (after roshan-sahu.com): a dashed line across the whole window and one down
-   it, crossing at the box's middle and passing behind it, and "[SHOWREEL]" just under the box */
+   it, crossing at the box's middle and passing behind it, and "[SHOWREEL]" sitting on the across
+   line just left of the box, moving with it (video-cursor.js places it) */
+/* (drawn in white with a "difference" blend, they turn to the opposite of whatever they cross:
+   dark over the white page, light over the black headline and buttons, a contrasting tint over
+   the violet) */
 .vc-line {
   position: fixed;
   left: 0;
@@ -6189,19 +6193,20 @@ html.video-cursor-on :is(input, textarea) {
   z-index: 9999;
   pointer-events: none;
   opacity: 0;
+  mix-blend-mode: difference;
   transition: opacity 0.2s ease;
 }
 
 .vc-line.is-h {
   right: 0;
   height: 0;
-  border-top: 1px dashed rgba(22, 23, 26, 0.45);
+  border-top: 1px dashed rgba(255, 255, 255, 0.6);
 }
 
 .vc-line.is-v {
   bottom: 0;
   width: 0;
-  border-left: 1px dashed rgba(22, 23, 26, 0.45);
+  border-left: 1px dashed rgba(255, 255, 255, 0.6);
 }
 
 .vc-line.is-shown {
@@ -6210,19 +6215,18 @@ html.video-cursor-on :is(input, textarea) {
 
 .vc-caption {
   position: absolute;
-  left: 0;
-  top: 102px;
-  transform: translateX(-50%);
+  left: 40px;
+  bottom: 8px;
   font-size: 13px;
   font-weight: 500;
   letter-spacing: 0.04em;
-  color: #16171A;
+  color: #ffffff;
   white-space: nowrap;
   opacity: 0;
   transition: opacity 0.2s ease;
 }
 
-.video-cursor.is-shown:not(.is-film):not(.is-dock) .vc-caption {
+.vc-line.is-shown .vc-caption {
   opacity: 1;
 }
 
