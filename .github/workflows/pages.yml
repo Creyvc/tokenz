@@ -1,0 +1,34 @@
+# Publishes the website (frontend/) to GitHub Pages on every push to main, so
+# https://creyvc.github.io/tokenz/ opens straight on Home. The site is plain files: Compare and
+# Results still need the engine running locally (backend/start-web.sh) to run the methods.
+# Needs Settings → Pages → Build and deployment → Source: "GitHub Actions" (once).
+name: Publish the website
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: frontend
+      - id: deployment
+        uses: actions/deploy-pages@v4
