@@ -1,5 +1,5 @@
-// The sidebar's links roll on hover (styles.css, .nav-roll): each letter slides up out of its
-// mask while a copy of it rises in from below, one letter after another. The letters are drawn
+// The sidebar's links roll on hover (styles.css, .nav-roll): the whole word slides up out of
+// its mask while a copy of it rises in from below, all its letters together. The letters are drawn
 // from a copy hidden from screen readers; the link's real name stays as plain text for them.
 // Runs before home.js, so Home's copy of the sidebar has the letters too
 (function () {
