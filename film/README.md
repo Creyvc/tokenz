@@ -1,5 +1,7 @@
 # Tokenz film
 
+> **Replaced:** the video here is now the current Tokenz ad, the same file as `film/promo/tokenz-promo.mp4` (see `film/promo/README.md`). The notes below describe the earlier film this folder made; its source is kept here.
+
 The 42-second ad at `../tokenz-film.mp4` (4K: 3840×2160, 60fps; `../tokenz-film-1080p.mp4` is the
 same at 1080p, for slower players). The music is our own score, made in code ("Neon", synthwave,
 in `scores.py`), at 125 BPM, so every change in the picture lands exactly on its beat.

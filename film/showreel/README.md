@@ -1,5 +1,7 @@
 # Tokenz showreel
 
+> **Replaced:** the video here is now the current Tokenz ad, the same file as `film/promo/tokenz-promo.mp4` (see `film/promo/README.md`). The notes below describe the earlier film this folder made; its source is kept here.
+
 `tokenz-showreel.mp4`: 38.4 seconds, 1920×1080, 60fps, made to loop (it ends on black and starts
 again on the first word). The music is our own score, "Drive" (`score.py`), at 125 BPM. Every cut
 in the picture lands on its beat, and only one scene is on screen at a time.

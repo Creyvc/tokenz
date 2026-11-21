@@ -1,5 +1,7 @@
 # Tokenz keynote film
 
+> **Replaced:** the video here is now the current Tokenz ad, the same file as `film/promo/tokenz-promo.mp4` (see `film/promo/README.md`). The notes below describe the earlier film this folder made; its source is kept here.
+
 `tokenz-keynote.mp4`: 40 seconds, 1920×1080, 60fps, with sound. Everything in it is generated
 (type, light, particles, counters); there are no screenshots or recordings. Black with slow blue and
 violet light, Inter, off-white text, the ease-out cubic-bezier(0.22, 1, 0.36, 1), text arriving from
