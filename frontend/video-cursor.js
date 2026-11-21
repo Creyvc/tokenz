@@ -196,11 +196,19 @@
       // it starts (so it fades through dark, not white)
       var c = f.covered;
       if (c > 0) {
-        var edge = (100 - c * 140).toFixed(1), soft = (100 - c * 140 + 45).toFixed(1);
-        video.style.webkitMaskImage = video.style.maskImage = "linear-gradient(to bottom, #000 " + edge + "%, transparent " + soft + "%)";
+        // (an eased edge, many stops along a smooth curve rather than a straight ramp, so no line
+        // shows where the fade starts or ends)
+        var edge = 100 - c * 150, stops = [];
+        for (var q = 0; q <= 10; q++) {
+          var u = q / 10, a = 1 - u * u * (3 - 2 * u);
+          stops.push("rgba(0,0,0," + a.toFixed(3) + ") " + (edge + u * 60).toFixed(1) + "%");
+        }
+        video.style.webkitMaskImage = video.style.maskImage = "linear-gradient(to bottom, " + stops.join(", ") + ")";
         video.style.opacity = (1 - c * c).toFixed(3);
-        video.style.filter = "brightness(" + (1 - 0.45 * clamp(c * 2.2)).toFixed(3) + ")";
-        dim.style.opacity = (0.6 * clamp(c * 4)).toFixed(3);
+        // (both easing in and out of their change, not starting and stopping sharply)
+        var d = clamp(c / 0.45), ease2 = d * d * (3 - 2 * d);
+        video.style.filter = "brightness(" + (1 - 0.45 * ease2).toFixed(3) + ")";
+        dim.style.opacity = (0.6 * ease2).toFixed(3);
       } else {
         video.style.webkitMaskImage = video.style.maskImage = "";
         video.style.opacity = "";
