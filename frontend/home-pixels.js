@@ -8,7 +8,9 @@
 // every few seconds, and a few glitch at random (after an AI site the owner liked). The headline sits in the black above it, the sentence in a
 // black corner cut out of it at the bottom right, and the buttons on the band itself. The band's
 // edges are ragged (stray squares out in the black, holes in the band, thinning out away from the
-// edge) and shift slowly, a square at a time. Now and then a single letter of the headline or the
+// edge) and shift slowly, a square at a time; along them the squares break down smaller, into tiny
+// squares (half a square) and micro ones (a quarter), out in the black and as holes in the band's
+// edge, coming and going one at a time too. Now and then a single letter of the headline or the
 // sentence decrypts: it runs through a few symbols and settles back (the letter itself stays in the
 // page, see-through, so nothing moves and screen readers read it as ever). Scrolling down, the
 // squares go out one by one in a random order, and the black goes once the film has filled the
@@ -163,10 +165,11 @@
   }
 
   // which squares are lit: worked out four times a second (the edges move a square at a time)
-  var lit = [], litKey = "";
+  var lit = [], litKey = "", bits = [], holes = [];
   function workOut(t) {
     var zones = clearZones();
     lit = [];
+    var clearCell = [];
     for (var j = 0; j < rows; j++) for (var i = 0; i < cols; i++) {
       var x = i * size, yy = j * size, clear = true;
       for (var k = 0; k < zones.length; k++) {
@@ -187,6 +190,53 @@
         if (rnd(i * 7 + roll, j * 13 - roll) < STRAY * (1 - near / RAGGED)) inside = !inside;
       }
       lit.push(clear && inside);
+      clearCell.push(clear);
+    }
+    breakDown(t, clearCell);
+  }
+
+  // The smaller squares, along the band's edges: each is [cell, x, y, side]. Out in the black, a
+  // square touching the band (corners too) may hold tiny squares, or a micro one in a tiny one's
+  // place; one a square further out, the odd micro square. In the band, a square on its edge may
+  // lose a tiny or micro square, a hole. Each rolls again at its own moments, a little more often
+  // than the big squares, so they flicker one at a time
+  var TINY = 0.2, MICRO = 0.16, FAR_MICRO = 0.05, TINY_HOLE = 0.1, MICRO_HOLE = 0.1;
+  function breakDown(t, clearCell) {
+    bits = []; holes = [];
+    var half = size / 2, quarter = size / 4;
+    function at(i, j) { return i >= 0 && j >= 0 && i < cols && j < rows && lit[j * cols + i]; }
+    function roll(a, b) {
+      var turn = still ? 0 : Math.floor(t * 0.16 + rnd(a, b) * 16);
+      return rnd(a * 5 + turn, b * 11 - turn * 3);
+    }
+    for (var j = 0; j < rows; j++) for (var i = 0; i < cols; i++) {
+      var idx = j * cols + i, x = i * size, y = j * size;
+      if (!clearCell[idx]) continue;
+      // how near the band: 1 touching it, 2 one square out, 0 further
+      var near = 0;
+      if (!lit[idx]) {
+        for (var d = 1; d <= 2 && !near; d++) {
+          for (var dj = -d; dj <= d && !near; dj++) for (var di = -d; di <= d; di++) {
+            if (at(i + di, j + dj)) { near = d; break; }
+          }
+        }
+      }
+      for (var q = 0; q < 4; q++) {
+        var qx = x + (q % 2) * half, qy = y + Math.floor(q / 2) * half;
+        var a = roll(i * 4 + q, j * 4 + 1), m = Math.floor(roll(i * 4 + q, j * 4 + 3) * 4);
+        var mx = qx + (m % 2) * quarter, my = qy + Math.floor(m / 2) * quarter;
+        if (lit[idx]) {
+          // on the band's edge (a side touching the black): holes
+          if (at(i - 1, j) && at(i + 1, j) && at(i, j - 1) && at(i, j + 1)) break;
+          if (a < TINY_HOLE) holes.push([idx, qx, qy, half]);
+          else if (a < TINY_HOLE + MICRO_HOLE) holes.push([idx, mx, my, quarter]);
+        } else if (near === 1) {
+          if (a < TINY) bits.push([idx, qx, qy, half]);
+          else if (a < TINY + MICRO) bits.push([idx, mx, my, quarter]);
+        } else if (near === 2) {
+          if (a < FAR_MICRO) bits.push([idx, mx, my, quarter]);
+        }
+      }
     }
   }
 
@@ -211,6 +261,9 @@
       var idx = j * cols + i;
       if (lit[idx] && gone[idx] >= out * 1.1) g.rect(i * size, j * size, size, size);
     }
+    for (var b = 0; b < bits.length; b++) {
+      if (gone[bits[b][0]] >= out * 1.1) g.rect(bits[b][1], bits[b][2], bits[b][3], bits[b][3]);
+    }
     g.clip();
     // the glow, its slope swaying slowly, and a soft light wandering over it
     var sway = Math.sin(secs * 0.11) * 0.35, lift = Math.sin(secs * 0.07) * 0.08;
@@ -231,6 +284,11 @@
       g.drawImage(text, sx, 0, sw, shift * dpr, c * CH_W, stripH - shift, CH_W, shift);
     }
     g.restore();
+    // the holes in the band's edge
+    g.fillStyle = BG;
+    for (var h = 0; h < holes.length; h++) {
+      if (gone[holes[h][0]] >= out * 1.1) g.fillRect(holes[h][1], holes[h][2], holes[h][3], holes[h][3]);
+    }
     g.globalAlpha = 1;
 
     if (still) { stillWait(); return; }
