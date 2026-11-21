@@ -77,7 +77,11 @@
   var lineH = document.createElement("div"), lineV = document.createElement("div");
   lineH.className = "vc-line is-h"; lineV.className = "vc-line is-v";
   lineH.setAttribute("aria-hidden", "true"); lineV.setAttribute("aria-hidden", "true");
-  document.body.append(lineH, lineV, box, marks, reelLabel);
+  // the dark behind the film as it dissolves into Three Methods (under the film, over the page)
+  var dim = document.createElement("div");
+  dim.className = "film-dim";
+  dim.setAttribute("aria-hidden", "true");
+  document.body.append(lineH, lineV, dim, box, marks, reelLabel);
   function placeLines() {
     lineH.style.transform = "translateY(" + shownY.toFixed(1) + "px)";
     lineV.style.transform = "translateX(" + shownX.toFixed(1) + "px)";
@@ -166,7 +170,7 @@
       ["left", "top", "width", "height", "borderRadius", "transform", "clipPath", "transition", "opacity"].forEach(function (p) { mosaic.style[p] = ""; video.style[p] = ""; });
     }
     if (film) { lineH.classList.toggle("is-shown", false); lineV.classList.toggle("is-shown", false); }
-    if (!film) marks.style.opacity = "0";
+    if (!film) { marks.style.opacity = "0"; dim.style.opacity = "0"; video.style.filter = ""; }
     if (film) {
       if (!filmFrom) {
         filmFrom = box.classList.contains("is-shown") ? { x: shownX, y: shownY } : { x: window.innerWidth / 2, y: f.H / 2 };
@@ -188,15 +192,20 @@
       marks.style.height = vh.toFixed(1) + "px";
       marks.style.opacity = (clamp((vw / W - 0.45) / 0.1) * (1 - clamp(f.covered * 2.5))).toFixed(3);
       // Dissolving into the next page (after lukebaffait.fr): as it comes up, the film fades out
-      // from the bottom upwards, and dims as a whole
+      // from the bottom upwards and darkens as a whole, over a dark ground that comes in as soon as
+      // it starts (so it fades through dark, not white)
       var c = f.covered;
       if (c > 0) {
         var edge = (100 - c * 140).toFixed(1), soft = (100 - c * 140 + 45).toFixed(1);
         video.style.webkitMaskImage = video.style.maskImage = "linear-gradient(to bottom, #000 " + edge + "%, transparent " + soft + "%)";
         video.style.opacity = (1 - c * c).toFixed(3);
+        video.style.filter = "brightness(" + (1 - 0.72 * clamp(c * 2.2)).toFixed(3) + ")";
+        dim.style.opacity = (0.92 * clamp(c * 4)).toFixed(3);
       } else {
         video.style.webkitMaskImage = video.style.maskImage = "";
         video.style.opacity = "";
+        video.style.filter = "";
+        dim.style.opacity = "0";
       }
       box.classList.add("is-shown");
       // (toggle, not remove: remove rewrites the class even when it has nothing to take away, and

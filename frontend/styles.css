@@ -6336,8 +6336,19 @@ html.home-scroll.home-film .home-next::before {
   left: 0;
   right: 0;
   bottom: 100%;
-  height: 45vh;
+  height: 22vh;
   background: linear-gradient(to bottom, rgba(255, 255, 255, 0), #ffffff);
+  pointer-events: none;
+}
+
+/* The dark behind the film as it dissolves into Three Methods (video-cursor.js sets how dark): under
+   the film, over the page below it, under Three Methods coming up */
+.film-dim {
+  position: fixed;
+  inset: 0;
+  z-index: 11;
+  background: #0E0F12;
+  opacity: 0;
   pointer-events: none;
 }
 
