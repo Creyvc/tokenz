@@ -1,12 +1,16 @@
 // Every call to the TokenSaver engine goes through here. The engine (backend/web_api.py) usually
 // serves this site itself, so the calls go to the same address. When the site comes from another
 // local server instead (VS Code's Live Server on port 5500, say), they go to the engine's own
-// address on port 8000. A page opened straight from disk has no engine to reach.
+// address on port 8000. A page opened straight from disk has no engine to reach. An online copy
+// (GitHub Pages) never tries the visitor's own computer either: browsers ask permission to reach
+// into a device ("access other apps and services"), and it couldn't reach the engine anyway.
 // No keys live here: the AI rewrite's Groq and Gemini keys stay with the engine (backend/optimizer/.env).
 (function () {
   var fromDisk = location.protocol === "file:";
   var ENGINE = "http://127.0.0.1:8000";
-  // Where the engine answered last; same address first, then the engine's own
+  var onThisComputer = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+  var hosted = !fromDisk && !onThisComputer;
+  // Where the engine answered last; same address first, then the engine's own (online: neither)
   var bases = location.origin === ENGINE ? [""] : ["", ENGINE];
   var base = bases[0];
 
@@ -18,6 +22,7 @@
 
   function request(path, options) {
     if (fromDisk) return Promise.reject(failure("Opened from disk", true));
+    if (hosted) return Promise.reject(failure("An online copy", true));
     return fetch(path, options).then(
       function (response) {
         return response.json().catch(function () { return {}; }).then(function (data) {
@@ -39,6 +44,7 @@
 
   window.TokenzApi = {
     fromDisk: fromDisk,
+    hosted: hosted,
     // Where the engine serves the site by default (TOKENZ_PORT changes the port)
     address: ENGINE + "/",
     health: function () {

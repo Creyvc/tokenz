@@ -146,6 +146,11 @@
     el.noticeMessage.textContent = "";
     if (ready) {
       scheduleInspect(0);
+    } else if (api.hosted) {
+      // the online copy: the methods only run on the engine on your own computer
+      el.noticeMessage.append("This is the online copy of Tokenz. NLP, TF-IDF and the AI rewrite run on the Tokenz engine on your own computer, which an online page can't reach. To try them, download the project, run ",
+        make("code", null, "./start-web.sh"), " in the backend folder, and open ", make("code", null, "http://127.0.0.1:8000/compare.html"), ".");
+      el.retry.hidden = true;
     } else if (api.fromDisk) {
       var link = make("a", null, "open Compare through it");
       link.href = api.address + "compare.html";
