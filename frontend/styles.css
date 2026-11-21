@@ -6341,13 +6341,12 @@ html.home-scroll.home-film .home-next::before {
   pointer-events: none;
 }
 
-/* The black between the film and Three Methods (video-cursor.js sets how dark): over the film and
-   the page coming up, under the cookie banner; the film fades out into it, and Three Methods in out
-   of it */
+/* The dark behind the film as it dissolves into Three Methods (video-cursor.js sets how dark): under
+   the film, over the page below it, under Three Methods coming up */
 .film-dim {
   position: fixed;
   inset: 0;
-  z-index: 15;
+  z-index: 11;
   background: #0E0F12;
   opacity: 0;
   pointer-events: none;
