@@ -1,6 +1,9 @@
 // Home's first screen, after the owner's sketch and a pixel-grid site they liked: a black page
-// crossed by a broad band of light square pixels, rising in steps from the bottom-left corner to the
-// top-right one. The headline sits in the black above it, the sentence in a black corner cut out of
+// crossed by a broad band of square pixels, rising in steps from the bottom-left corner to the
+// top-right one. The band isn't white: it's a grainy glow, lavender at the top through pink to a
+// deep plum at the bottom, written over with rows of token indexes (real o200k_base ids of the
+// page's own words) in faint white, thicker in some places than others; a few digits flicker, and
+// each row slips along by a character now and then (after an AI site the owner liked). The headline sits in the black above it, the sentence in a black corner cut out of
 // it at the bottom right, and the buttons on the band itself. The band's edges are ragged (stray
 // squares out in the black, holes in the band, thinning out away from the edge) and shift slowly,
 // a square at a time. Scrolling down, the squares go out one by one in a random order, and
@@ -15,7 +18,14 @@
   document.body.prepend(canvas);
   var g = canvas.getContext("2d");
 
-  var BG = "#0E0F12", PIXEL = "#E6E6EA";
+  var BG = "#0E0F12";
+  var GLOW = [[0, "#C9C5E8"], [0.28, "#DCC1DD"], [0.5, "#E6AEBF"], [0.68, "#CF8790"], [0.85, "#7A4260"], [1, "#2E1726"]];
+  var CH_W = 9, CH_H = 14;  // the token indexes' character grid, in pixels
+  var TOKENS = [15900, 259, 79007, 11, 2684, 2616, 13, 17951, 89, 180721, 290, 5018, 6391, 842, 328,
+                261, 15226, 2254, 481, 4952, 480, 316, 448, 20837, 11, 813, 480, 8844, 30732, 20290, 13,
+                30456, 481, 4843, 1652, 668, 5067, 261, 65701, 3719, 316, 922, 21642, 16054, 395, 261,
+                9176, 402, 9377, 30];
+  var STREAM = TOKENS.join("  ") + "   ";
   var CELLS_ACROSS = 48;   // the squares' size: the window's width over this
   var WOBBLE = 1.1;        // how far the edges wander, in squares
   var RAGGED = 3.2;        // how far from the edge stray squares and holes reach, in squares
@@ -54,7 +64,20 @@
     return a + (b - a) * fx + (c - a) * fy + (a - b - c + d) * fx * fy;
   }
 
-  var W = 0, H = 0, dpr = 1, size = 0, cols = 0, rows = 0, gone = [];
+  // a small tile of grain, laid over the glow
+  var grain = document.createElement("canvas");
+  grain.width = grain.height = 160;
+  (function () {
+    var gg = grain.getContext("2d"), img = gg.createImageData(160, 160);
+    for (var p = 0; p < img.data.length; p += 4) {
+      var v = Math.random() < 0.5 ? 0 : 255;
+      img.data[p] = img.data[p + 1] = img.data[p + 2] = v;
+      img.data[p + 3] = Math.random() * 38;
+    }
+    gg.putImageData(img, 0, 0);
+  })();
+
+  var W = 0, H = 0, dpr = 1, size = 0, cols = 0, rows = 0, gone = [], glow = null, grainFill = null;
   function resize() {
     dpr = Math.min(window.devicePixelRatio || 1, 2);
     W = window.innerWidth; H = window.innerHeight;
@@ -63,6 +86,9 @@
     cols = Math.ceil(W / size); rows = Math.ceil(H / size);
     seed = 7; gone = [];
     for (var c = 0; c < cols * rows; c++) gone.push(random());
+    glow = g.createLinearGradient(0, 0, W * 0.15, H);
+    GLOW.forEach(function (s) { glow.addColorStop(s[0], s[1]); });
+    grainFill = g.createPattern(grain, "repeat");
   }
 
   // the boxes kept black whatever the band does: the headline and the sentence, a square around each
@@ -115,12 +141,39 @@
       g.clearRect(0, 0, W, H);
       g.globalAlpha = dark;
       g.fillStyle = BG; g.fillRect(0, 0, W, H);
-      g.fillStyle = PIXEL;
+      // the band's squares (scrolling down, they go out one by one), as a shape to paint inside
+      var shown = [];
+      g.save();
+      g.beginPath();
       for (j = 0; j < rows; j++) for (i = 0; i < cols; i++) {
         var idx = j * cols + i;
-        if (gone[idx] < out * 1.1) continue;                     // scrolling down, they go out one by one
-        if (lit[idx]) g.fillRect(i * size, j * size, size, size);
+        var here = lit[idx] && gone[idx] >= out * 1.1;
+        shown.push(here);
+        if (here) g.rect(i * size, j * size, size, size);
       }
+      g.clip();
+      g.fillStyle = glow; g.fillRect(0, 0, W, H);
+      g.fillStyle = grainFill; g.fillRect(0, 0, W, H);
+      // the token indexes: each row reads along the stream from its own place, slipping on by a
+      // character now and then; thicker in some places, brighter in others; a few digits flicker
+      g.font = "500 11px Inter, sans-serif";
+      g.textAlign = "center"; g.textBaseline = "middle";
+      g.fillStyle = "#FFFFFF";
+      var step = Math.round(t * 4), across = Math.ceil(W / CH_W), down = Math.ceil(H / CH_H);
+      for (var r = 0; r < down; r++) {
+        var start = Math.floor(rnd(r, 9) * STREAM.length) + Math.floor(t / 6 + rnd(r, 4) * 6);
+        var cy = r * CH_H + CH_H / 2, sj = Math.floor(cy / size);
+        for (var c = 0; c < across; c++) {
+          var cx = c * CH_W + CH_W / 2;
+          if (!shown[sj * cols + Math.floor(cx / size)]) continue;
+          var ch = STREAM[(start + c) % STREAM.length];
+          if (!still && rnd(c * 31 + step, r * 17 - step) < 0.012) ch = String(Math.floor(rnd(c + step, r) * 10));
+          if (ch === " " || noise(c * 0.07, r * 0.2) < 0.34) continue;
+          g.globalAlpha = dark * (0.22 + 0.55 * noise(c * 0.04 + 40, r * 0.09 + 40));
+          g.fillText(ch, cx, cy);
+        }
+      }
+      g.restore();
       g.globalAlpha = 1;
     }
     if (window.scrollY < H) requestAnimationFrame(draw);
