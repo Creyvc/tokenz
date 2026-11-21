@@ -1,9 +1,12 @@
-// Home's first screen, after the owner's sketch: a black page crossed by a broad band of light
-// square pixels, rising in steps from the bottom-left corner to the top-right one. The headline sits
-// in the black above it, the sentence in a black corner cut out of it at the bottom right, and the
-// buttons on the band itself. The band's stepped edges shift slowly, a
-// square at a time; the dark squares along them carry a tiny "1". Scrolling down, the squares go out one by one in a random order, and the black goes once
-// the film has filled the window. With reduced motion it stays still.
+// Home's first screen, after the owner's sketch and a pixel-grid site they liked: a black page
+// crossed by a broad band of light square pixels, rising in steps from the bottom-left corner to the
+// top-right one. The headline sits in the black above it, the sentence in a black corner cut out of
+// it at the bottom right, and the buttons on the band itself. The band's edges are ragged (stray
+// squares out in the black, holes in the band, thinning out away from the edge) and shift slowly,
+// a square at a time. The dark squares along them carry tiny token ids (real ones, o200k_base, of
+// the page's own words), each unscrambling digit by digit as it appears, and now and then one
+// scrambles and settles again. Scrolling down, the squares go out one by one in a random order, and
+// the black goes once the film has filled the window. With reduced motion it stays still.
 (function () {
   var main = document.querySelector(".content.home.is-bare");
   if (!main) return;
@@ -17,6 +20,16 @@
   var BG = "#0E0F12", PIXEL = "#E6E6EA";
   var CELLS_ACROSS = 48;   // the squares' size: the window's width over this
   var WOBBLE = 1.6;        // how far the edges wander, in squares
+  var RAGGED = 3.2;        // how far from the edge stray squares and holes reach, in squares
+  var STRAY = 0.42;        // how likely a square right at the edge is to flip
+  var DECRYPT_MS = 700;    // how long a token id takes to unscramble
+
+  // The token ids: "Shorter prompts, same request. Tokenz trims the extra words out of a prompt
+  // before you send it to an AI, so it uses fewer tokens." and the film's email prompt, in o200k_base
+  var TOKENS = [15900, 259, 79007, 11, 2684, 2616, 13, 17951, 89, 180721, 290, 5018, 6391, 842, 328,
+                261, 15226, 2254, 481, 4952, 480, 316, 448, 20837, 11, 813, 480, 8844, 30732, 20290, 13,
+                30456, 481, 4843, 1652, 668, 5067, 261, 65701, 3719, 316, 922, 21642, 16054, 395, 261,
+                9176, 402, 9377, 30];
 
   // The band's two edges, from the sketch, as fractions of the window [across, down]: its top edge,
   // from the bottom left up to the top right (with a dip in the middle), and the edge of the
@@ -51,14 +64,14 @@
     return a + (b - a) * fx + (c - a) * fy + (a - b - c + d) * fx * fy;
   }
 
-  var W = 0, H = 0, dpr = 1, size = 0, cols = 0, rows = 0, gone = [];
+  var W = 0, H = 0, dpr = 1, size = 0, cols = 0, rows = 0, gone = [], since = {};
   function resize() {
     dpr = Math.min(window.devicePixelRatio || 1, 2);
     W = window.innerWidth; H = window.innerHeight;
     canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
     size = Math.ceil(W / CELLS_ACROSS);
     cols = Math.ceil(W / size); rows = Math.ceil(H / size);
-    seed = 7; gone = [];
+    seed = 7; gone = []; since = {};
     for (var c = 0; c < cols * rows; c++) gone.push(random());
   }
 
@@ -72,6 +85,18 @@
       if (r.width) zones.push({ l: r.left - size, t: r.top - size, r: r.right + size, b: r.bottom + size });
     });
     return zones;
+  }
+
+  // a cell's token id as it reads at this moment: settled digits from the left, the rest scrambled
+  function tokenText(idx, now) {
+    var id = String(TOKENS[Math.floor(rnd(idx, 5) * TOKENS.length)]);
+    var age = still ? DECRYPT_MS : now - since[idx];
+    if (age >= DECRYPT_MS) return id;
+    var text = "";
+    for (var k = 0; k < id.length; k++) {
+      text += age >= DECRYPT_MS * (k + 1) / id.length ? id[k] : String(Math.floor(Math.random() * 10));
+    }
+    return text;
   }
 
   var last = "";
@@ -96,7 +121,16 @@
         var mx = (i + 0.5) / cols, my = (j + 0.5) * size;
         var top = edge(TOP, mx) * H + (noise(i * 0.35 + t * 0.12, 3) - 0.5) * 2 * WOBBLE * size;
         var low = edge(LOW, mx) * H + (noise(i * 0.35 - t * 0.1, 11) - 0.5) * 2 * WOBBLE * size;
-        lit.push(clear && my > top && my < low);
+        var inside = my > top && my < low;
+        // ragged: near an edge, a square may flip (a stray out in the black, or a hole in the band),
+        // likelier the closer it is; each square rolls again at its own moments, so they change
+        // one at a time
+        var near = Math.min(Math.abs(my - top), Math.abs(my - low)) / size;
+        if (near < RAGGED) {
+          var roll = still ? 0 : Math.floor(t * 0.4 + rnd(i, j) * 16);
+          if (rnd(i * 7 + roll, j * 13 - roll) < STRAY * (1 - near / RAGGED)) inside = !inside;
+        }
+        lit.push(clear && inside);
       }
       var on = function (i, j) { return i >= 0 && j >= 0 && i < cols && j < rows && lit[j * cols + i]; };
 
@@ -104,8 +138,9 @@
       g.clearRect(0, 0, W, H);
       g.globalAlpha = dark;
       g.fillStyle = BG; g.fillRect(0, 0, W, H);
-      g.font = "500 9px Inter, sans-serif";
+      g.font = "500 7px Inter, sans-serif";
       g.textAlign = "center"; g.textBaseline = "middle";
+      var numbered = [], seen = {};
       for (j = 0; j < rows; j++) for (i = 0; i < cols; i++) {
         var idx = j * cols + i;
         if (gone[idx] < out * 1.1) continue;                     // scrolling down, they go out one by one
@@ -114,11 +149,17 @@
           g.fillStyle = PIXEL;
           g.fillRect(px, py, size, size);
         } else if (on(i - 1, j) || on(i + 1, j) || on(i, j - 1) || on(i, j + 1)) {
-          // a dark square on the band's edge: a tiny "1"
-          g.fillStyle = "rgba(255,255,255,0.32)";
-          g.fillText("1", px + size / 2, py + size / 2);
+          // a dark square on the band's edge: a token id, unscrambling as it appears
+          if (!(idx in since)) since[idx] = now;
+          seen[idx] = 1; numbered.push(idx);
+          var settled = still || now - since[idx] >= DECRYPT_MS;
+          g.fillStyle = settled ? "rgba(255,255,255,0.32)" : "rgba(255,255,255,0.6)";
+          g.fillText(tokenText(idx, now), px + size / 2, py + size / 2);
         }
       }
+      for (var s in since) if (!seen[s]) delete since[s];       // gone from the edge: next time, new
+      // now and then, one settled id scrambles and settles again
+      if (!still && numbered.length && Math.random() < 0.5) since[numbered[Math.floor(Math.random() * numbered.length)]] = now;
       g.globalAlpha = 1;
     }
     if (window.scrollY < H) requestAnimationFrame(draw);
