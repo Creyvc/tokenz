@@ -1,6 +1,7 @@
 #!/bin/zsh
 # ./make.sh <WxH> <out.mp4>   renders the promo in 6 parallel parts (16 drawn moments per frame, for
-# motion blur), joins them and adds score.wav. Needs ffmpeg on PATH or in $FFMPEG.
+# motion blur), joins them and adds score.wav. Needs ffmpeg on PATH or in $FFMPEG. SCALE=4/3 renders
+# the 1920x1080 layout at 2560x1440 (SCALE=2: 4K), the same film, sharper.
 set -e
 SIZE=$1; OUT=$2; FF=${FFMPEG:-ffmpeg}
 TMP=$(mktemp -d)
