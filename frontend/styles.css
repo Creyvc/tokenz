@@ -6367,6 +6367,79 @@ html.home-scroll.home-film .home-next::before {
   cursor: none;
 }
 
+/* The showreel window, opened by clicking the tile: the film at most 80% of the window (16:9), on
+   a dimmed page, sharp-cornered, with a square close button at its top right. It fades and grows in */
+.reel-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10002;
+  display: grid;
+  place-items: center;
+}
+
+.reel-modal[hidden] {
+  display: none;
+}
+
+.reel-modal-back {
+  position: absolute;
+  inset: 0;
+  background: rgba(14, 15, 18, 0.72);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.reel-modal-frame {
+  position: relative;
+  width: min(80vw, calc(80vh * 16 / 9));
+  aspect-ratio: 16 / 9;
+  background: #0E0F12;
+  box-shadow: 0 40px 120px rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  transform: scale(0.94);
+  transition: opacity 0.3s ease, transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.reel-modal-frame video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.reel-modal.is-open .reel-modal-back {
+  opacity: 1;
+}
+
+.reel-modal.is-open .reel-modal-frame {
+  opacity: 1;
+  transform: none;
+}
+
+.reel-modal-close {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: none;
+  background: #16171A;
+  color: #ffffff;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.reel-modal-close:hover {
+  background: #33343a;
+}
+
+.reel-modal-close:focus-visible {
+  outline: 2px solid #8B7FF2;
+  outline-offset: 2px;
+}
+
 /* Over the tile, the cursor is a small black box reading "Show reel", centred on the pointer */
 .reel-cursor {
   position: fixed;

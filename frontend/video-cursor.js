@@ -22,9 +22,10 @@
 //   of the sidebar's black Tokenz badge (bottom left, a little gap between), about a third of the badge's height,
 //   moving with the badge; it slides out from behind the badge only once the badge has slid in, and
 //   going back up it stays with the badge and slides out of the window with it,
-//   still playing but pixelated, a mosaic you can't make out, until it's clicked: then it plays
-//   clear (another click hides it again). Over the tile the cursor becomes a small black box
-//   reading "Show reel".
+//   still playing but pixelated, a mosaic you can't make out. Clicking it opens the showreel in a
+//   window over the page (16:9, at most 80% of the screen, on a dimmed page), playing from the
+//   start with its sound (assets/showreel.mp4; everything else is silent), with a close button (Esc or a click on the dimmed page close it too). Over the tile the
+//   cursor becomes a small black box reading "Show reel".
 // - Sharp corners throughout.
 (function () {
   var root = document.documentElement;
@@ -315,11 +316,57 @@
   window.addEventListener("scroll", update, { passive: true });
   window.addEventListener("resize", update);
   // the tile: a click shows the video clearly, another click pixelates it again
+  // ---- the showreel window, opened from the tile ----
+  var reel = document.createElement("div");
+  reel.className = "reel-modal";
+  reel.hidden = true;
+  reel.setAttribute("role", "dialog");
+  reel.setAttribute("aria-modal", "true");
+  reel.setAttribute("aria-label", "Showreel");
+  var reelBack = document.createElement("div");
+  reelBack.className = "reel-modal-back";
+  var reelFrame = document.createElement("div");
+  reelFrame.className = "reel-modal-frame";
+  var reelVideo = document.createElement("video");
+  // (its own copy, with the sound: only this window ever plays sound, and only after a click)
+  reelVideo.src = "assets/showreel.mp4";
+  reelVideo.muted = false;
+  reelVideo.loop = true;
+  reelVideo.playsInline = true;
+  reelVideo.controls = true;
+  reelVideo.preload = "none";
+  var reelClose = document.createElement("button");
+  reelClose.type = "button";
+  reelClose.className = "reel-modal-close";
+  reelClose.setAttribute("aria-label", "Close the showreel");
+  reelClose.innerHTML = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M3 3 L13 13 M13 3 L3 13" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"/></svg>';
+  reelFrame.append(reelVideo, reelClose);
+  reel.append(reelBack, reelFrame);
+  document.body.appendChild(reel);
+  var reelFrom = null;
+  function openReel() {
+    reelFrom = document.activeElement;
+    reel.hidden = false;
+    reelLabel.classList.remove("is-shown");
+    reelVideo.currentTime = 0;
+    reelVideo.play().catch(function () {});
+    // (shown on the next frame, so it fades and grows in)
+    requestAnimationFrame(function () { requestAnimationFrame(function () { reel.classList.add("is-open"); }); });
+    reelClose.focus({ preventScroll: true, focusVisible: false });
+  }
+  function closeReel() {
+    if (reel.hidden) return;
+    reel.classList.remove("is-open");
+    setTimeout(function () { reel.hidden = true; reelVideo.pause(); }, 300);
+    if (reelFrom && reelFrom.focus) reelFrom.focus({ preventScroll: true });
+  }
   box.addEventListener("click", function () {
-    if (!box.classList.contains("is-dock")) return;
-    revealed = !revealed;
-    box.classList.toggle("is-revealed", revealed);
-    if (!revealed && !mosaicFrame) mosaicFrame = requestAnimationFrame(drawMosaic);
+    if (box.classList.contains("is-dock")) openReel();
+  });
+  reelClose.addEventListener("click", closeReel);
+  reelBack.addEventListener("click", closeReel);
+  document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape") closeReel();
   });
 
   // (the intro ends by removing a class from <html>: show the box then, if the pointer's in)
