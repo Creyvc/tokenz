@@ -2,7 +2,7 @@
 // screens and people who prefer less motion keep the normal cursor and the page as it was.
 //
 // - The cursor: on the first screen (the headline, Explore and Compare), the pointer is a small
-//   rounded box playing the promo (assets/promo-720.mp4, a silent 1280×720 copy of
+//   rounded box playing the promo (assets/promo-1080.mp4, a silent 1920×1080, 60fps copy of
 //   film/promo/tokenz-promo.mp4), easing after it. Over anything you can click, or close to Explore,
 //   Compare or the cookie banner, the box shrinks away and the normal cursor comes back. Not on the
 //   warning page or during the intro, and not once the Three Methods page has come up. Dashed
@@ -48,7 +48,7 @@
   box.className = "video-cursor";
   box.setAttribute("aria-hidden", "true");
   var video = document.createElement("video");
-  video.src = "assets/promo-720.mp4";
+  video.src = "assets/promo-1080.mp4";
   video.muted = true;
   video.loop = true;
   video.playsInline = true;
