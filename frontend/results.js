@@ -123,18 +123,7 @@
     box.append(make("p", "rs-notice is-warning", "These runs used different prompts, so each method is shown against its own original. Use the same prompt for both for a fair comparison."));
   }
 
-  // The headline, then one card per method
-
-  if (done.length > 1 && samePrompt && sameEncoding) {
-    var savedMost = Math.max.apply(null, results.map(function (r) { return r.tokens_saved; }));
-    var leaders = done.filter(function (method, i) { return results[i].tokens_saved === savedMost; });
-    var verdict = savedMost === 0 ? (done.length === 2 ? "Neither method" : "No method") + " found a shorter version of this prompt." :
-      leaders.length === done.length ? (done.length === 2 ? "Both methods" : "All three methods") + " saved " + savedMost + " tokens on this prompt." :
-      leaders.length > 1 ? names(leaders) + " both saved the most on this prompt: " + savedMost + " tokens." :
-      NAMES[leaders[0]] + " saved the most on this prompt: " + savedMost + " tokens (" +
-        results[done.indexOf(leaders[0])].reduction_percent.toFixed(1) + "% fewer).";
-    box.append(make("p", "rs-verdict", verdict));
-  }
+  // One card per method
 
   var cards = make("div", "rs-cards");
   done.forEach(function (method, i) {

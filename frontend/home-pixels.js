@@ -1,7 +1,7 @@
 // Home's first screen, after the owner's sketch and a pixel-grid site they liked: a black page
 // crossed by a broad band of square pixels, rising in steps from the bottom-left corner to the
-// top-right one. The band isn't white: it's a muted, grainy glow (a greyed lavender at the top
-// through a dusty rose to a dark mauve at the bottom) whose light drifts slowly about, written over
+// top-right one. The band isn't white: it's a muted, grainy glow in the site's violet (a silvery
+// lavender at the top through periwinkle to a deep indigo at the bottom) whose light drifts slowly about, written over
 // with columns of token indexes (real o200k_base ids of the page's own words, read downwards) in
 // white, streaming up or down, each at its own pace, with a bright head and a fading trail; the
 // characters come through ASCII (@ % # * + = - : .) as they decode, in sweeps that pass across
@@ -27,7 +27,7 @@
   var g = canvas.getContext("2d");
 
   var BG = "#0E0F12";
-  var GLOW = [[0, "#BEBCCB"], [0.3, "#C8BAC4"], [0.52, "#BFA6AD"], [0.7, "#9E858C"], [0.86, "#54454C"], [1, "#221D21"]];
+  var GLOW = [[0, "#D7D6E4"], [0.3, "#BDBADB"], [0.52, "#9993CC"], [0.7, "#6D64B5"], [0.86, "#38317A"], [1, "#16132C"]];
   var CH_W = 10, CH_H = 13; // the token indexes' character grid, in pixels
   var TRAIL = 16;           // a column's bright head and its fading trail, in characters
   var RAMP = "@%#*+=-:.";   // what a character passes through as it decodes, densest first
