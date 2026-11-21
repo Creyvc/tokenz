@@ -10,9 +10,10 @@
 // edges are ragged (stray squares out in the black, holes in the band, thinning out away from the
 // edge) and shift slowly, a square at a time; along them the squares break down smaller, into tiny
 // squares (half a square) and micro ones (a quarter), out in the black and as holes in the band's
-// edge, coming and going one at a time too. Now and then a single letter of the headline or the
-// sentence decrypts: it runs through a few symbols and settles back (the letter itself stays in the
-// page, see-through, so nothing moves and screen readers read it as ever). Scrolling down, the
+// edge, coming and going one at a time too. Every few seconds the headline and the sentence
+// decrypt, a letter at a time in reading order, every letter in turn: each runs through a few
+// symbols and settles back, so only two or three are changing at once (the letter itself stays in
+// the page, unseen, so nothing moves and screen readers read it as ever; the buttons are left be). Scrolling down, the
 // squares go out one by one in a random order, and the black goes once the film has filled the
 // window. With reduced motion it all stays still.
 (function () {
@@ -308,41 +309,41 @@
   window.addEventListener("resize", function () { resize(); litKey = ""; if (still) redrawStill(); });
   requestAnimationFrame(draw);
 
-  // The letters decrypting: one starts every half second or so, at the top of the page with the
-  // text in, each showing four symbols in turn before it settles (styles.css, .dec-letter)
+  // The letters decrypting: a pass every PASS_EVERY seconds, through the headline and then the
+  // sentence, the next letter starting every STEP_MS, each showing three symbols in turn before it
+  // settles (styles.css, .dec-letter)
   var GLYPHS = "@%#*+=-:.0123456789";
   var BLOCKS = [".home-intro:not(.is-copy) .home-headline", ".home-intro:not(.is-copy) .home-lede"];
-  function letters() {
+  var STEP_MS = 60, TURN_MS = 60, TURNS = 3, PASS_EVERY = 9;
+  // a block's letters in reading order, as [text node, index]; one already going counts (busy), so
+  // the order holds while letters are wrapped and unwrapped
+  function letters(el) {
     var found = [];
-    BLOCKS.forEach(function (sel) {
-      var el = document.querySelector(sel);
-      if (!el) return;
-      var walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
-      for (var n = walk.nextNode(); n; n = walk.nextNode()) {
-        var up = n.parentNode;
-        if (up.closest(".hl-serif, .dec-letter")) continue;      // (not the gradient word, nor one going)
-        for (var k = 0; k < n.data.length; k++) if (/[A-Za-z0-9]/.test(n.data[k])) found.push([n, k]);
-      }
-    });
+    var walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    for (var n = walk.nextNode(); n; n = walk.nextNode()) {
+      var busy = !!n.parentNode.closest(".dec-letter");
+      for (var k = 0; k < n.data.length; k++) if (/[A-Za-z0-9]/.test(n.data[k])) found.push([n, k, busy]);
+    }
     return found;
   }
-  function decrypt() {
-    var all = letters();
-    if (!all.length) return;
-    var pick = all[Math.floor(Math.random() * all.length)], node = pick[0], at = pick[1];
-    var color = getComputedStyle(node.parentNode).color;
+  function decrypt(pick) {
+    var node = pick[0], at = pick[1];
+    var host = node.parentNode;
+    // (the gradient word's letters are painted by their gradient, so the symbol there is its violet)
+    var inGradient = !!host.closest(".hl-serif");
+    var color = inGradient ? "#A99DFF" : getComputedStyle(host).color;
     var letter = node.splitText(at);
     letter.splitText(1);
     var span = document.createElement("span");
-    span.className = "dec-letter";
+    span.className = "dec-letter" + (inGradient ? " is-clip" : "");
     span.style.setProperty("--dec-color", color);
     letter.parentNode.replaceChild(span, letter);
     span.appendChild(letter);
     var turns = 0;
     (function turn() {
-      if (turns++ < 4) {
+      if (turns++ < TURNS) {
         span.setAttribute("data-glyph", GLYPHS[Math.floor(Math.random() * GLYPHS.length)]);
-        setTimeout(turn, 90);
+        setTimeout(turn, TURN_MS);
         return;
       }
       var up = span.parentNode;
@@ -351,11 +352,25 @@
       up.normalize();
     })();
   }
-  if (!still) {
+  function pass(b) {
+    var k = 0;
     (function next() {
-      var on = document.documentElement.classList.contains("home-text-on") || !document.documentElement.classList.contains("home-text-waiting");
-      if (on && window.scrollY < 4 && !document.hidden) decrypt();
-      setTimeout(next, 380 + Math.random() * 520);
+      var el = document.querySelector(BLOCKS[b]);
+      if (!el || window.scrollY > 4) return;                     // (scrolled away: this pass ends)
+      var all = letters(el);
+      if (k >= all.length) { if (b + 1 < BLOCKS.length) pass(b + 1); return; }
+      if (!all[k][2]) decrypt(all[k]);
+      k++;
+      setTimeout(next, STEP_MS);
+    })();
+  }
+  if (!still) {
+    // (checked every second until the text is in and the page at its top; then a pass, and a rest)
+    (function nextPass() {
+      var root = document.documentElement;
+      var on = root.classList.contains("home-text-on") || !root.classList.contains("home-text-waiting");
+      if (on && window.scrollY < 4 && !document.hidden) { pass(0); setTimeout(nextPass, PASS_EVERY * 1000); }
+      else setTimeout(nextPass, 1000);
     })();
   }
 })();

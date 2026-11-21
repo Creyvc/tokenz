@@ -6210,6 +6210,17 @@ html.video-cursor-on :is(input, textarea) {
   color: transparent;
 }
 
+/* (in the gradient word the letter is painted by its gradient, whatever its colour, so there it's
+   hidden instead, and the symbol shown regardless) */
+.dec-letter.is-clip {
+  visibility: hidden;
+}
+
+.dec-letter.is-clip::after {
+  visibility: visible;
+  -webkit-text-fill-color: var(--dec-color);
+}
+
 .dec-letter::after {
   content: attr(data-glyph);
   position: absolute;
