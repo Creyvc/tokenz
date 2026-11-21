@@ -6180,6 +6180,52 @@ html.video-cursor-on :is(input, textarea) {
   transform: scale(0.92);
 }
 
+/* With the cursor box (after roshan-sahu.com): a dashed line across the whole window and one down
+   it, crossing at the box's middle and passing behind it, and "[SHOWREEL]" just under the box */
+.vc-line {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.vc-line.is-h {
+  right: 0;
+  height: 0;
+  border-top: 1px dashed rgba(22, 23, 26, 0.45);
+}
+
+.vc-line.is-v {
+  bottom: 0;
+  width: 0;
+  border-left: 1px dashed rgba(22, 23, 26, 0.45);
+}
+
+.vc-line.is-shown {
+  opacity: 1;
+}
+
+.vc-caption {
+  position: absolute;
+  left: 0;
+  top: 102px;
+  transform: translateX(-50%);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: #16171A;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.video-cursor.is-shown:not(.is-film):not(.is-dock) .vc-caption {
+  opacity: 1;
+}
+
 /* Home's film (video-cursor.js): scrolling down from the top, the cursor's box grows to fill the
    window and plays the promo (silently). Home is taller for it, so the first screen holds while it
    plays; the Three Methods page then slides up over it (the film sits just under that page, over

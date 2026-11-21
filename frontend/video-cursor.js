@@ -5,7 +5,9 @@
 //   rounded box playing the promo (assets/promo-720.mp4, a silent 1280×720 copy of
 //   film/promo/tokenz-promo.mp4), easing after it. Over anything you can click, or close to Explore,
 //   Compare or the cookie banner, the box shrinks away and the normal cursor comes back. Not on the
-//   warning page or during the intro, and not once the Three Methods page has come up.
+//   warning page or during the intro, and not once the Three Methods page has come up. Dashed
+//   lines cross the whole window through the box's middle, and "[SHOWREEL]" sits under it (after
+//   roshan-sahu.com).
 // - The film: scrolling down from the top, the sentence, the headline's two lines and the buttons
 //   mask out one after another (each slides down behind its own edge), and the box grows from where
 //   the cursor was until it fills the window, playing the promo from the start, silently. The
@@ -67,7 +69,20 @@
     plus.className = "film-mark is-" + corner;
     marks.appendChild(plus);
   });
-  document.body.append(box, marks, reelLabel);
+  // with the cursor box (after roshan-sahu.com): dashed lines across the whole window through its
+  // middle, passing behind it, and "[SHOWREEL]" under it
+  var lineH = document.createElement("div"), lineV = document.createElement("div");
+  lineH.className = "vc-line is-h"; lineV.className = "vc-line is-v";
+  lineH.setAttribute("aria-hidden", "true"); lineV.setAttribute("aria-hidden", "true");
+  var caption = document.createElement("div");
+  caption.className = "vc-caption";
+  caption.textContent = "[SHOWREEL]";
+  box.appendChild(caption);
+  document.body.append(lineH, lineV, box, marks, reelLabel);
+  function placeLines() {
+    lineH.style.transform = "translateY(" + shownY.toFixed(1) + "px)";
+    lineV.style.transform = "translateX(" + shownX.toFixed(1) + "px)";
+  }
   var revealed = false, mosaicFrame = 0;
   // the mosaic copies the playing video, a few blocks across, every frame while the tile is pixelated
   function drawMosaic() {
@@ -136,6 +151,7 @@
     maskOut(f.scrollY, f.H);
     var film = f.grow > 0 && f.covered < 1 && !root.classList.contains("intro-play");
     box.classList.toggle("is-film", film);
+    if (film) { lineH.classList.toggle("is-shown", false); lineV.classList.toggle("is-shown", false); }
     if (!film) marks.style.opacity = "0";
     if (film) {
       if (!filmFrom) {
@@ -180,6 +196,7 @@
     var r = badge ? badge.getBoundingClientRect() : null;
     var docked = f.covered >= 1 && r && r.width > 0 && !root.classList.contains("home-nav-hidden") && !root.classList.contains("intro-play");
     box.classList.toggle("is-dock", !!docked);
+    if (docked) { lineH.classList.toggle("is-shown", false); lineV.classList.toggle("is-shown", false); }
     if (!docked && revealed) { revealed = false; box.classList.remove("is-revealed"); }
     if (docked) {
       filmFrom = null;
@@ -204,6 +221,8 @@
     var firstScreen = f.grow <= 0 && (!next || y < next.getBoundingClientRect().top);
     var show = inside && firstScreen && !overClickable && !nearAny() && !root.classList.contains("intro-play");
     box.classList.toggle("is-shown", show);
+    lineH.classList.toggle("is-shown", show); lineV.classList.toggle("is-shown", show);
+    if (show) placeLines();
     // the normal cursor is hidden only while the box stands in for it
     root.classList.toggle("video-cursor-on", show);
     if (show && video.paused) video.play().catch(function () {});
@@ -251,7 +270,10 @@
   function follow() {
     shownX += (x - shownX) * 0.22;
     shownY += (y - shownY) * 0.22;
-    if (!box.classList.contains("is-film") && !box.classList.contains("is-dock")) box.style.transform = "translate(" + shownX.toFixed(1) + "px, " + shownY.toFixed(1) + "px)";
+    if (!box.classList.contains("is-film") && !box.classList.contains("is-dock")) {
+      box.style.transform = "translate(" + shownX.toFixed(1) + "px, " + shownY.toFixed(1) + "px)";
+      placeLines();
+    }
     frame = Math.abs(x - shownX) + Math.abs(y - shownY) > 0.3 ? requestAnimationFrame(follow) : 0;
   }
 
