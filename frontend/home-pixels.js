@@ -1,10 +1,10 @@
-// Home's first screen: a black page with a field of square pixels behind the text, a light mass of
-// them (after a pixel-grid site the owner liked, turned to black). It shifts slowly, a square at a
-// time; the dark squares along its edges carry a tiny "1"; the light squares under the pointer glow
-// blue. It keeps clear of the headline, the sentence and the buttons, so they stay readable, and
-// covers about the same share of the window on every visit (the same pattern each time, from a
-// fixed seed). Scrolling down, the squares go out one by one in a random order, and the black
-// goes once the film has filled the window. With reduced motion it stays still.
+// Home's first screen, after the owner's sketch: a black page crossed by a broad band of light
+// square pixels, rising in steps from the bottom-left corner to the top-right one. The headline sits
+// in the black above it, the sentence in a black corner cut out of it at the bottom right, and the
+// buttons in the band with a square of black around them. The band's stepped edges shift slowly, a
+// square at a time; the dark squares along them carry a tiny "1"; the light squares under the pointer
+// glow blue. Scrolling down, the squares go out one by one in a random order, and the black goes once
+// the film has filled the window. With reduced motion it stays still.
 (function () {
   var main = document.querySelector(".content.home.is-bare");
   if (!main) return;
@@ -16,9 +16,30 @@
   var g = canvas.getContext("2d");
 
   var BG = "#0E0F12", PIXEL = "#E6E6EA", GLOW = "#5B6CFF", GLOW_SOFT = "#B9C0FF";
-  var CELLS_ACROSS = 30, SHARE = 0.36;   // about this much of the clear squares is light
+  var CELLS_ACROSS = 40;   // the squares' size: the window's width over this
+  var WOBBLE = 1.6;        // how far the edges wander, in squares
 
-  // a fixed seed, so it's the same field every time
+  // The band's two edges, from the sketch, as fractions of the window [across, down]: its top edge,
+  // from the bottom left up to the top right (with a dip in the middle), and the edge of the
+  // bottom-right corner it leaves black for the sentence
+  var TOP = [[0, 0.80], [0.05, 0.74], [0.11, 0.70], [0.12, 0.54], [0.18, 0.54], [0.20, 0.59],
+             [0.24, 0.59], [0.25, 0.47], [0.31, 0.45], [0.32, 0.38], [0.38, 0.38], [0.39, 0.30],
+             [0.47, 0.29], [0.48, 0.10], [0.52, 0.10], [0.53, 0.18], [0.56, 0.19], [0.58, 0.26],
+             [0.58, 0.34], [0.62, 0.34], [0.64, 0.12], [0.66, 0.06], [0.71, 0.08], [0.71, 0.13],
+             [0.78, 0.14], [0.78, 0.06], [0.84, 0.06], [0.85, 0.11], [0.91, 0.10], [0.94, 0.12],
+             [0.97, 0.07], [1, 0.02]];
+  var LOW = [[0.57, 1.02], [0.58, 0.90], [0.62, 0.90], [0.63, 0.83], [0.70, 0.80], [0.70, 0.76],
+             [0.76, 0.74], [0.76, 0.67], [0.82, 0.66], [0.83, 0.76], [0.87, 0.77], [0.87, 0.73],
+             [0.89, 0.73], [0.89, 0.79], [0.93, 0.79], [0.93, 0.71], [1, 0.71]];
+  function edge(points, x) {
+    for (var k = 1; k < points.length; k++) {
+      var a = points[k - 1], b = points[k];
+      if (x <= b[0]) return b[0] === a[0] ? b[1] : a[1] + (b[1] - a[1]) * (x - a[0]) / (b[0] - a[0]);
+    }
+    return points[points.length - 1][1];
+  }
+
+  // a fixed seed, so it's the same every time
   var seed = 20261121;
   function random() { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; }
   var R = [];
@@ -42,7 +63,8 @@
     for (var c = 0; c < cols * rows; c++) gone.push(random());
   }
 
-  // the boxes to keep clear: the headline, the sentence and the buttons, a square around each
+  // the boxes kept black whatever the band does: the headline, the sentence and the buttons, a
+  // square around each
   function clearZones() {
     var zones = [];
     [".home-intro:not(.is-copy) .home-headline", ".home-intro:not(.is-copy) .home-lede", ".home-intro:not(.is-copy) .home-actions"].forEach(function (sel) {
@@ -65,22 +87,19 @@
     if (key !== last) {
       last = key;
       var zones = clearZones();
-      // a slow-moving field, heavier towards the bottom right; the lightest SHARE of it is lit
-      var value = [], free = [];
+      var lit = [];
       for (var j = 0; j < rows; j++) for (var i = 0; i < cols; i++) {
         var x = i * size, yy = j * size, clear = true;
         for (var k = 0; k < zones.length; k++) {
           var z = zones[k];
           if (x + size > z.l && x < z.r && yy + size > z.t && yy < z.b) { clear = false; break; }
         }
-        var n = 0.65 * noise(i * 0.16 + t * 0.06, j * 0.16 - t * 0.03) + 0.35 * noise(i * 0.4 - t * 0.1, j * 0.4 + 7);
-        var v = clear ? n + 0.3 * ((i / cols) * 0.6 + (j / rows) * 0.8) : -1;
-        value.push(v);
-        if (clear) free.push(v);
+        // the square's middle against the two edges, each nudged by a slow wobble of its own
+        var mx = (i + 0.5) / cols, my = (j + 0.5) * size;
+        var top = edge(TOP, mx) * H + (noise(i * 0.35 + t * 0.12, 3) - 0.5) * 2 * WOBBLE * size;
+        var low = edge(LOW, mx) * H + (noise(i * 0.35 - t * 0.1, 11) - 0.5) * 2 * WOBBLE * size;
+        lit.push(clear && my > top && my < low);
       }
-      free.sort(function (a, b) { return b - a; });
-      var cut = free.length ? free[Math.floor(free.length * SHARE)] : 2;
-      var lit = value.map(function (v) { return v > cut; });
       var on = function (i, j) { return i >= 0 && j >= 0 && i < cols && j < rows && lit[j * cols + i]; };
 
       g.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -99,7 +118,7 @@
           g.fillStyle = d === 0 ? GLOW : d === 1 ? GLOW_SOFT : PIXEL;
           g.fillRect(px, py, size, size);
         } else if (on(i - 1, j) || on(i + 1, j) || on(i, j - 1) || on(i, j + 1)) {
-          // a dark square on the edge of the mass: a tiny "1"
+          // a dark square on the band's edge: a tiny "1"
           g.fillStyle = "rgba(255,255,255,0.32)";
           g.fillText("1", px + size / 2, py + size / 2);
         }

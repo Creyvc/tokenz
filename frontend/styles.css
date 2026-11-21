@@ -6190,8 +6190,8 @@ html.video-cursor-on :is(input, textarea) {
   transform: scale(0.92);
 }
 
-/* Home's first screen: black, with the field of square pixels behind the text (home-pixels.js),
-   under the text, the buttons and the cursor's dashed lines */
+/* Home's first screen: black, crossed by a band of square pixels (home-pixels.js), under the
+   text, the buttons and the cursor's dashed lines */
 .home-grid {
   position: fixed;
   inset: 0;
