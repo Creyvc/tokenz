@@ -6192,6 +6192,63 @@ html.home-scroll.home-film .content.home.is-bare {
   z-index: 11;
 }
 
+/* The Three Methods page comes up over the film with a soft top edge, not a hard line: a tall
+   fade from clear to white just above it (video-cursor.js fades the film itself) */
+html.home-scroll.home-film .home-next::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  height: 45vh;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0), #ffffff);
+  pointer-events: none;
+}
+
+/* The film's corner marks: a small, thick plus inside each corner of the video, moving with it as
+   it grows (video-cursor.js sets where and how faded); under the Three Methods page like the film */
+.film-marks {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 11;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.film-mark {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+}
+
+.film-mark::before,
+.film-mark::after {
+  content: "";
+  position: absolute;
+  background: #16171A;
+}
+
+/* the two arms: across and down, through the middle */
+.film-mark::before {
+  left: 0;
+  right: 0;
+  top: 7px;
+  height: 2px;
+}
+
+.film-mark::after {
+  top: 0;
+  bottom: 0;
+  left: 7px;
+  width: 2px;
+}
+
+.film-mark.is-tl { top: 22px; left: 22px; }
+.film-mark.is-tr { top: 22px; right: 22px; }
+.film-mark.is-bl { bottom: 22px; left: 22px; }
+.film-mark.is-br { bottom: 22px; right: 22px; }
+
 /* From Three Methods on: a small tile against the right side of the sidebar's black badge, over
    the page, growing in from the badge's edge */
 .video-cursor.is-dock {

@@ -10,7 +10,11 @@
 //   mask out one after another (each slides down behind its own edge), and the box grows from where
 //   the cursor was until it fills the window, playing the promo from the start, silently. The
 //   first screen holds while it plays (Home is taller for it, html.home-film in styles.css); scrolling
-//   on, the Three Methods page slides up over it. Scrolling back up plays it all backwards.
+//   on, the Three Methods page slides up over it. Scrolling back up plays it all backwards. Once it
+//   is half the window's width, a small thick plus marks each of its corners, like a viewfinder,
+//   moving with it as it grows. The film and the next page
+//   dissolve into each other (after lukebaffait.fr): the page comes up with a soft edge, the film
+//   fades out from the bottom up.
 // - The tile: from Three Methods on, once the sidebar is in, the video sits as a small tile just right
 //   of the sidebar's black Tokenz badge (bottom left, a little gap between), about a third of the badge's height,
 //   moving with the badge; it slides out from behind the badge only once the badge has slid in,
@@ -54,7 +58,16 @@
   reelLabel.className = "reel-cursor";
   reelLabel.setAttribute("aria-hidden", "true");
   reelLabel.textContent = "Show reel";
-  document.body.append(box, reelLabel);
+  // the film's corner marks: a thin plus at each corner, like a viewfinder, once it fills the window
+  var marks = document.createElement("div");
+  marks.className = "film-marks";
+  marks.setAttribute("aria-hidden", "true");
+  ["tl", "tr", "bl", "br"].forEach(function (corner) {
+    var plus = document.createElement("span");
+    plus.className = "film-mark is-" + corner;
+    marks.appendChild(plus);
+  });
+  document.body.append(box, marks, reelLabel);
   var revealed = false, mosaicFrame = 0;
   // the mosaic copies the playing video, a few blocks across, every frame while the tile is pixelated
   function drawMosaic() {
@@ -123,6 +136,7 @@
     maskOut(f.scrollY, f.H);
     var film = f.grow > 0 && f.covered < 1 && !root.classList.contains("intro-play");
     box.classList.toggle("is-film", film);
+    if (!film) marks.style.opacity = "0";
     if (film) {
       if (!filmFrom) {
         filmFrom = box.classList.contains("is-shown") ? { x: shownX, y: shownY } : { x: window.innerWidth / 2, y: f.H / 2 };
@@ -135,6 +149,25 @@
       video.style.width = lerp(BOX_W, W, k).toFixed(1) + "px";
       video.style.height = lerp(BOX_H, f.H, k).toFixed(1) + "px";
       video.style.borderRadius = lerp(RADIUS, 0, k).toFixed(1) + "px";
+      // The corner marks sit inside the video's own corners and grow with it: they appear once it's
+      // half the window's width, and go first as it dissolves into the next page
+      var vw = lerp(BOX_W, W, k), vh = lerp(BOX_H, f.H, k);
+      marks.style.left = lerp(filmFrom.x - BOX_W / 2, 0, k).toFixed(1) + "px";
+      marks.style.top = lerp(filmFrom.y - BOX_H / 2, 0, k).toFixed(1) + "px";
+      marks.style.width = vw.toFixed(1) + "px";
+      marks.style.height = vh.toFixed(1) + "px";
+      marks.style.opacity = (clamp((vw / W - 0.45) / 0.1) * (1 - clamp(f.covered * 2.5))).toFixed(3);
+      // Dissolving into the next page (after lukebaffait.fr): as it comes up, the film fades out
+      // from the bottom upwards, and dims as a whole
+      var c = f.covered;
+      if (c > 0) {
+        var edge = (100 - c * 140).toFixed(1), soft = (100 - c * 140 + 45).toFixed(1);
+        video.style.webkitMaskImage = video.style.maskImage = "linear-gradient(to bottom, #000 " + edge + "%, transparent " + soft + "%)";
+        video.style.opacity = (1 - c * c).toFixed(3);
+      } else {
+        video.style.webkitMaskImage = video.style.maskImage = "";
+        video.style.opacity = "";
+      }
       box.classList.add("is-shown");
       // (toggle, not remove: remove rewrites the class even when it has nothing to take away, and
       // the watcher below would call this again, for ever)
@@ -163,7 +196,7 @@
     if (filmFrom || video.style.width) {
       filmFrom = null;
       [video, mosaic].forEach(function (el) {
-        ["left", "top", "width", "height", "borderRadius", "transform", "clipPath", "transition", "opacity"].forEach(function (p) { el.style[p] = ""; });
+        ["left", "top", "width", "height", "borderRadius", "transform", "clipPath", "transition", "opacity", "maskImage", "webkitMaskImage"].forEach(function (p) { el.style[p] = ""; });
       });
       box.style.transform = "translate(" + shownX.toFixed(1) + "px, " + shownY.toFixed(1) + "px)";
     }
