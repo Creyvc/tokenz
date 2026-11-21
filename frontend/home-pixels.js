@@ -1,9 +1,8 @@
 // Home's first screen, after the owner's sketch: a black page crossed by a broad band of light
 // square pixels, rising in steps from the bottom-left corner to the top-right one. The headline sits
 // in the black above it, the sentence in a black corner cut out of it at the bottom right, and the
-// buttons in the band with a square of black around them. The band's stepped edges shift slowly, a
-// square at a time; the dark squares along them carry a tiny "1"; the light squares under the pointer
-// glow blue. Scrolling down, the squares go out one by one in a random order, and the black goes once
+// buttons on the band itself. The band's stepped edges shift slowly, a
+// square at a time; the dark squares along them carry a tiny "1". Scrolling down, the squares go out one by one in a random order, and the black goes once
 // the film has filled the window. With reduced motion it stays still.
 (function () {
   var main = document.querySelector(".content.home.is-bare");
@@ -15,8 +14,8 @@
   document.body.prepend(canvas);
   var g = canvas.getContext("2d");
 
-  var BG = "#0E0F12", PIXEL = "#E6E6EA", GLOW = "#5B6CFF", GLOW_SOFT = "#B9C0FF";
-  var CELLS_ACROSS = 40;   // the squares' size: the window's width over this
+  var BG = "#0E0F12", PIXEL = "#E6E6EA";
+  var CELLS_ACROSS = 48;   // the squares' size: the window's width over this
   var WOBBLE = 1.6;        // how far the edges wander, in squares
 
   // The band's two edges, from the sketch, as fractions of the window [across, down]: its top edge,
@@ -52,7 +51,7 @@
     return a + (b - a) * fx + (c - a) * fy + (a - b - c + d) * fx * fy;
   }
 
-  var W = 0, H = 0, dpr = 1, size = 0, cols = 0, rows = 0, gone = [], glowX = -1, glowY = -1;
+  var W = 0, H = 0, dpr = 1, size = 0, cols = 0, rows = 0, gone = [];
   function resize() {
     dpr = Math.min(window.devicePixelRatio || 1, 2);
     W = window.innerWidth; H = window.innerHeight;
@@ -63,11 +62,10 @@
     for (var c = 0; c < cols * rows; c++) gone.push(random());
   }
 
-  // the boxes kept black whatever the band does: the headline, the sentence and the buttons, a
-  // square around each
+  // the boxes kept black whatever the band does: the headline and the sentence, a square around each
   function clearZones() {
     var zones = [];
-    [".home-intro:not(.is-copy) .home-headline", ".home-intro:not(.is-copy) .home-lede", ".home-intro:not(.is-copy) .home-actions"].forEach(function (sel) {
+    [".home-intro:not(.is-copy) .home-headline", ".home-intro:not(.is-copy) .home-lede"].forEach(function (sel) {
       var el = document.querySelector(sel);
       if (!el) return;
       var r = el.getBoundingClientRect();
@@ -83,7 +81,7 @@
     var y = window.scrollY;
     var out = Math.min(1, y / (0.45 * H));                       // the squares going, as the film grows
     var dark = 1 - Math.min(1, Math.max(0, (y - 0.7 * H) / (0.15 * H)));  // the black, once it's full
-    var key = t + "|" + out.toFixed(3) + "|" + dark.toFixed(3) + "|" + glowX + "," + glowY;
+    var key = t + "|" + out.toFixed(3) + "|" + dark.toFixed(3);
     if (key !== last) {
       last = key;
       var zones = clearZones();
@@ -113,9 +111,7 @@
         if (gone[idx] < out * 1.1) continue;                     // scrolling down, they go out one by one
         var px = i * size, py = j * size;
         if (lit[idx]) {
-          // light, or blue near the pointer
-          var d = glowX < 0 ? 9 : Math.max(Math.abs(i - glowX), Math.abs(j - glowY));
-          g.fillStyle = d === 0 ? GLOW : d === 1 ? GLOW_SOFT : PIXEL;
+          g.fillStyle = PIXEL;
           g.fillRect(px, py, size, size);
         } else if (on(i - 1, j) || on(i + 1, j) || on(i, j - 1) || on(i, j + 1)) {
           // a dark square on the band's edge: a tiny "1"
@@ -133,10 +129,5 @@
     if (waiting && window.scrollY < H) { waiting = false; requestAnimationFrame(draw); }
   }, { passive: true });
   window.addEventListener("resize", function () { resize(); last = ""; });
-  document.addEventListener("pointermove", function (e) {
-    if (!size) return;
-    glowX = Math.floor(e.clientX / size); glowY = Math.floor(e.clientY / size);
-  });
-  document.documentElement.addEventListener("mouseleave", function () { glowX = glowY = -1; });
   requestAnimationFrame(draw);
 })();
