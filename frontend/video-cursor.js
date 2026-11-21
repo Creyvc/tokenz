@@ -32,6 +32,7 @@
   var MOSAIC_W = 24, MOSAIC_H = 14;   // the pixelated tile is drawn this small, then scaled up
   var TILE_GAP = 12;                  // the space between the badge and the tile
   var TILE_OF_BADGE = 0.42;           // the tile's height, as a share of the badge's
+  var LINE_PAST_NAV = 8;              // the thin line beside the sidebar sits this far past its edge
 
   var box = document.createElement("div");
   box.className = "video-cursor";
@@ -181,9 +182,10 @@
     if (!badge) return;
     var r = badge.getBoundingClientRect();
     var tileH = Math.round(r.height * TILE_OF_BADGE), tileW = Math.round(tileH * 16 / 9);
-    // never past the sidebar's right edge (the thin line there): the same gap from it as from the badge
-    var nav = badge.closest("header.nav"), room = nav ? nav.getBoundingClientRect().right - TILE_GAP - (r.right + TILE_GAP) : tileW;
-    if (tileW > room) { tileW = Math.round(room); tileH = Math.round(tileW * 9 / 16); }
+    // it fills the space between the badge and the thin line just right of the sidebar (at its edge
+    // plus 8px), with the same gap on both sides
+    var nav = badge.closest("header.nav");
+    if (nav) { tileW = Math.round(nav.getBoundingClientRect().right + LINE_PAST_NAV - TILE_GAP - (r.right + TILE_GAP)); tileH = Math.round(tileW * 9 / 16); }
     // the badge is at rest once it hasn't moved for a few frames, fully in view
     var moved = !badgeLast || Math.abs(r.left - badgeLast.left) > 0.2 || Math.abs(r.top - badgeLast.top) > 0.2;
     badgeStill = moved ? 0 : badgeStill + 1;
