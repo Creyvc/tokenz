@@ -3580,11 +3580,11 @@ html.home-scroll .content.home.is-bare .home-intro {
   container-type: normal;
 }
 
-/* (the headline's foot sits a little above the middle of the window, so it's in the top half) */
+/* (the headline sits high: its foot a little over a quarter of the way down the window) */
 .content.home.is-bare .home-headline {
   position: absolute;
   left: 40px;
-  bottom: 63%;
+  bottom: 72%;
   margin: 0;
 }
 
