@@ -4605,8 +4605,8 @@ html.home-scroll .measure-text {
 
 /* What We Measure with the scroll effect. The section is several windows tall and what's in it
    stays pinned in the window as it scrolls past (home.js sets its height):
-   - the top half is the drawings': the current measure's stands in the middle of it, and as the
-     next takes over it slides up and fades while the next comes up into its place (--y, --o)
+   - the top half is the drawings': the current measure's stands still in the middle of it, and
+     as the next takes over they cross-fade in place (--o)
    - the bottom half is the cards' (after atolldigital.com's services): one per measure, a big
      number on the left and its name and description on the right, each sliding up from below the
      window over the one before and stopping on it, so they stack (--slide, home.js); the one
@@ -4666,11 +4666,11 @@ html.home-scroll .measure-mark {
   left: calc((218px + 100vw - 40px) / 2 - var(--card, 30vh) / 2);
   width: var(--card, 30vh);
   height: var(--card, 30vh);
-  transform: translateY(var(--y, 0px));
   opacity: var(--o, 1);
 }
 
-/* The cards: the bottom half, from the sidebar to near the right edge, light and dark in turn */
+/* The cards: the bottom half, from the sidebar to near the right edge; grey, violet, white and
+   grey again, so each stands out from the one it covers */
 html.home-scroll .measure-card {
   position: absolute;
   top: 50vh;
@@ -4689,9 +4689,13 @@ html.home-scroll .measure-card {
   filter: brightness(calc(1 - 0.35 * var(--under, 0)));
 }
 
-html.home-scroll .measure-item:nth-child(even) .measure-card {
-  background: #131A2C;
+html.home-scroll .measure-item:nth-child(2) .measure-card {
+  background: #6C5CFF;
   color: #ffffff;
+}
+
+html.home-scroll .measure-item:nth-child(3) .measure-card {
+  background: #ffffff;
 }
 
 /* Its number: big, in the top-left corner */

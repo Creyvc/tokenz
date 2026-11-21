@@ -991,7 +991,7 @@
 
     // What We Measure is a window, then MEASURE_STEP windows per measure after the first, then a
     // little more with the last one shown, all of it pinned in the window. The current drawing
-    // stands in the top half, the next sliding up in as it goes (--y, --o); in the bottom half
+    // stands in the top half, the next fading in in its place (--o); in the bottom half
     // each card slides up over the one before (--slide). The one nearest is the current one
     // (is-active): as it takes over, its name rises from behind masks and its description
     // The rising white with its pixel edge (.measure-wipe, styles.css). Squares about an 18th of
@@ -1100,16 +1100,15 @@
       if (Math.abs(target - measureAt) < 0.001) measureAt = target;
       measureAtTime = now;
       if (measureAt !== target) soon();
-      // The drawings: the current one in place, the one before it gone up and out, the next coming
-      // up from below, each fading as it leaves the middle. The cards (after atolldigital.com): each
+      // The drawings stay put: the current one shows, and as the next takes over they cross-fade
+      // in place. The cards (after atolldigital.com): each
       // comes up from below the window over the one before and stops on it, which darkens a little
       // under it (--slide, --under)
       end.style.setProperty("--card", card.toFixed(1) + "px");
       var rise = 0.55 * H;
       measureItems.forEach(function (item, i) {
         var off = i - measureAt;
-        item.style.setProperty("--y", (off * 0.45 * card).toFixed(1) + "px");
-        item.style.setProperty("--o", Math.max(0, 1 - 2.2 * Math.abs(off)).toFixed(3));
+        item.style.setProperty("--o", clamp(1.5 - 2 * Math.abs(off)).toFixed(3));
         var coming = clamp(off), eased = coming * coming * (3 - 2 * coming);
         item.style.setProperty("--slide", (eased * rise).toFixed(1) + "px");
         item.style.setProperty("--under", clamp(measureAt - i).toFixed(3));
