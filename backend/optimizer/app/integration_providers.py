@@ -200,7 +200,11 @@ class GeminiProvider:
         if temperature is not None:
             generation["temperature"] = temperature
         if cfg.model.startswith("gemini-3"):
-            generation["thinkingConfig"] = {"thinkingLevel": "low"}
+            # A rewrite needs no reasoning: the least thinking the model allows, which keeps it
+            # within the website's time limit. Its thoughts count against the output limit, so
+            # they get room of their own and never cut the rewrite short
+            generation["thinkingConfig"] = {"thinkingLevel": "minimal"}
+            generation["maxOutputTokens"] = max_tokens + 2048
         elif cfg.model.startswith("gemini-2.5-flash"):
             generation["thinkingConfig"] = {"thinkingBudget": 0}
         payload = {"contents": contents, "generationConfig": generation}

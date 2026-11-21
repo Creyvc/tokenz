@@ -37,12 +37,14 @@ def extract_protected_constraints(text: str, locked_spans=None) -> list[str]:
 
 # A whole sentence that is only a greeting, small talk or a sign-off: safe to drop, it asks for nothing
 PLEASANTRY = re.compile(
+    # (a greeting in front of one is part of it: "Hello, I hope you are having a great day.")
+    r"(?:(?:hi|hello|hey|greetings|good (?:morning|afternoon|evening))(?: there| everyone| all)?[,!]?\s+)?"
     r"(?:(?:hi|hello|hey|greetings|good (?:morning|afternoon|evening))(?: there| everyone| all)?"
     r"|i hope (?:you are|you're|this finds you|this message finds you|all is) (?:doing )?(?:well|good|great|fine)(?: today)?"
     r"|i hope (?:you are|you're) having an? (?:good|great|nice|lovely|wonderful) (?:day|week|weekend)"
     r"|(?:many |big )?thanks?(?: you)?(?: again)?(?: (?:so|very) much| a lot| a million)?(?: in advance)?"
     r"(?: for (?:your|the|any|all (?:your|the)) (?:help|time|patience|assistance|support))?"
-    r"|i (?:really |truly |greatly |would )?appreciate (?:it|your help|any help|the help|your time|any (?:advice|assistance))"
+    r"|i (?:really |truly |greatly |would )?(?:really )?appreciate (?:it|your help|any help|the help|your time|any (?:advice|assistance))(?: with (?:this|that|it))?"
     r"|any (?:help|advice|assistance|guidance|tips) (?:would be|will be|is) (?:greatly |much |really |very much |highly )?appreciated"
     r"|i look forward to (?:your (?:response|reply|answer|help)|hearing (?:back )?from you)"
     r"|i hope (?:this|that|it|my question) makes sense"

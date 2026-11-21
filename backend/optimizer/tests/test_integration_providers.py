@@ -264,7 +264,9 @@ def test_gemini_native_payload_and_usage():
                                             "supportedGenerationMethods": ["generateContent"]})
         payload = json.loads(request.content)
         assert payload["systemInstruction"]["parts"][0]["text"] == "Rewrite only"
-        assert payload["generationConfig"]["thinkingConfig"] == {"thinkingLevel": "low"}
+        # the least thinking, and room for it on top of the rewrite's own limit
+        assert payload["generationConfig"]["thinkingConfig"] == {"thinkingLevel": "minimal"}
+        assert payload["generationConfig"]["maxOutputTokens"] == 100 + 2048
         assert "tools" not in payload
         return httpx.Response(200, json=gemini_response())
 

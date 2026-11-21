@@ -13,7 +13,7 @@ LEVEL = {mode: i for i, mode in enumerate(NLP_MODES)}
 # opening; removing one turns a request into a direct instruction. Anchors avoid changing an
 # explanation of what somebody else wants into a new instruction.
 
-# Balanced: request openings, and wordy phrases whose short form keeps every content word
+# Balanced: request and courtesy openings, and wordy phrases whose short form keeps every content word
 BALANCED_RULES = [
     (r"^What I (?:mainly |really |basically |actually )?(?:need|want) (?:you to do|from you) is\s+(?:to\s+)?", ""),
     (r"^I(?: would|'d) (?:also |really )?like (?:for )?you to\s+", ""),
@@ -26,19 +26,25 @@ BALANCED_RULES = [
     (r"\beach and every\b", "every"),
     (r"\bfirst and foremost\b", "first"),
     (r"\bwhether or not\b", "whether"),
+    # Courtesy openings around a request: they keep every word of what's asked
+    (r"^(?:Hi|Hello|Hey)(?: there| everyone| all)?[,!]\s+", ""),
+    (r"^I(?: was|'m| am) (?:just )?wondering if (?:maybe |perhaps )?you (?:could|can|would) (?:please |maybe |perhaps |possibly )*", ""),
+    (r"^I(?: would|'d) (?:really |greatly |truly )?appreciate it if you could (?:please )?(?:also )?", ""),
+    (r"^Do you think you could (?:please )?", ""),
 ]
 
 # Aggressive: more openings and sign-posts, filler words, and wordy phrases that drop a framing noun
 AGGRESSIVE_RULES = [
     (r"^(?:So|Well|Okay|OK|Anyway),?\s+(?=\w)", ""),
-    (r"^(?:Hi|Hello|Hey)(?: there| everyone| all)?[,!]\s+", ""),
-    (r"^I(?: was|'m| am) (?:just )?wondering if (?:maybe |perhaps )?you (?:could|can|would) (?:please )?", ""),
-    (r"^I(?: would|'d) (?:really |greatly |truly )?appreciate it if you could (?:please )?(?:also )?", ""),
-    (r"^Do you think you could (?:please )?", ""),
     (r"^My (?:main )?question is:?\s+", ""),
     ((r"^It would (?:also )?be (?:really |very |super |extremely )?(?:useful|helpful|great|nice|good|ideal) "
       r"if you could (?:please )?(?:also )?"), ""),
-    (r"^(?:Please )?(?:also )?make sure (?:that )?", "Ensure "),
+    # ("Also, it would be great if you could explain …" keeps its "Also")
+    ((r"^(Also|And|Then|Finally|Lastly),?\s+it would (?:also )?be (?:really |very |super |extremely )?"
+      r"(?:useful|helpful|great|nice|good|ideal) if you could (?:please )?(?:also )?"), r"\1 "),
+    (r"^(?:Please )?(?:also )?make sure (?:that )?(?!to\b)", "Ensure "),
+    # "Make sure to mention …" is just "Mention …"
+    (r"\b(?:please )?(?:also )?(?:make|be) sure to\s+(?=\w)", ""),
     (r"^(?:Please )?first give me\s+", "First provide "),
     (r"^In addition to giving me the code, please\s+", "With the code, "),
     (r"^(?:To summari[sz]e|To sum up|In summary|In short|In conclusion)(?: again)?,\s*", ""),
@@ -66,6 +72,16 @@ AGGRESSIVE_RULES = [
     (r"\bfor every individual\s+", "for each "),
     (r"\bcan be used to\s+", "can "),
     (r"\bso (?:that )?I can\b", "to"),
+    (r"\bso that\b", "so"),
+    (r"\ba little bit\b", "a little"),
+    (r"\b(?<=I am )currently\s+|(?<=I'm )currently\s+|(?<=we are )currently\s+", ""),
+    # "Write a SQL query for me." The model is making it for whoever asks: "for me" says nothing.
+    # Only in a sentence that asks for something to be made ("This is for me." keeps it)
+    ((r"^((?:(?:please|could you|can you|would you)\s+(?:please\s+)?)?(?:write|create|make|plan|"
+      r"summari[sz]e|draft|generate|find|give|build|design|prepare|translate|explain|list|suggest|"
+      r"outline|rewrite|edit|fix|check|correct|compose|calculate|recommend|come up with)\b[^.!?]*?) "
+      r"for (?:me|us)(?=[.!?]$)"), r"\1"),
+    (r",? if (?:that|this|it) helps(?=[.!?]$)", ""),
     (r"\b(?:basically|actually|honestly),\s*", ""),
     (r"\b(?:really|basically|actually|honestly|literally|definitely|totally)\s+(?=\w)", ""),
     (r"(?<!\bnot )(?<!n't )\bjust\s+(?=\w)", ""),
@@ -86,6 +102,8 @@ MAXIMUM_RULES = [
     (r"\bhas several different columns, including things such as\s+", "has columns including "),
     (r"^Another thing I would like is for (.+?) to be\s+", r"Keep \1 "),
     (r"^The main goal is to\s+", ""),
+    (r"^(?:My|Our) (?:main |primary |overall )?goal is to\s+", "Goal: "),
+    (r"^I(?: would|'d) (?:really )?like (the|my|our) ([^,.!?]+?) to be\s+", r"Make \1 \2 "),
     (r"^I want the solution to include\s+", "Include "),
     (r"^I would prefer (.+?) to be relatively simple because I am still learning (.+?), so please avoid using\s+", r"Keep \1 simple for a learner of \2; avoid "),
     (r"\ba small example of what the output might look like\b", "a small output example"),
@@ -102,7 +120,7 @@ HEDGE_RULES = [
     (r"\b(?:probably|maybe|perhaps|possibly)\s+(?=\w)", ""),
 ]
 
-# A whole sentence that only announces or offers help, asking for nothing itself (Aggressive and up)
+# A whole sentence that only announces or offers help, asking for nothing itself (Balanced and up)
 FILLER_SENTENCE = re.compile(
     r"(?:let me know if (?:you (?:have any questions|need (?:any )?(?:more|further|additional|other) "
     r"(?:information|details|info|context)|need anything else)|anything is unclear)"
@@ -111,8 +129,20 @@ FILLER_SENTENCE = re.compile(
     r"|(?:this is |this might be |it's |it is )?(?:probably )?(?:a )?(?:dumb|stupid|silly|newbie) question"
     r"|(?:so,? |and,? )?i (?:was|am|'m) (?:just )?wondering if (?:maybe |perhaps )?you (?:could|can) help(?: me)?(?: (?:out )?with (?:something|this|it|a (?:problem|question|task)))?"
     r"|(?:can|could|would) you (?:please )?help me(?: (?:out )?with (?:something|this|it|a (?:problem|question|task)))?"
-    r"|i need (?:some |your )?help(?: with (?:something|this|a (?:problem|question|task)))?)"
+    r"|i (?:really )?need (?:some |your )?help(?: with (?:something|this|a (?:problem|question|task)))?)"
     r"\s*[.!?:]*", re.I)
+
+
+# "I need some help with my essay." asks for nothing itself when the essay is described anyway
+HELP_WITH = re.compile(r"i (?:really )?need (?:some |your )?help with (?:my|our|this|the|a|an) ([a-z]+)\s*[.!?]*", re.I)
+
+
+def help_with_described(sentence, text):
+    match = HELP_WITH.fullmatch(sentence.strip())
+    if not match:
+        return False
+    rest = text.replace(sentence, " ", 1)
+    return re.search(r"\b" + re.escape(match.group(1)[:5]), rest, re.I) is not None
 
 
 def rules_for(mode):
@@ -243,10 +273,11 @@ def compress_with_nlp(text, locked_spans=None, encoding="o200k_base", *, mode="c
         return not any(span in sentence.text for span in locks)
 
     # Greetings and small talk ("Hi!", "I hope you are doing well today.") are dropped below, and
-    # from Aggressive up so are sentences that only offer or ask for help in general ("I have a
+    # from Balanced up so are sentences that only offer or ask for help in general ("I have a
     # question."), so their words ("today") aren't treated as requirements
     empty = {sent.start for sent in doc.sents if is_pleasantry(sent.text) or (
-        level >= LEVEL["aggressive"] and FILLER_SENTENCE.fullmatch(sent.text.strip()) and unlocked(sent))}
+        level >= LEVEL["balanced"] and unlocked(sent) and (
+            FILLER_SENTENCE.fullmatch(sent.text.strip()) or help_with_described(sent.text, text)))}
     skips = {sent.start: filler_tokens(sent, rules) if rules else set() for sent in doc.sents}
     framing = set().union(*skips.values())
     protected = list(dict.fromkeys(protected + [
@@ -303,7 +334,7 @@ def compress_with_nlp(text, locked_spans=None, encoding="o200k_base", *, mode="c
         # Only remove a polite opening when the parsed sentence root is a verb.
         if sentence.root.pos_ == "VERB":
             # A greeting in front ("Hey, could you please …") goes with the polite opening
-            stripped = re.sub(r"^(?:(?:hey|hi|hello)(?: there)?,?\s+)?(?:(?:Could|Would|Can) you (?:please )?|Please )",
+            stripped = re.sub(r"^(?:(?:hey|hi|hello)(?: there)?,?\s+)?(?:(?:Could|Would|Can) you (?:please |maybe |perhaps |possibly )*|Please )",
                               "", raw, flags=re.I)
             if stripped != raw and stripped:
                 raw = stripped[0].upper() + stripped[1:]
