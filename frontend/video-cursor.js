@@ -77,7 +77,7 @@
   var lineH = document.createElement("div"), lineV = document.createElement("div");
   lineH.className = "vc-line is-h"; lineV.className = "vc-line is-v";
   lineH.setAttribute("aria-hidden", "true"); lineV.setAttribute("aria-hidden", "true");
-  // the dark behind the film as it dissolves into Three Methods (under the film, over the page)
+  // the black the film fades out into, and Three Methods fades in out of
   var dim = document.createElement("div");
   dim.className = "film-dim";
   dim.setAttribute("aria-hidden", "true");
@@ -192,15 +192,16 @@
       marks.style.height = vh.toFixed(1) + "px";
       marks.style.opacity = (clamp((vw / W - 0.45) / 0.1) * (1 - clamp(f.covered * 2.5))).toFixed(3);
       // Dissolving into the next page (after lukebaffait.fr): as it comes up, the film fades out
-      // from the bottom upwards and darkens as a whole, over a dark ground that comes in as soon as
-      // it starts (so it fades through dark, not white)
+      // from the bottom upwards and darkens as a whole; and the whole window goes to black and back,
+      // so the film fades out into black and Three Methods fades in out of it
       var c = f.covered;
       if (c > 0) {
         var edge = (100 - c * 140).toFixed(1), soft = (100 - c * 140 + 45).toFixed(1);
         video.style.webkitMaskImage = video.style.maskImage = "linear-gradient(to bottom, #000 " + edge + "%, transparent " + soft + "%)";
         video.style.opacity = (1 - c * c).toFixed(3);
         video.style.filter = "brightness(" + (1 - 0.72 * clamp(c * 2.2)).toFixed(3) + ")";
-        dim.style.opacity = (0.92 * clamp(c * 4)).toFixed(3);
+        var toBlack = c < 0.5 ? clamp(c / 0.35) : 1 - clamp((c - 0.5) / 0.45);
+        dim.style.opacity = (toBlack * toBlack * (3 - 2 * toBlack)).toFixed(3);
       } else {
         video.style.webkitMaskImage = video.style.maskImage = "";
         video.style.opacity = "";
