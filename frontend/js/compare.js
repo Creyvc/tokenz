@@ -165,6 +165,7 @@
     render();
   }
 
+  var retried = false;
   function checkEngine() {
     // Online, the engine may be asleep: after a few seconds without an answer, say it's waking
     var waking = api.hosted ? setTimeout(function () {
@@ -177,7 +178,16 @@
       aiStatus = data.ai || null;
       el.aiStatus.dataset.key = "";
       setEngine(true);
-    }, function () { setEngine(false); });
+    }, function () {
+      // One quiet second try before saying the engine isn't running, so a request that failed
+      // only for a moment (the engine starting up, the page still arriving) doesn't flash the
+      // notice up and away again
+      if (!retried) {
+        retried = true;
+        return setTimeout(checkEngine, 800);
+      }
+      setEngine(false);
+    });
   }
 
   // Whether Groq and Gemini are set up, and how to set them up when they aren't
@@ -545,8 +555,10 @@
     el.run.disabled = running || reason !== "";
     el.run.classList.toggle("is-running", running);
     el.composer.classList.toggle("is-running", running);
+    // (nothing while the engine is first being checked: that takes a moment, and a line shown
+    // only for it made the box jump taller and back as the page opened)
     el.runHelp.textContent = running ? (state.method === "ai" ? "Groq's models usually answer in seconds; Gemini can take up to 30." : "") :
-      (reason === NO_PROMPT ? "" : reason) || runError;
+      (reason === NO_PROMPT || engineReady === null ? "" : reason) || runError;
     // (beside Run, briefly; the notes themselves are further down)
     var quiet = !reason || reason === NO_PROMPT || reason === "Checking the engine…" || running;
     var firstIssue = reason === "Fix the points above first." ? tfidfIssues().filter(function (issue) { return issue.indexOf(NOTHING_TO_CUT) !== 0; })[0] : null;
