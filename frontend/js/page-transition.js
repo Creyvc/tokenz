@@ -1,10 +1,9 @@
 // The page switch, a wipe of pixel tiles (in the squares of Home's pixels): dark tiles fill the
-// page from left to right, a few of them landing violet first, and the next page opens under them
-// and they clear the same way, so it reads as one sweep. The sidebar stays where it is (the tiles
-// only cover the page beside it) and its dot slides from the old link to the new one.
+// whole window from left to right, sidebar and all, a few of them landing violet first, and the
+// next page opens under them and they clear the same way, so it reads as one sweep.
 // - Leaving: a click on a link to another page (or TokenzTransition.go) covers this page, then
 //   opens the next. Back and Forward open the next page at once and it clears the same way.
-// - The tiles are a canvas laid over the page (.pt-tiles in styles.css); the browser's own
+// - The tiles are a canvas laid over the window (.pt-tiles in styles.css); the browser's own
 //   page-switch animation (@view-transition) only carries the sidebar's dot, the pages themselves
 //   swap at once under the tiles (html.pt-switch).
 // - Loaded in each page's <head> without defer, so it's ready for the new page's first frame.
@@ -17,26 +16,16 @@
   var COVER_MS = 420, CLEAR_MS = 560;
   var INK = "#0b0b0c", VIOLET = "#8B7FF2";
 
-  // The tiles cover the page beside the sidebar (on a phone, where the sidebar is a bar across
-  // the top, the whole window)
-  function coverLeft() {
-    var nav = document.querySelector("header.nav");
-    if (!nav) return 0;
-    var box = nav.getBoundingClientRect();
-    return box.left <= 1 && box.height >= 0.6 * window.innerHeight ? Math.round(box.right) : 0;
-  }
-
   // One square per tile, each with its own moment in the sweep: mostly left to right, a little
   // from the bottom up, and shuffled a little, so the edge is ragged like pixels, not a line
-  function makeTiles(left) {
-    var width = window.innerWidth - left, height = window.innerHeight;
+  function makeTiles() {
+    var width = window.innerWidth, height = window.innerHeight;
     var size = Math.max(28, Math.round(Math.min(width, height) / 18));
     var cols = Math.ceil(width / size), rows = Math.ceil(height / size);
     var dpr = Math.min(window.devicePixelRatio || 1, 2);
     var canvas = document.createElement("canvas");
     canvas.className = "pt-tiles";
     canvas.setAttribute("aria-hidden", "true");
-    canvas.style.left = left + "px";
     canvas.style.width = width + "px";
     canvas.style.height = height + "px";
     canvas.width = Math.round(width * dpr);
@@ -93,11 +82,9 @@
   function go(url) {
     if (still || leaving) { window.location.assign(url); return; }
     leaving = true;
-    var set = makeTiles(coverLeft());
+    var set = makeTiles();
     play(set, COVER_MS, false, function () {
-      // (with where the tiles start, so the next page covers the same part before its sidebar is
-      // even there to measure)
-      try { sessionStorage.setItem(TILES, String(parseFloat(set.canvas.style.left))); } catch (e) {}
+      try { sessionStorage.setItem(TILES, "1"); } catch (e) {}
       window.location.assign(url);
     });
   }
@@ -129,10 +116,10 @@
   // Arriving: start covered and clear, when the last page covered itself, or for Back and
   // Forward (the browser's own page switch)
   function clearIn(transition) {
-    var left = null;
-    try { left = sessionStorage.getItem(TILES); sessionStorage.removeItem(TILES); } catch (e) {}
-    if (still || left === null && !transition) return;
-    var set = makeTiles(left === null ? coverLeft() : Number(left));
+    var covered = false;
+    try { covered = sessionStorage.getItem(TILES) !== null; sessionStorage.removeItem(TILES); } catch (e) {}
+    if (still || !covered && !transition) return;
+    var set = makeTiles();
     draw(set, 0, true);
     play(set, CLEAR_MS, true, function () { set.canvas.remove(); });
   }

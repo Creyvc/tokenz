@@ -5334,11 +5334,12 @@ html.home-wipe .nav.nav-copy {
 }
 
 /* The page switch (page-transition.js): pixel tiles sweep over the page and clear off the next
-   one. They're a canvas over everything but the sidebar; while the browser's own page switch runs
+   one. They're a canvas over the whole window, sidebar too; while the browser's own page switch runs
    (html.pt-switch) the pages swap at once under the tiles, and only the sidebar's dot moves */
 .pt-tiles {
   position: fixed;
   top: 0;
+  left: 0;
   z-index: 2147483000;
   pointer-events: none;
 }
