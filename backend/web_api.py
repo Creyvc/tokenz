@@ -207,16 +207,33 @@ def run_bridge(command, payload=None):
     return json.loads(lines[-1])
 
 
+_ai_refreshing = threading.Lock()
+
+
+def refresh_ai_status():
+    """Asks the optimizer whether the AI rewrite is set up (it reads settings only, but starting its
+    process takes a few seconds)."""
+    try:
+        value = run_bridge("status")
+    except (OSError, RuntimeError, ValueError, subprocess.TimeoutExpired):
+        value = dict(available=False, optimizers=[])
+    _ai_status["value"], _ai_status["at"] = value, time.monotonic()
+
+
 def ai_status():
-    # Checked at most every few seconds (a minute in public), so health stays quick; it reads
-    # settings only
-    now = time.monotonic()
-    if _ai_status["value"] is None or now - _ai_status["at"] > POLICY.status_seconds:
-        try:
-            _ai_status["value"] = run_bridge("status")
-        except (OSError, RuntimeError, ValueError, subprocess.TimeoutExpired):
-            _ai_status["value"] = dict(available=False, optimizers=[])
-        _ai_status["at"] = now
+    # Health always answers at once: the first time (at start-up, see main) it waits for the
+    # answer; after that it gives the last answer and, once that's a few seconds old (a minute in
+    # public), asks again in the background for next time. (Waiting here made the website think a
+    # wide-awake engine was still waking up.)
+    if _ai_status["value"] is None:
+        refresh_ai_status()
+    elif time.monotonic() - _ai_status["at"] > POLICY.status_seconds and _ai_refreshing.acquire(blocking=False):
+        def again():
+            try:
+                refresh_ai_status()
+            finally:
+                _ai_refreshing.release()
+        threading.Thread(target=again, daemon=True).start()
     return _ai_status["value"]
 
 
@@ -545,6 +562,7 @@ def main():
         sys.exit(f"Can't find the website next to this folder: {FRONTEND}")
     print("Loading the NLP model and tokenizers…", flush=True)
     warm_up()
+    refresh_ai_status()  # (so even the first health check answers at once)
     server = Server(("0.0.0.0" if public else "127.0.0.1", port), partial(Handler, directory=str(FRONTEND)))
     if public:
         print(f"Tokenz engine is running in public on port {port}, for " + ", ".join(sorted(POLICY.origins)), flush=True)

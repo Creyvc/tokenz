@@ -326,3 +326,24 @@ def test_the_engine_says_busy_instead_of_waiting_forever(base, monkeypatch):
     finally:
         web_api.ENGINE_LOCK.release()
     assert status == 503 and "busy" in json.loads(data)["error"]
+
+
+def test_health_answers_at_once_while_the_ai_status_refreshes(base, monkeypatch):
+    # The AI status is checked by starting the optimizer, which takes seconds. Health must not wait
+    # for it: the website reads a slow answer as an engine still waking up.
+    import time as clock
+    old = dict(available=True, optimizers=[])
+    web_api._ai_status.update(value=old, at=clock.monotonic() - 3600)
+
+    def slow(command, payload=None):
+        clock.sleep(2)
+        return dict(available=False, optimizers=[])
+    monkeypatch.setattr(web_api, "run_bridge", slow)
+    started = clock.monotonic()
+    status, data = call(base + "/api/health")
+    assert status == 200 and clock.monotonic() - started < 1
+    assert json.loads(data)["ai"] == old
+    # and the next check, once the background one has finished, has the new answer
+    clock.sleep(2.5)
+    assert json.loads(call(base + "/api/health")[1])["ai"]["available"] is False
+    web_api._ai_status["value"] = None
