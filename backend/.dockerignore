@@ -1,0 +1,27 @@
+# Never in the image: keys and local settings
+.env
+.env.*
+**/.env
+**/.env.*
+!**/.env.example
+
+# Local environments, caches and results
+.venv
+**/.venv
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+**/.ruff_cache
+**/.cache
+**/.tokenizer-cache
+**/*.sqlite*
+optimizer/results
+.streamlit/secrets.toml
+
+# Not needed to run the engine
+docs
+tests
+optimizer/tests
+optimizer/docs
+optimizer/presentation
+**/.DS_Store

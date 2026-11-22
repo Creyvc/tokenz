@@ -1,6 +1,6 @@
 // Compare page: paste a prompt, pick NLP, TF-IDF or the AI rewrite, run it through the TokenSaver
 // engine (via api.js) and show the original and the suggestion side by side. The AI rewrite is the
-// one option that sends the prompt off this computer (to Groq and Google, through the engine). The form is kept for this visit
+// one option that sends the prompt on to an outside AI service (Groq and Google, through the engine). The form is kept for this visit
 // under tokenz_compare_draft, and each finished run under tokenz_runs, which results.js reads.
 // Prompt text is always written with textContent, never as HTML.
 (function () {
@@ -147,10 +147,9 @@
     if (ready) {
       scheduleInspect(0);
     } else if (api.hosted) {
-      // the online copy: the methods only run on the engine on your own computer
-      el.noticeMessage.append("This is the online copy of Tokenz. NLP, TF-IDF and the AI rewrite run on the Tokenz engine on your own computer, which an online page can't reach. To try them, download the project, run ",
-        make("code", null, "./start-web.sh"), " in the backend folder, and open ", make("code", null, "http://127.0.0.1:8000/compare.html"), ".");
-      el.retry.hidden = true;
+      // the online copy: the public engine didn't answer
+      el.noticeMessage.append("The Tokenz engine isn't answering right now. It may still be starting up: press Try again in a minute.");
+      el.retry.hidden = false;
     } else if (api.fromDisk) {
       var link = make("a", null, "open Compare through it");
       link.href = api.address + "compare.html";
@@ -167,7 +166,14 @@
   }
 
   function checkEngine() {
-    api.health().then(function (data) {
+    // Online, the engine may be asleep: after a few seconds without an answer, say it's waking
+    var waking = api.hosted ? setTimeout(function () {
+      if (engineReady) return;
+      el.notice.hidden = false;
+      el.noticeMessage.textContent = "Starting the Tokenz engine. The first visit after a quiet spell can take up to a minute.";
+      el.retry.hidden = true;
+    }, 3000) : null;
+    api.health().finally(function () { clearTimeout(waking); }).then(function (data) {
       aiStatus = data.ai || null;
       el.aiStatus.dataset.key = "";
       setEngine(true);
@@ -215,6 +221,11 @@
       again.textContent = "Checking…";
       checkEngine();
     });
+    if (api.hosted) {
+      // (online the keys are the site owner's to set up, not the visitor's)
+      box.append(make("p", "wb-ai-missing", "The AI rewrite isn't available online right now. NLP and TF-IDF still work."));
+      return syncAiModels();
+    }
     box.append(make("p", "wb-ai-missing", "Not set up on this computer yet."), how, again);
     syncAiModels();
   }

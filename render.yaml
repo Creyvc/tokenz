@@ -1,0 +1,55 @@
+# The Tokenz engine on Render (a Blueprint): Render → New → Blueprint → this repository.
+# It builds backend/Dockerfile and runs the engine in public for the GitHub Pages site.
+# Two settings are secrets you type into Render when it asks (they're never in this repository):
+# GROQ_API_KEY and GEMINI_API_KEY. Without them NLP and TF-IDF still work; the AI rewrite shows as
+# unavailable.
+services:
+  - type: web
+    name: tokenz-engine
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    # Free sleeps after 15 minutes without visitors and takes up to a minute to wake (the website
+    # says so while it waits). "starter" stays awake.
+    plan: free
+    region: singapore
+    healthCheckPath: /healthz
+    autoDeploy: true
+    # Only a change to the engine starts a new build, not a change to the website
+    buildFilter:
+      paths:
+        - backend/**
+    envVars:
+      - key: TOKENZ_PUBLIC
+        value: "1"
+      # The website allowed to use the engine (several: separate them with commas)
+      - key: TOKENZ_ORIGINS
+        value: https://creyvc.github.io
+      # Per visitor: NLP and TF-IDF runs a minute, AI rewrites an hour. For everyone: AI rewrites a day
+      - key: TOKENZ_RUNS_PER_MINUTE
+        value: "30"
+      - key: TOKENZ_AI_PER_HOUR
+        value: "5"
+      - key: TOKENZ_AI_PER_DAY
+        value: "100"
+      # The AI rewrite (backend/optimizer/.env.example explains each)
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: TOKENZ_GROQ_FREE_TIER_CONFIRMED
+        value: "true"
+      - key: TOKENZ_GEMINI_FREE_TIER_CONFIRMED
+        value: "true"
+      - key: TOKENZ_FREE_ONLY
+        value: "true"
+      - key: TOKENZ_STORE_DATA
+        value: "false"
+      - key: GROQ_QWEN_MODEL
+        value: qwen/qwen3.8-27b
+      - key: GROQ_GPT_OSS_120B_MODEL
+        value: openai/gpt-oss-120b
+      - key: GEMINI_MODEL
+        value: gemini-3.6-flash
+      - key: TOKENZ_REQUEST_TIMEOUT_SECONDS
+        value: "60"

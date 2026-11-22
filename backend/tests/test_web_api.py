@@ -209,3 +209,120 @@ def test_one_model_running_doesnt_block_the_other(base, monkeypatch):
         assert call(base + "/api/optimize", dict(text=EXAMPLE, models=["gemini_flash"]))[0] == 200
     finally:
         web_api.AI_LOCKS["qwen"].release()
+
+
+# In public (TOKENZ_PUBLIC=1, on Render): the API only, for the GitHub Pages site only, with limits.
+
+SITE = "https://creyvc.github.io"
+
+
+def public_server(**limits):
+    policy = web_api.Policy(public=True, origins=[SITE], **limits)
+    handler = type("PublicHandler", (web_api.Handler,), {"policy": policy})
+    server = web_api.Server(("127.0.0.1", 0), partial(handler, directory=str(web_api.FRONTEND)))
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    return server, f"http://127.0.0.1:{server.server_port}"
+
+
+@pytest.fixture
+def public():
+    server, url = public_server(runs_per_minute=3, ai_per_hour=2, ai_per_day=3)
+    yield url
+    server.shutdown()
+    server.server_close()
+
+
+def test_public_answers_the_health_check_at_any_host_name(public):
+    status, data = call(public + "/healthz", headers={"Host": "tokenz-engine.onrender.com"})
+    assert status == 200 and json.loads(data) == {"ok": True}
+    status, data = call(public + "/api/health", headers={"Host": "tokenz-engine.onrender.com"})
+    health = json.loads(data)
+    assert status == 200 and health["public"] and health["limits"]["ai_per_hour"] == 2
+
+
+def test_public_serves_the_api_only(public):
+    assert call(public + "/compare.html")[0] == 404
+    assert call(public + "/assets/images/logo-mark.svg")[0] == 404
+    assert call(public + "/")[0] == 200
+
+
+def test_public_lets_the_github_pages_site_in_and_no_other(public):
+    request = urllib.request.Request(public + "/api/health", headers={"Origin": SITE})
+    with urllib.request.urlopen(request, timeout=30) as response:
+        assert response.headers["Access-Control-Allow-Origin"] == SITE
+    assert call(public + "/api/compress", method="OPTIONS",
+                headers={"Origin": SITE, "Access-Control-Request-Method": "POST"})[0] == 204
+    for origin in ("https://evil.example", "http://127.0.0.1:5500", "https://creyvc.github.io.evil.example"):
+        request = urllib.request.Request(public + "/api/health", headers={"Origin": origin})
+        with urllib.request.urlopen(request, timeout=30) as response:
+            assert "Access-Control-Allow-Origin" not in response.headers
+        assert call(public + "/api/compress", method="OPTIONS", headers={"Origin": origin})[0] == 403
+
+
+def test_public_limits_runs_per_visitor(public):
+    body = dict(text=EXAMPLE, method="nlp", nlp_mode="conservative")
+    me, other = {"True-Client-IP": "203.0.113.7"}, {"True-Client-IP": "203.0.113.8"}
+    for _ in range(3):
+        assert call(public + "/api/compress", body, headers=me)[0] == 200
+    status, data = call(public + "/api/compress", body, headers=me)
+    assert status == 429 and "Try again in" in json.loads(data)["error"]
+    # someone else isn't held up
+    assert call(public + "/api/compress", body, headers=other)[0] == 200
+
+
+def test_public_limits_the_ai_rewrite_per_visitor_and_per_day(public, monkeypatch):
+    def fake(command, payload=None):
+        return dict(status="completed", original_tokens=10, optimizations=[])
+    monkeypatch.setattr(web_api, "run_bridge", fake)
+    body = dict(text=EXAMPLE, models=["qwen"])
+    one, two = {"True-Client-IP": "198.51.100.1"}, {"True-Client-IP": "198.51.100.2"}
+    assert call(public + "/api/optimize", body, headers=one)[0] == 200
+    assert call(public + "/api/optimize", body, headers=one)[0] == 200
+    status, data = call(public + "/api/optimize", body, headers=one)
+    assert status == 429 and "this hour" in json.loads(data)["error"]
+    # the third AI rewrite of the day, from anyone, is the site's last
+    assert call(public + "/api/optimize", body, headers=two)[0] == 200
+    status, data = call(public + "/api/optimize", body, headers=two)
+    assert status == 429 and "today" in json.loads(data)["error"]
+
+
+def test_public_runs_one_ai_rewrite_at_a_time(monkeypatch):
+    server, url = public_server()
+    started, release = threading.Event(), threading.Event()
+
+    def slow(command, payload=None):
+        started.set()
+        release.wait(10)
+        return dict(status="completed", original_tokens=10, optimizations=[])
+    monkeypatch.setattr(web_api, "run_bridge", slow)
+    body = dict(text=EXAMPLE, models=["qwen"])
+    first = threading.Thread(target=call, args=(url + "/api/optimize", body))
+    first.start()
+    assert started.wait(10)
+    status, data = call(url + "/api/optimize", dict(text=EXAMPLE, models=["gemini_flash"]))
+    assert status == 503 and "Try again" in json.loads(data)["error"]
+    release.set()
+    first.join(10)
+    server.shutdown()
+    server.server_close()
+
+
+def test_limiter_lets_go_again_once_the_window_has_passed(monkeypatch):
+    clock = [1000.0]
+    monkeypatch.setattr(web_api.time, "monotonic", lambda: clock[0])
+    limiter = web_api.Limiter(2, 60)
+    limiter.add("a"); limiter.add("a")
+    assert limiter.wait("a") == pytest.approx(60)
+    clock[0] += 61
+    assert limiter.wait("a") == 0
+    assert web_api.Limiter(0, 60).wait("anyone") == 0
+
+
+def test_the_engine_says_busy_instead_of_waiting_forever(base, monkeypatch):
+    monkeypatch.setattr(web_api, "ENGINE_WAIT", 0.2)
+    web_api.ENGINE_LOCK.acquire()
+    try:
+        status, data = call(base + "/api/compress", dict(text=EXAMPLE, method="nlp"))
+    finally:
+        web_api.ENGINE_LOCK.release()
+    assert status == 503 and "busy" in json.loads(data)["error"]

@@ -21,6 +21,7 @@ tokenz/
 │   ├── promo/           The current ad
 │   ├── shared/          The music toolkit the films use
 │   └── archive/         Earlier films, kept as source
+├── render.yaml          Deploys the engine in public on Render
 ├── tools/               One-off scripts (make-hellos.py makes About's spoken hellos)
 ├── docs/                Notes about the website (the old Home FAQ)
 └── .github/workflows/   Publishes frontend/ to GitHub Pages on every push to main
@@ -34,6 +35,10 @@ tokenz/
 | `film/` | The Tokenz ads, each drawn and scored in code. See [film/README.md](film/README.md). |
 
 The website's Compare and Results pages run the engine's two local methods (NLP and TF-IDF) through a small local web API, `backend/web_api.py`. It serves the website and answers only on this computer, and those two methods send nothing anywhere else. The same API also offers the AI rewrite (`/api/optimize`), which sends the prompt to Groq and Google once their keys are set up in `backend/optimizer/.env`. On Compare it's the third option, **AI rewrite**, with a notice that it leaves the computer; Results shows it next to NLP and TF-IDF.
+
+## Online
+
+The website is published on GitHub Pages (https://creyvc.github.io/tokenz/) from `frontend/` on every push. Its Compare page uses the public engine on Render (`render.yaml`, `backend/Dockerfile`): see "In public (Render)" in [backend/README.md](backend/README.md) for how it's deployed and limited.
 
 ## Run the website with the engine
 

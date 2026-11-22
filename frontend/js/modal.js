@@ -7,13 +7,13 @@
       '<h1 id="modal-title">Info</h1>' +
       '<p class="info-intro">Tokenz shortens AI prompts, reducing token use without changing the answer.</p>' +
       '<div class="info-body">' +
-      '<p>Developed in 2026 as an academic project. Prompts are processed on your device; only AI rewrite sends them to an external service (Groq and Google).</p>' +
+      '<p>Developed in 2026 as an academic project. Prompts are processed by the Tokenz engine and never stored. Only the AI rewrite sends them on to an outside service (Groq and Google).</p>' +
       '</div>',
     cookies:
       '<h1 id="modal-title">Cookies</h1>' +
       '<p class="info-intro">Tokenz uses a single cookie to remember your choice. No tracking.</p>' +
       '<div class="info-body">' +
-      '<p>Fonts are served by Google Fonts, which receives your IP address but sets no cookies.</p>' +
+      '<p>Fonts are served by Google Fonts, which receives your IP address but sets no cookies. On the online site the Tokenz engine runs on Render, which also receives your IP address; it is used only to limit how often each visitor can run the methods.</p>' +
       '</div>' +
       '<div class="consent-settings">' +
       '<button type="button" class="consent-deny" data-consent-open>Change cookie settings</button>' +

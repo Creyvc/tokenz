@@ -85,6 +85,27 @@ For the agreed human assessment, open `docs/evaluation/RETENTION_REVIEW.md`. Rev
 
 The Tokenz website (`../frontend`) uses this engine through `web_api.py`, a local adapter built on Python's standard library: no new dependency. `./start-web.sh` (Windows: `Start-TokenzWeb.ps1`) serves the site and the API at http://127.0.0.1:8000/. NLP and TF-IDF run locally; it answers on 127.0.0.1 only and never logs or saves prompts. Its routes are `GET /api/health`, `POST /api/inspect` (TF-IDF preflight), `POST /api/compress` and `POST /api/optimize` (the AI rewrite, below); tests are in `tests/test_web_api.py`. It calls `compare_methods` and `inspect_tfidf_input`, so the result schema is unchanged. Pages served from another local port (VS Code's Live Server on 5500, for example) can call the API too: it allows `http://127.0.0.1` and `http://localhost` origins, and no others.
 
+## In public (Render)
+
+The same `web_api.py` runs as the public engine for the online site (https://creyvc.github.io/tokenz/) when `TOKENZ_PUBLIC=1`. `Dockerfile` builds it and `../render.yaml` deploys it on Render. In public it:
+
+- serves the API only (the website stays on GitHub Pages), on every address at `$PORT`;
+- answers only the website at `TOKENZ_ORIGINS` (`https://creyvc.github.io`), and no other;
+- limits each visitor to `TOKENZ_RUNS_PER_MINUTE` NLP or TF-IDF runs a minute (30) and `TOKENZ_AI_PER_HOUR` AI rewrites an hour (5), and the whole site to `TOKENZ_AI_PER_DAY` AI rewrites a day (100), so the free Groq and Google plans can't be used up; past a limit it answers 429 with when to try again;
+- runs one AI rewrite at a time, gives up waiting for the engine after 20 seconds with a "busy, try again", handles at most 48 requests at once, and drops a visitor that stops sending halfway, so a flood can't take it down;
+- answers `GET /healthz` at once, for Render's health check (Render restarts it if that stops answering);
+- never logs or saves prompts, as locally.
+
+**Deploy it.**
+
+1. On https://render.com: **New → Blueprint**, pick this repository. Render reads `render.yaml` and creates `tokenz-engine`.
+2. When it asks, paste `GROQ_API_KEY` and `GEMINI_API_KEY` (the same keys as in `optimizer/.env`). They stay in Render's settings, never in the repository or the image (`.dockerignore` leaves every `.env` out).
+3. Once it's live, open `https://<its address>/api/health`. If Render gave it an address other than `https://tokenz-engine.onrender.com`, put that in `PUBLIC_ENGINE` at the top of `frontend/js/api.js` and push.
+
+The free plan sleeps after 15 minutes without visitors and takes up to a minute to wake; Compare says so while it waits. To keep it awake, change `plan: free` to `plan: starter` in `render.yaml` (a paid plan). Both have 512 MB of memory, which the engine fits (about 420 MB with the NLP model loaded). Each push to `backend/` redeploys it.
+
+Try it on this computer: `TOKENZ_PUBLIC=1 PORT=10000 .venv/bin/python web_api.py`, or with Docker: `docker build -t tokenz-engine . && docker run -p 10000:10000 -e GROQ_API_KEY=… -e GEMINI_API_KEY=… tokenz-engine`.
+
 ## AI rewrite: Groq and Gemini (`optimizer/`)
 
 `optimizer/` is the team's second engine (it was `tokenz-source/`): Qwen on Groq and Gemini Flash on Google each rewrite the same prompt (the website also offers GPT-OSS 120B on Groq, and lets you pick which to ask), and a rewrite that loses a number, saves no tokens or comes back incomplete is rejected, keeping the original. It has its own Streamlit dashboard, tests and docs; see [optimizer/README.md](optimizer/README.md).
