@@ -391,8 +391,10 @@
   // (no ends: past the last step it carries on round from the first, and back again)
   var moved = false;
   // A hard flick can't rush the camera past a stage: it goes at most MAX_PACE steps a second, and
-  // the wheel can be at most LEAD steps ahead of it, so it never runs on long after the hand stops
-  var MAX_PACE = 1.6, LEAD = 1.2;
+  // the wheel can be at most LEAD steps ahead of it, so it never runs on long after the hand stops.
+  // WHEEL is how far (px of wheel) makes one step, EASE how gently the camera catches up: together
+  // a slow, unhurried camera that takes its time over each stage
+  var MAX_PACE = 0.8, LEAD = 0.9, WHEEL = 1600, EASE = 280;
   function nudge(by) {
     wanted = Math.min(at + LEAD, Math.max(at - LEAD, wanted + by));
     moved = true;
@@ -400,18 +402,18 @@
   if (!fixed) {
     window.addEventListener("wheel", function (event) {
       event.preventDefault();
-      nudge((event.deltaMode === 1 ? event.deltaY * 30 : event.deltaY) / 900);
+      nudge((event.deltaMode === 1 ? event.deltaY * 30 : event.deltaY) / WHEEL);
     }, { passive: false });
     var touchY = null;
     window.addEventListener("touchstart", function (event) { touchY = event.touches[0].clientY; }, { passive: true });
     window.addEventListener("touchmove", function (event) {
       if (touchY == null) return;
       event.preventDefault();
-      nudge((touchY - event.touches[0].clientY) / 450);
+      nudge((touchY - event.touches[0].clientY) / (WHEEL / 2));
       touchY = event.touches[0].clientY;
     }, { passive: false });
     window.addEventListener("keydown", function (event) {
-      var step = { ArrowDown: 0.15, PageDown: 0.5, " ": 0.5, ArrowUp: -0.15, PageUp: -0.5, End: LOOP, Home: -LOOP }[event.key];
+      var step = { ArrowDown: 0.1, PageDown: 0.35, " ": 0.35, ArrowUp: -0.1, PageUp: -0.35, End: LOOP, Home: -LOOP }[event.key];
       if (step == null || /^(INPUT|TEXTAREA|SELECT)$/.test((event.target || {}).tagName || "")) return;
       event.preventDefault();
       nudge(step);
@@ -445,7 +447,7 @@
   function frame(now) {
     fit();
     var dt = Math.min(now - (last || now), 50), most = MAX_PACE * dt / 1000;
-    at += Math.min(most, Math.max(-most, (wanted - at) * Math.min(1, dt / 170)));
+    at += Math.min(most, Math.max(-most, (wanted - at) * Math.min(1, dt / EASE)));
     if (Math.abs(wanted - at) < 0.0005) at = wanted;
     last = now;
     if (hint) hint.classList.toggle("is-gone", moved);
