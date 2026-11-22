@@ -6920,3 +6920,125 @@ html.home-scroll.home-film .home-next::before {
   transition: none;
   box-shadow: 0 30px 80px rgba(22, 23, 26, 0.18);
 }
+
+/* Desktop only (desktop-only.js): on a phone or tablet, or in a window clearly smaller than its
+   screen, the site is covered by this notice until the window is full size again. On black, in
+   the site's own type, the white mark at the top and a violet square before the label */
+.desk-notice {
+  display: none;
+}
+
+html.desk-blocked {
+  overflow: hidden;
+}
+
+html.desk-blocked body > :not(.desk-notice) {
+  visibility: hidden;
+}
+
+html.desk-blocked .desk-notice {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483600;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0;
+  padding: 40px max(32px, 8vw);
+  overflow: hidden;
+  background: #0b0b0c;
+  color: #ffffff;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  outline: none;
+}
+
+.desk-plain {
+  display: flex;
+  flex-direction: column;
+}
+
+.desk-notice-mark {
+  position: absolute;
+  top: 32px;
+  left: max(32px, 8vw);
+  width: 44px;
+  height: auto;
+}
+
+.desk-notice-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 22px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.desk-notice-label::before {
+  content: "";
+  width: 9px;
+  height: 9px;
+  background: #8B7FF2;
+}
+
+.desk-notice-title {
+  max-width: 14ch;
+  margin: 0;
+  font-size: clamp(34px, 6vw, 72px);
+  font-weight: 700;
+  line-height: 1.02;
+  letter-spacing: -0.045em;
+}
+
+.desk-notice-text {
+  max-width: 34em;
+  margin: 26px 0 0;
+  font-size: clamp(15px, 1.4vw, 18px);
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.66);
+}
+
+/* On a phone or tablet: the academic notice's window (intro-warning-*, above) on the same white
+   cover, instead of the plain notice */
+html.desk-blocked .desk-notice.is-device {
+  padding: 0;
+  background: #ffffff;
+}
+
+.desk-notice.is-device .desk-plain,
+.desk-notice:not(.is-device) .desk-device {
+  display: none;
+}
+
+/* A last line under the box, dim, like a terminal's status line */
+.desk-device-status {
+  margin: 22px 0 0;
+  font-size: 11px;
+  line-height: 1.6;
+  color: #6b6b6b;
+}
+
+.desk-device-status::before {
+  content: "> ";
+}
+
+.desk-device-status::after {
+  content: "_";
+  margin-left: 2px;
+  animation: desk-caret 1s step-end infinite;
+}
+
+@keyframes desk-caret {
+  50% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .desk-device-status::after {
+    animation: none;
+  }
+}
