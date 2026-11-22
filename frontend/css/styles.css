@@ -6885,7 +6885,8 @@ html.home-scroll.home-film .home-next::before {
   outline-offset: 2px;
 }
 
-/* Over the tile, the cursor is a small black box reading "Show reel", centred on the pointer */
+/* Over the tile, the cursor is a small black box reading "VIEW", centred on the pointer (capitals,
+   spaced out a little) */
 .reel-cursor {
   position: fixed;
   left: 0;
@@ -6896,7 +6897,7 @@ html.home-scroll.home-film .home-next::before {
   color: #ffffff;
   font-size: 13px;
   font-weight: 600;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.08em;
   line-height: 16px;
   white-space: nowrap;
   pointer-events: none;

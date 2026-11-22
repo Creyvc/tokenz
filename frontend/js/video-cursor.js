@@ -25,7 +25,7 @@
 //   still playing but pixelated, a mosaic you can't make out. Clicking it opens the showreel in a
 //   window over the page (16:9, at most 80% of the screen, on a dimmed page), playing from the
 //   start with its sound (assets/video/showreel.mp4, the same at 2560×1440; everything else is silent), with a close button (Esc or a click on the dimmed page close it too). Over the tile the
-//   cursor becomes a small black box reading "Show reel".
+//   cursor becomes a small black box reading "VIEW".
 // - Sharp corners throughout.
 (function () {
   var root = document.documentElement;
@@ -58,11 +58,11 @@
   mosaic.className = "video-mosaic";
   var mosaicCtx = mosaic.getContext("2d");
   box.append(video, mosaic);
-  // the cursor over the tile: a small box that reads "Show reel"
+  // the cursor over the tile: a small box that reads "VIEW"
   var reelLabel = document.createElement("div");
   reelLabel.className = "reel-cursor";
   reelLabel.setAttribute("aria-hidden", "true");
-  reelLabel.textContent = "Show reel";
+  reelLabel.textContent = "VIEW";
   // the film's corner marks: a thin plus at each corner, like a viewfinder, once it fills the window
   var marks = document.createElement("div");
   marks.className = "film-marks";
