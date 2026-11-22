@@ -3360,7 +3360,7 @@ html.home-box-waiting .home-panel {
   background: #E5E4DF;
 }
 
-/* The white box is the same width on both pages, so the switch between them (html.pt-box)
+/* The white box is the same width on both pages, so going from one to the other
    doesn't jump sideways: Results' empty message no longer narrows its column */
 .content.results-page:has(.rs-empty) {
   --column: 1000px;
@@ -4733,6 +4733,26 @@ html.home-scroll .measure-title::before {
   background: #8B7FF2;
 }
 
+/* It spins round once each time the next card comes up (home.js), backwards going back */
+html.home-scroll .measure-title.is-spinning::before {
+  animation: measure-spin 0.9s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+html.home-scroll .measure-title.is-spinning.spin-back::before {
+  animation-direction: reverse;
+}
+
+@keyframes measure-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.home-scroll .measure-title.is-spinning::before {
+    animation: none;
+  }
+}
+
 html.home-scroll .measure-list {
   position: absolute;
   inset: 0;
@@ -5313,21 +5333,14 @@ html.home-wipe .nav.nav-copy {
   background: #c8c8c8;
 }
 
-/* The page switch (page-transition.js), three soft blinks, 0.4s in crisp steps. The pages stay
-   in view; a blink is a page let half through over the opposite of the old page's colour (dark
-   from a light page, light from a dark one, html.pt-flash-white), so it's a tint, not a flash:
-     old page · old, tinted · old page · new, tinted · new page
-   While it runs (html.pt-switch) both pages are pictures; the sidebar's dot slides over them */
-html.pt-switch {
-  --pt-other: #16171A;
-}
-
-html.pt-switch.pt-flash-white {
-  --pt-other: #ffffff;
-}
-
-html.pt-switch::view-transition {
-  background: var(--pt-other);
+/* The page switch (page-transition.js): pixel tiles sweep over the page and clear off the next
+   one. They're a canvas over everything but the sidebar; while the browser's own page switch runs
+   (html.pt-switch) the pages swap at once under the tiles, and only the sidebar's dot moves */
+.pt-tiles {
+  position: fixed;
+  top: 0;
+  z-index: 2147483000;
+  pointer-events: none;
 }
 
 html.pt-switch::view-transition-group(root) {
@@ -5335,82 +5348,12 @@ html.pt-switch::view-transition-group(root) {
 }
 
 html.pt-switch::view-transition-old(root) {
-  mix-blend-mode: normal;
-  animation: pt-soft-old 0.4s step-end both;
-}
-
-html.pt-switch::view-transition-new(root) {
-  mix-blend-mode: normal;
-  animation: pt-soft-new 0.4s step-end both;
-}
-
-/* How much of a page shows over the colour during a blink */
-@keyframes pt-soft-old {
-  0%        { opacity: 1; }
-  12%       { opacity: 0.6; }
-  36%       { opacity: 1; }
-  60%, 100% { opacity: 0; }
-}
-
-@keyframes pt-soft-new {
-  0%        { opacity: 0; }
-  60%       { opacity: 0.6; }
-  84%, 100% { opacity: 1; }
-}
-
-/* Compare to Results and back (html.pt-box): the page swaps at once and only the white box
-   blinks, sharp, in the same steps: each blink turns the box to its negative (black with white
-   text), so it's a hard flash, not a tint:
-     old box · negative · old box · new box, negative · new box
-   The whole column (main) is the picture; its see-through margins stay see-through */
-html.pt-box .content.workbench,
-html.pt-box .content.results-page {
-  view-transition-name: pt-box;
-}
-
-html.pt-switch.pt-box::view-transition {
-  background: none;
-}
-
-html.pt-switch.pt-box::view-transition-old(root) {
   display: none;
 }
 
-html.pt-switch.pt-box::view-transition-new(root) {
+html.pt-switch::view-transition-new(root) {
   animation: none;
-}
-
-html.pt-box::view-transition-group(pt-box) {
-  animation: none;
-}
-
-/* Each box at its own size, from the top left, so a shorter one isn't stretched */
-html.pt-box::view-transition-old(pt-box),
-html.pt-box::view-transition-new(pt-box) {
-  inline-size: auto;
-  block-size: auto;
   mix-blend-mode: normal;
-}
-
-html.pt-box::view-transition-old(pt-box) {
-  animation: pt-box-old 0.4s step-end both;
-}
-
-html.pt-box::view-transition-new(pt-box) {
-  animation: pt-box-new 0.4s step-end both;
-}
-
-@keyframes pt-box-old {
-  0%        { opacity: 1; filter: none; }
-  12%       { opacity: 1; filter: invert(1) hue-rotate(180deg); }
-  36%       { opacity: 1; filter: none; }
-  60%, 100% { opacity: 0; filter: none; }
-}
-
-@keyframes pt-box-new {
-  0%        { opacity: 0; filter: invert(1) hue-rotate(180deg); }
-  60%       { opacity: 1; filter: invert(1) hue-rotate(180deg); }
-  84%, 100% { opacity: 1; filter: none; }
 }
 
 /* How it works: the jump (how.js). The scene stays pinned for a long stretch of scrolling while
@@ -5595,52 +5538,6 @@ html.hw-still .hw-land {
   opacity: 0;
 }
 
-/* The scroll sign over the word: a mouse in outline, its wheel a dot that glides down and fades,
-   again and again */
-.hw-hint {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-}
-
-.hw-hint-mouse {
-  position: relative;
-  width: 18px;
-  height: 28px;
-  border: 1.5px solid currentColor;
-  border-radius: 9px;
-}
-
-.hw-hint-mouse::after {
-  content: "";
-  position: absolute;
-  top: 5px;
-  left: 50%;
-  width: 3px;
-  height: 6px;
-  margin-left: -1.5px;
-  border-radius: 2px;
-  background: currentColor;
-  animation: hw-wheel 1.8s cubic-bezier(0.65, 0, 0.35, 1) infinite;
-}
-
-@keyframes hw-wheel {
-  0% { transform: translateY(0); opacity: 1; }
-  70% { transform: translateY(9px); opacity: 0; }
-  100% { transform: translateY(0); opacity: 0; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hw-hint-mouse::after {
-    animation: none;
-  }
-}
-
-.hw-hint {
-  transition: opacity 0.4s ease;
-}
-
 /* The exploded diagram (how-diagram.js): the whole page, on black (its title is for screen
    readers only),
    after architectural exploded axonometrics: six slabs in thin white line pulled apart, joined by
@@ -5679,17 +5576,19 @@ html.hw-still .hw-land {
   }
 }
 
-/* "Scroll", small at the bottom middle in the site's own type (like the sidebar's links), gone
-   once the stack starts opening */
+/* The scroll sign, bottom middle, gone once the stack starts opening: "SCROLL" small and spaced
+   out (the measures' label style) over a thin line, down which a short violet stroke runs, again
+   and again */
 .hw-hint {
   position: absolute;
   left: 50%;
   bottom: 3.5vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  margin: 0;
   transform: translateX(-50%);
-  font-size: 14px;
-  font-weight: 500;
-  letter-spacing: -0.01em;
-  color: rgba(255, 255, 255, 0.62);
   pointer-events: none;
   transition: opacity 0.4s ease;
 }
@@ -5698,46 +5597,41 @@ html.hw-still .hw-land {
   opacity: 0;
 }
 
-/* The scroll sign over the word: a mouse in outline, its wheel a dot that glides down and fades,
-   again and again */
-.hw-hint {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
+.hw-hint-label {
+  /* (the spacing after the last letter is taken back, so the word sits centred over the line) */
+  margin-right: -0.24em;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
 }
 
-.hw-hint-mouse {
+.hw-hint-line {
   position: relative;
-  width: 18px;
-  height: 28px;
-  border: 1.5px solid currentColor;
-  border-radius: 9px;
+  width: 1px;
+  height: 44px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.16);
 }
 
-.hw-hint-mouse::after {
+.hw-hint-line::after {
   content: "";
   position: absolute;
-  top: 5px;
-  left: 50%;
-  width: 3px;
-  height: 6px;
-  margin-left: -1.5px;
-  border-radius: 2px;
-  background: currentColor;
-  animation: hw-wheel 1.8s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  inset: 0;
+  background: #8B7FF2;
+  transform: scaleY(0);
+  transform-origin: top;
+  animation: hw-stroke 2.2s cubic-bezier(0.65, 0, 0.35, 1) infinite;
 }
 
-@keyframes hw-wheel {
-  0% { transform: translateY(0); opacity: 1; }
-  70% { transform: translateY(9px); opacity: 0; }
-  100% { transform: translateY(0); opacity: 0; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hw-hint-mouse::after {
-    animation: none;
-  }
+/* the stroke draws down from the top, then leaves through the bottom */
+@keyframes hw-stroke {
+  0% { transform: scaleY(0); transform-origin: top; }
+  45% { transform: scaleY(1); transform-origin: top; }
+  55% { transform: scaleY(1); transform-origin: bottom; }
+  100% { transform: scaleY(0); transform-origin: bottom; }
 }
 
 @media (max-width: 800px), (prefers-reduced-motion: reduce) {

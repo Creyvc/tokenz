@@ -344,6 +344,10 @@
     var measureWipe = end ? end.querySelector(".measure-wipe") : null;
     var measureAt = null, measureAtTime = 0;  // which measure is in the middle (0 to 3), eased
     var activeMeasure = -1, playedMeasure = -1;
+    var measureTitle = end ? end.querySelector(".measure-title") : null;
+    if (measureTitle) measureTitle.addEventListener("animationend", function () {
+      measureTitle.classList.remove("is-spinning");
+    });
     // Each drawing's lines (not its frame, nor the typing dots) draw themselves in when its
     // measure takes over and rub themselves out when it hands over (styles.css, .draw-part): each
     // gets its own length to draw along (--len, measured: Chrome's pathLength goes wrong on the
@@ -1130,6 +1134,14 @@
       if (active !== activeMeasure) {
         measureItems.forEach(function (item, i) { item.classList.toggle("is-active", i === active); });
         if (measureNow) measureNow.textContent = active + 1;
+        // The title's violet square spins round once for each new card: forwards as they come up,
+        // backwards when scrolling back (measure-spin, styles.css)
+        if (activeMeasure !== -1 && measureTitle) {
+          measureTitle.classList.remove("is-spinning");
+          void measureTitle.offsetWidth;  // (so the spin starts over if one is still going)
+          measureTitle.classList.toggle("spin-back", active < activeMeasure);
+          measureTitle.classList.add("is-spinning");
+        }
         activeMeasure = active;
       }
       // Its text plays in once its name is wholly in the window (the first one arrives at the
