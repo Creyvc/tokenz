@@ -1,7 +1,9 @@
 # Publishes the website (frontend/) to GitHub Pages on every push to main, so
 # https://creyvc.github.io/tokenz/ opens straight on Home. The site is plain files: Compare and
 # Results still need the engine running locally (backend/start-web.sh) to run the methods.
-# Needs Settings → Pages → Build and deployment → Source: "GitHub Actions" (once).
+# Meant for Settings → Pages → Build and deployment → Source: "GitHub Actions". While the source
+# is still "Deploy from a branch", GitHub also publishes the repository's front page (the README)
+# on every push, so this waits for that to finish and publishes the website after it, on top.
 name: Publish the website
 
 on:
@@ -13,22 +15,43 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  actions: read
 
 concurrency:
   group: pages
   cancel-in-progress: true
 
 jobs:
-  deploy:
+  # The website, packed for Pages
+  build:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
           path: frontend
+
+  # Published once it's packed, and after GitHub's own branch publish if one is running
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Wait for GitHub's branch publish, if there is one
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for i in $(seq 1 40); do
+            state=$(gh api "repos/${{ github.repository }}/actions/runs?head_sha=${{ github.sha }}" \
+              --jq '[.workflow_runs[] | select(.name == "pages build and deployment") | .status] | first // "none"')
+            echo "branch publish: $state"
+            if [ "$state" = "completed" ]; then break; fi
+            # (none at all after a minute and a half: the source is "GitHub Actions", nothing to wait for)
+            if [ "$state" = "none" ] && [ "$i" -ge 9 ]; then break; fi
+            sleep 10
+          done
       - id: deployment
         uses: actions/deploy-pages@v4
