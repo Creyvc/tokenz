@@ -1,7 +1,7 @@
 # Tokenz promo
 
 `tokenz-promo.mp4`: everything generated (type, prompt cards, chips, shards, light, glass blocks,
-counters), no screenshots. 1920×1080, 60fps, 120 BPM, 96 beats (24 bars, exactly 48 s: 2880 frames
+counters), no screenshots. 2560×1440 (drawn from a 1920×1080 layout), 60fps, 120 BPM, 96 beats (24 bars, exactly 48 s: 2880 frames
 and 2,304,000 samples, so the picture and the sound end together), and it loops: the film opens on
 the logo's violet diamond, and the end card dives into the mark's diamond, which folds back into that
 same diamond, so the last frame is the first; the music never stops (only a half-beat drop before
@@ -67,5 +67,12 @@ Token counts are real (tiktoken, o200k_base); NLP's and TF‑IDF's results are t
 
 ```sh
 python score.py
-./make.sh 1920x1080 tokenz-promo.mp4
+SCALE=4/3 ./make.sh 1920x1080 tokenz-promo.mp4   # 2560x1440, about 40 minutes
+```
+
+The website's copies, from it (frontend/assets/video/):
+
+```sh
+ffmpeg -i tokenz-promo.mp4 -an -c:v libx264 -preset slow -crf 21 -pix_fmt yuv420p -movflags +faststart promo-1440.mp4
+ffmpeg -i tokenz-promo.mp4 -c:v libx264 -preset slow -crf 21 -pix_fmt yuv420p -c:a aac -b:a 192k -movflags +faststart showreel.mp4
 ```

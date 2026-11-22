@@ -2,7 +2,7 @@
 // screens and people who prefer less motion keep the normal cursor and the page as it was.
 //
 // - The cursor: on the first screen (the headline, Explore and Compare), the pointer is a small
-//   rounded box playing the promo (assets/video/promo-1080.mp4, a silent 1920×1080, 60fps copy of
+//   rounded box playing the promo (assets/video/promo-1440.mp4, a silent 2560×1440, 60fps copy of
 //   film/promo/tokenz-promo.mp4), easing after it. Over anything you can click, or close to Explore,
 //   Compare or the cookie banner, the box shrinks away and the normal cursor comes back. Not on the
 //   warning page or during the intro, and not once the Three Methods page has come up. Dashed
@@ -24,7 +24,7 @@
 //   going back up it stays with the badge and slides out of the window with it,
 //   still playing but pixelated, a mosaic you can't make out. Clicking it opens the showreel in a
 //   window over the page (16:9, at most 80% of the screen, on a dimmed page), playing from the
-//   start with its sound (assets/video/showreel.mp4; everything else is silent), with a close button (Esc or a click on the dimmed page close it too). Over the tile the
+//   start with its sound (assets/video/showreel.mp4, the same at 2560×1440; everything else is silent), with a close button (Esc or a click on the dimmed page close it too). Over the tile the
 //   cursor becomes a small black box reading "Show reel".
 // - Sharp corners throughout.
 (function () {
@@ -48,7 +48,7 @@
   box.className = "video-cursor";
   box.setAttribute("aria-hidden", "true");
   var video = document.createElement("video");
-  video.src = "assets/video/promo-1080.mp4";
+  video.src = "assets/video/promo-1440.mp4";
   video.muted = true;
   video.loop = true;
   video.playsInline = true;
