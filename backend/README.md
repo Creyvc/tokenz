@@ -102,7 +102,20 @@ The same `web_api.py` runs as the public engine for the online site (https://cre
 2. When it asks, paste `GROQ_API_KEY` and `GEMINI_API_KEY` (the same keys as in `optimizer/.env`). They stay in Render's settings, never in the repository or the image (`.dockerignore` leaves every `.env` out).
 3. Once it's live, open `https://<its address>/api/health`. If Render gave it an address other than `https://tokenz-engine.onrender.com`, put that in `PUBLIC_ENGINE` at the top of `frontend/js/api.js` and push.
 
-The free plan sleeps after 15 minutes without visitors and takes up to a minute to wake; Compare says so while it waits. To keep it awake, change `plan: free` to `plan: starter` in `render.yaml` (a paid plan). Both have 512 MB of memory, which the engine fits (about 420 MB with the NLP model loaded). Each push to `backend/` redeploys it.
+The free plan sleeps after 15 minutes without visitors and takes up to a minute to wake; Compare says so while it waits. To keep it awake, either change `plan: free` to `plan: starter` in `render.yaml` (a paid plan), or add the free uptime monitor below. Both plans have 512 MB of memory, which the engine fits (about 420 MB with the NLP model loaded). Each push to `backend/` redeploys it.
+
+**Keep it awake with a free uptime monitor.** A monitor that opens the engine's health check every few minutes counts as a visitor, so the engine never reaches 15 quiet minutes. It also emails you if the engine stops answering.
+
+1. Sign up for free at https://uptimerobot.com.
+2. Click **New monitor** (or **+ Add New Monitor**) and set:
+   - **Monitor type:** HTTP(s)
+   - **Friendly name:** Tokenz engine
+   - **URL:** `https://tokenz-engine.onrender.com/healthz`
+   - **Monitoring interval:** 5 minutes (the free plan's shortest; anything under 15 works)
+   - **Alert contacts:** your email, to hear when it's down
+3. Save. Within a few minutes the monitor shows **Up**, and the engine stays awake from then on.
+
+Use `/healthz`, not `/api/health`: it answers at once without touching the engine or the AI settings, and it doesn't count towards the visitor limits. Render's free plan gives 750 running hours a month, enough to keep this one service awake all month (at most 744 hours). If you add more free services on Render, they share those hours. Any other free monitor works the same way, for example https://cron-job.org with a job every 5 minutes on the same URL. To let the engine sleep again, pause or delete the monitor.
 
 Try it on this computer: `TOKENZ_PUBLIC=1 PORT=10000 .venv/bin/python web_api.py`, or with Docker: `docker build -t tokenz-engine . && docker run -p 10000:10000 -e GROQ_API_KEY=… -e GEMINI_API_KEY=… tokenz-engine`.
 

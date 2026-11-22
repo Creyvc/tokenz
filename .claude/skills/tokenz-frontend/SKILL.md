@@ -39,7 +39,8 @@ The online site (GitHub Pages, https://creyvc.github.io/tokenz/) uses the same e
 public on Render: https://tokenz-engine.onrender.com (`render.yaml`, `backend/Dockerfile`,
 `TOKENZ_PUBLIC=1`). It answers that site only and limits each visitor (30 runs a minute, 5 AI
 rewrites an hour; 100 AI rewrites a day for everyone), answering 429 with when to try again. On
-Render's free plan it sleeps after 15 quiet minutes and takes up to a minute to wake. A push that
+Render's free plan it sleeps after 15 quiet minutes and takes up to a minute to wake (a free
+uptime monitor on `/healthz` keeps it awake: steps in `backend/README.md`). A push that
 changes `backend/` redeploys it. See "In public (Render)" in `backend/README.md`.
 
 Wording rule: the site must not say prompts stay on the visitor's computer, because online they go
