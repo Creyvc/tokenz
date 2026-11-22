@@ -98,8 +98,9 @@
     var link = event.target instanceof Element ? event.target.closest("a[href]") : null;
     if (!link || link.target && link.target !== "_self" || link.hasAttribute("download")) return;
     var url = new URL(link.href, location.href);
-    if (url.origin !== location.origin || url.pathname === location.pathname) return;
-    if (!/\.html$|\/$/.test(url.pathname)) return;
+    if (url.origin !== location.origin || page(url.pathname) === page(location.pathname)) return;
+    // (a page: ending .html, /, or a tidied name with no extension; not a file like a video)
+    if (!/\.html$|\/$|\/[^/.]+$/.test(url.pathname)) return;
     event.preventDefault();
     go(url.href);
   });
@@ -217,8 +218,15 @@
     });
   }
 
+  // Which page an address is, with or without .html (online the addresses are tidied: reload.js):
+  // "compare", "about"…, "index" for Home
+  function page(path) {
+    var name = path.split("/").pop().replace(/\.html$/, "");
+    return name || "index";
+  }
+
   function isBoxPage(url) {
-    return /\/(compare|results)\.html$/.test(new URL(url, location.href).pathname);
+    return /^(compare|results)$/.test(page(new URL(url, location.href).pathname));
   }
 
   var running = null;  // the browser's page switch while it plays
