@@ -35,9 +35,24 @@ http://127.0.0.1:8000/. It offers NLP and TF-IDF, plus the AI rewrite through `b
 backend's own files belong to the friend: keep changes there small, tested and recorded in
 `backend/docs/`.
 
+The online site (GitHub Pages, https://creyvc.github.io/tokenz/) uses the same engine running in
+public on Render: https://tokenz-engine.onrender.com (`render.yaml`, `backend/Dockerfile`,
+`TOKENZ_PUBLIC=1`). It answers that site only and limits each visitor (30 runs a minute, 5 AI
+rewrites an hour; 100 AI rewrites a day for everyone), answering 429 with when to try again. On
+Render's free plan it sleeps after 15 quiet minutes and takes up to a minute to wake. A push that
+changes `backend/` redeploys it. See "In public (Render)" in `backend/README.md`.
+
+Wording rule: the site must not say prompts stay on the visitor's computer, because online they go
+to the Tokenz engine on Render (the methods say "No outside AI"; only the AI rewrite sends prompts
+on, to Groq and Google).
+
 Scripts (all in `js/`):
 
-- `api.js`: every call to the engine (`/api/health`, `/api/inspect`, `/api/compress`).
+- `api.js`: every call to the engine (`/api/health`, `/api/inspect`, `/api/compress`,
+  `/api/optimize`). Locally it calls the same address or http://127.0.0.1:8000; online it calls
+  `PUBLIC_ENGINE` (the Render address, at the top of the file: change it there if the engine moves).
+  `TokenzApi.hosted` says which. Online, Compare says "Starting the Tokenz engine…" when the engine
+  takes over 3 seconds to answer (it's waking), and "isn't answering" with Try again if it fails.
 - `compare.js`: the Compare form and result. Keeps the form in `tokenz_compare_draft` and each
   finished run in `tokenz_runs` (sessionStorage, this visit only), the latest per method. Every
   finished run also goes into `tokenz_history` (newest first, up to 30) for the History box under
@@ -159,6 +174,14 @@ cd frontend && python3 -I -m http.server 8765 --bind 127.0.0.1
 
 For Compare and Results, start the engine instead (`backend/start-web.sh`, port 8000): the plain
 server above has no `/api/`, so Compare would show its "engine isn't running" notice.
+
+To rehearse the online site against the public engine on this computer: run the engine in public
+(`cd backend && TOKENZ_PUBLIC=1 PORT=8799 .venv/bin/python web_api.py`) next to the plain server
+above, then in a `playwright-cli run-code` script route `https://creyvc.github.io/tokenz/**` to
+`http://127.0.0.1:8765/` and `https://tokenz-engine.onrender.com/**` to `http://127.0.0.1:8799`
+(each with `route.fetch({ url })` and `route.fulfill({ response })`), and open
+`https://creyvc.github.io/tokenz/compare.html`. The page then behaves exactly as online, with the
+engine's origin check and limits.
 
 Then, for example:
 

@@ -56,4 +56,18 @@ The group asked for the Tokenz website itself to run the methods, so `web_api.py
 - `POST /api/compress`: `{method: "nlp" | "tfidf", text, nlp_mode, main_question, token_budget, locked_sentences, locked_spans, encoding}` returns `{result, nlp_mode, encoding}`.
 - `POST /api/optimize` (added with `optimizer/`): `{text, encoding, models}` (`models` is optional: any of `"qwen"`, `"gemini_flash"`, `"gpt_oss_120b"`, default the first two; the website asks for each separately so the quicker one shows first, and each model gets 30 seconds) returns `{status, original_tokens, encoding, candidates, note}`, one candidate per model (`provider`, `model`, `status` accepted/rejected/failed, `optimized_prompt`, `optimized_tokens`, `tokens_saved`, `reduction_percent`, `checks`, `error`). 503 until Groq and Gemini are set up, 504 if it times out. It is the only route that sends the prompt off this computer, so a page using it must say so.
 
-On `/api/compress` Qwen is refused and `allow_external` is always false, and the server binds to 127.0.0.1 and checks the Host header. Inputs are validated (text up to 40,000 characters, budget 1–6000, known modes and encodings) and requests are handled one at a time around spaCy. The website follows the rules above: the user picks the main task from the exact sentences (that click is the confirmation; nothing is inferred), locks and confirmation reset when the prompt changes, results are shown as text, stale results are marked, and copying the suggestion needs the review tick.
+On `/api/compress` Qwen is refused and `allow_external` is always false. Run locally, the server binds to 127.0.0.1 and checks the Host header (in public it doesn't: see below). Inputs are validated (text up to 40,000 characters, budget 1–6000, known modes and encodings) and requests are handled one at a time around spaCy. The website follows the rules above: the user picks the main task from the exact sentences (that click is the confirmation; nothing is inferred), locks and confirmation reset when the prompt changes, results are shown as text, stale results are marked, and copying the suggestion needs the review tick.
+
+## Public deployment (22 November 2026)
+
+The project owner asked for the engine to run publicly so the online site (GitHub Pages) can use it. Following the note above about remote hosting, privacy, transport and access were reassessed before deploying. The same `web_api.py` runs with `TOKENZ_PUBLIC=1` on Render (`Dockerfile`, `../render.yaml`); local runs are unchanged.
+
+- **Transport.** Render serves it over HTTPS at https://tokenz-engine.onrender.com.
+- **Access.** It answers cross-site requests from `TOKENZ_ORIGINS` only (`https://creyvc.github.io`); other websites are refused. It serves the API only, not the website.
+- **Limits.** Per visitor (by IP address): 30 NLP or TF-IDF runs a minute and 5 AI rewrites an hour; for the whole site, 100 AI rewrites a day. Past a limit it answers 429 with `Retry-After`. These protect the free Groq and Google plans and the small server.
+- **Load.** One AI rewrite runs at a time. A request waits at most 20 seconds for the engine before a 503 "busy". At most 48 requests are handled at once. A sender that stalls is dropped after 30 seconds.
+- **Privacy.** Prompts are neither logged nor stored, as locally (`optimizer/` runs with storage off). Visitor IP addresses are held in memory only to apply the limits. The site's Info and Cookies text says the engine runs on Render, and that AI rewrite prompts go on to Groq and Google.
+- **Secrets.** `GROQ_API_KEY` and `GEMINI_API_KEY` are set in Render's environment settings; `.dockerignore` keeps every `.env` out of the image.
+- **Health.** `GET /healthz` answers at once; Render restarts the service when it doesn't.
+
+Tests for public mode are in `tests/test_web_api.py` (origins, limits, one AI rewrite at a time, busy engine).

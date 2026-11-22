@@ -1,7 +1,7 @@
 # TokenSaver — project report draft
 
 **Status:** Local-method experiment complete; human retention ratings pending. Live Qwen evaluation is deferred by the confirmed submission scope.  
-**Project scope:** English educational prompt-text compression; local Python application.  
+**Project scope:** English educational prompt-text compression; local Python application. After the experiment, the same engine was also deployed publicly for the Tokenz website (see Deployment).  
 **Authors / course / institution:** [Complete before submission]
 
 ## Abstract
@@ -27,6 +27,10 @@ An optional Aggressive NLP mode was added after the saved experiment. It uses ex
 Subsequent intensity controls add Balanced and Maximum. Maximum compacts supported framing and personal rationale and targets 20% reduction; it checks detected constraints, entities and locks but relaxes the all-source-noun safeguard. The same sales development example yielded Balanced 659 → 639 (3.0%) and Maximum 659 → 508 (22.9%). Maximum reports an unmet target for concise/locked prompts rather than deleting arbitrary text. These single-example results do not establish general performance or retention. The saved experiment and review packet remain unchanged and apply only to Conservative NLP.
 
 TF-IDF compares a confirmed verbatim main task with each sentence, then greedily includes sentences under a target token budget in descending similarity order. It preserves original order in the result. Main-task sentences, user-locked sentences and sentences containing protected constraints are mandatory. An infeasible budget returns the original. Scores describe lexical similarity, not semantic dispensability.
+
+### Deployment
+
+The engine also runs behind a small web API, `web_api.py`. Run locally it serves the Tokenz website on 127.0.0.1. Since 22 November 2026 it also runs publicly on Render for the online site (GitHub Pages), from a Docker image. In public it answers only that site, limits each visitor (30 local-method runs a minute, 5 AI rewrites an hour) and the whole site (100 AI rewrites a day), runs one AI rewrite at a time, and neither logs nor stores prompts. The deployment changes where the methods run, not what they do: the measured results below come from local runs and are unaffected.
 
 ## Evaluation method
 
@@ -72,6 +76,9 @@ Software verification: **83 tests passed** in the latest run (`TEST_RESULTS.txt`
 - Prompt-text counts omit hidden ChatGPT context and message framing. Qwen uses provider-reported usage for billing; its tokenizer is not assumed to match tiktoken.
 - Token reduction does not demonstrate dollar savings on a ChatGPT subscription. A compression call may cost more than downstream token savings.
 - Synthetic inputs and a small sample limit external validity. No claim of prompt-injection immunity is made.
+- On the public site, prompts for every method pass through a hosted server (Render), and AI rewrite prompts go on to Groq and Google. Users should not paste confidential text.
+- The public limits are per IP address, so someone using many addresses could exceed them; the daily site-wide cap bounds the AI rewrite regardless.
+- On Render's free plan the engine sleeps when idle, so the first request after a quiet spell can take up to a minute.
 - Human retention evidence is currently absent. The planned single reviewer, visible method labels and lack of blinding limit reliability and introduce potential reviewer bias. No agreement statistic can be reported without independent reviewers.
 - An unchanged outcome is valid when its reason is explained; it is not successful compression and contributes zero token savings. A shorter output can still fail retention assessment.
 

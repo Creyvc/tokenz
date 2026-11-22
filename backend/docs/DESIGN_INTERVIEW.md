@@ -100,5 +100,8 @@ The user requested additional intensity options and a level reducing at least 20
 ## Website connection (26 October 2026)
 The Tokenz group asked for the methods to run on the Tokenz website itself, changing the Q5 boundary. A local adapter, `web_api.py`, serves the website and the two local methods on 127.0.0.1, with no new dependency. Qwen stays off on the website. The backend functions, result schema, experiment records and unfilled human ratings are unchanged.
 
+## Public engine (22 November 2026)
+The project owner asked for the engine to run publicly so the online Tokenz site can use it, changing the Q5 boundary again: prompts from the online site now reach a hosted server (Render), and AI rewrite prompts go on to Groq and Google as before. The same `web_api.py` runs in public with an origin allowlist, per-visitor and daily limits, and no prompt logging or storage (see `FRONTEND_HANDOFF.md`). Local use, the backend functions, the result schema and the experiment records are unchanged.
+
 ## Prompt-quality fixes (26 October 2026)
 Testing realistic prompts showed TF-IDF removing requested subtasks, which the Q4 rule forbids, and NLP flattening layout. Both methods were corrected (see `docs/TEST_RESULTS.txt`). The result schema and interfaces are unchanged. The saved experiment records and the 15-case review packet describe the earlier behaviour and were not regenerated.
