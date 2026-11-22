@@ -14,7 +14,7 @@ description: Builds Tokenz website pages and components, and explains how fronte
 
 **These rules don't all match the code yet.** `frontend/` is still plain HTML and CSS: no React,
 Vite, Tailwind or `src/` folder, black and grey on a white background, Inter only, and the logo
-is the squeeze mark in `assets/logo-mark.svg`. Until the site is moved over, don't convert it
+is the squeeze mark in `assets/images/logo-mark.svg`. Until the site is moved over, don't convert it
 or create `src/` files without asking first. These apply now: never put API keys in the
 frontend, label sample numbers "Sample data", and never redraw the logo (use the existing file).
 
@@ -23,7 +23,10 @@ The rest of this file describes the site as it's built today.
 # How the site is built today
 
 A static site: plain HTML, one stylesheet and a few small scripts in `frontend/`, no build step
-and no framework. Open any page straight from disk to see it.
+and no framework. Open any page straight from disk to see it. The pages sit at the top of
+`frontend/`; the stylesheet is in `css/`, the scripts in `js/`, and the logo, sounds and videos in
+`assets/images/`, `assets/audio/` and `assets/video/`. Paths in scripts (an image's or video's
+`src`) are relative to the page, so they start `assets/…`, not `../assets/…`.
 
 The compression engine (TokenSaver, a friend's Python project) lives in `backend/`, with its
 own README, tests and Streamlit test app. Compare and Results use it through
@@ -31,6 +34,8 @@ own README, tests and Streamlit test app. Compare and Results use it through
 http://127.0.0.1:8000/. It offers NLP and TF-IDF, plus the AI rewrite through `backend/optimizer/` (below). The
 backend's own files belong to the friend: keep changes there small, tested and recorded in
 `backend/docs/`.
+
+Scripts (all in `js/`):
 
 - `api.js`: every call to the engine (`/api/health`, `/api/inspect`, `/api/compress`).
 - `compare.js`: the Compare form and result. Keeps the form in `tokenz_compare_draft` and each
@@ -53,8 +58,8 @@ backend's own files belong to the friend: keep changes there small, tested and r
   `compare.html`, `results.html`, `how-it-works.html`, `about.html`.
 - `info.html` and `cookies.html` are not pages. They only forward to `index.html#info` /
   `#cookies`, where `modal.js` opens them as a window over the page.
-- `styles.css`: every style for the whole site.
-- `assets/logo-mark.svg` (sidebar logo) and `assets/favicon.svg` (browser tab icon, cropped
+- `css/styles.css`: every style for the whole site.
+- `assets/images/logo-mark.svg` (sidebar logo) and `assets/images/favicon.svg` (browser tab icon, cropped
   tighter so the mark looks bigger in the tab). Same artwork; change them separately.
   `favicon.svg` is black, and white when the browser is in dark mode (a media query inside it).
   In every copy of the logo the middle diamond is violet: `#5B4FD6` on white, `#8B7FF2` on black
@@ -66,10 +71,10 @@ backend's own files belong to the friend: keep changes there small, tested and r
 Every page's `<head>` loads, in this order:
 
 ```html
-<script src="reload.js"></script>
-<link rel="stylesheet" href="styles.css">
-<script src="consent.js" defer></script>
-<script src="modal.js" defer></script>
+<script src="js/reload.js"></script>
+<link rel="stylesheet" href="css/styles.css">
+<script src="js/consent.js" defer></script>
+<script src="js/modal.js" defer></script>
 ```
 
 `index.html` also loads `intro.js`, straight after `reload.js`, then `grainient.js` (deferred)
@@ -110,7 +115,7 @@ the links don't shift when one becomes active.
    `Name · Tokenz`.
 2. Move `class="active"` and the `<span class="nav-dot"></span>` to the new page's link.
 3. Add the new link to the nav in every other page, in the same position.
-4. Put the content in `<main class="content">`, and its styles at the end of `styles.css`.
+4. Put the content in `<main class="content">`, and its styles at the end of `css/styles.css`.
 
 Main links (Home … About) get the moving dot. Info and Cookies sit in `.nav-extra`, are lighter
 grey, and never get the dot.

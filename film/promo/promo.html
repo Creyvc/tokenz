@@ -24,7 +24,7 @@
 // ?w=1920&h=1080 (the default) or ?w=1080&h=1920 for the vertical cut: the same film, laid out
 // for each. Times are in beats (timeline.js), shared with the music (score.py).
 const TL = window.TL, SC = TL.scenes;
-const MARK = new Image(); MARK.src = "../../frontend/assets/logo-mark.svg";
+const MARK = new Image(); MARK.src = "../../frontend/assets/images/logo-mark.svg";
 const q = new URLSearchParams(location.search);
 const W = +(q.get("w") || 1920), H = +(q.get("h") || 1080), V = H > W;
 // ?s=: draw at this many times the pixels (4/3 for 2560×1440 from the 1920×1080 layout, 2 for 4K):

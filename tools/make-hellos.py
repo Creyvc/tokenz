@@ -19,7 +19,7 @@ import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-OUT = ROOT / "frontend" / "assets"
+OUT = ROOT / "frontend" / "assets" / "audio"
 
 # Who says what, in which ElevenLabs voice (premade voices every account has)
 HELLOS = [

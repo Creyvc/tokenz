@@ -59,7 +59,7 @@ Token counts are real (tiktoken, o200k_base); NLP's and TF‑IDF's results are t
 - `timeline.js`: every event, in beats. The picture and the sound both read it.
 - `chips.js`: real tokens for the method scenes and the opening's cards, written by `chips.py`
   (run it with the backend's Python, which has tiktoken: `../../backend/.venv/bin/python chips.py`).
-- `score.py`: writes `score.wav` with the instruments in `../scores.py` (needs numpy).
+- `score.py`: writes `score.wav` with the instruments in `../shared/scores.py` (needs numpy).
 - `render.js`: `<WxH> preview <dir> t1 t2 …` writes single frames; `<WxH> stream <fps> <from> <to>`
   writes frames to stdout for ffmpeg.
 - `make.sh`: renders the film, blending 16 drawn moments into each frame for motion blur, and adds the music.

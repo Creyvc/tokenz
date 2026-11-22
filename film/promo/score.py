@@ -15,7 +15,7 @@ import wave
 import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.join(HERE, ".."))
+sys.path.insert(0, os.path.join(HERE, "..", "shared"))
 import scores as S
 from scores import SR, hz, lp, saw, kick, snare, clap, hat, click, impact, riser, swell, pad, pluck, stab, bell
 

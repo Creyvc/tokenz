@@ -4,4 +4,4 @@
 
 # Film: rebuilt by each score.py, and Python caches
 film/**/score.wav
-film/__pycache__/
+film/**/__pycache__/
