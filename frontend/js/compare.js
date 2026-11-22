@@ -63,7 +63,7 @@
   var state = {
     text: "", method: "nlp", level: "conservative", phrases: "", encoding: "o200k_base",
     task: null, taskText: "", keep: [], confirmed: false, budget: null, budgetTouched: false,
-    aiModels: ["qwen", "gemini_flash"]
+    aiModels: []  // none ticked at first: the visitor picks which models to ask
   };
   var saved = read(DRAFT_KEY);
   if (saved && typeof saved === "object") {
@@ -76,7 +76,7 @@
   if (!NAMES[state.method]) state.method = "nlp";
   if (!LEVEL_NAMES[state.level]) state.level = "conservative";
   if (!Array.isArray(state.keep)) state.keep = [];
-  if (!Array.isArray(state.aiModels)) state.aiModels = ["qwen", "gemini_flash"];
+  if (!Array.isArray(state.aiModels)) state.aiModels = [];
   state.aiModels = state.aiModels.filter(function (key) { return AI_LABELS[key]; });
 
   // "How much to keep": the bar slider (wake-slider.js), in the site's near-black and grey
@@ -197,7 +197,26 @@
     if (box.dataset.key === key) return;
     box.dataset.key = key;
     box.textContent = "";
-    if (!engineReady) return;  // the engine notice above the form covers this
+    if (engineReady === false) return;  // the engine notice above the form covers this
+    // While the engine is first being checked, the three models already stand in their places,
+    // greyed out and "checking…", so the box is its full size from the first frame (it used to
+    // grow when the list arrived, and the page's entrance measured it too early)
+    if (engineReady === null) {
+      var waiting = make("fieldset", "wb-ai-models");
+      waiting.append(make("legend", "wb-label", "AI Models"));
+      Object.keys(AI_LABELS).forEach(function (key) {
+        var row = make("label", "wb-check wb-ai-model is-off");
+        var tick = make("input");
+        tick.type = "checkbox";
+        tick.disabled = true;
+        var text = make("span");
+        text.append(make("span", "wb-ai-model-name", AI_LABELS[key]), make("span", "wb-ai-model-id", " checking…"));
+        row.append(tick, text);
+        waiting.append(row);
+      });
+      box.append(waiting);
+      return;
+    }
     if (!aiStatus) {
       box.append(make("p", "wb-help", "This engine is older than the AI rewrite. Restart it (./start-web.sh in the backend folder)."));
       return;
