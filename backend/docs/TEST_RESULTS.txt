@@ -25,3 +25,13 @@ Found by running 18 realistic prompts through NLP (all four levels) and TF-IDF a
 - NLP flattened line breaks and lists, capitalised an untouched clause ("…due And I was…"), could not
   edit a one-line prompt containing an equation, and left greetings and small talk in.
 tests/test_prompt_quality.py (14 tests) covers each case; 12 of them fail on the previous code. No live Qwen requests.
+
+2026-11-22 public engine (Tokenz repository, backend/): 155 passed on macOS, Python 3.13.9.
+Per file: test_backend 44, test_web_api 37, test_aggressive_nlp 22, test_prompt_quality 18, test_ui 10,
+test_tfidf_diagnostics 9, test_nlp_intensity 6, test_adapter 5, test_comparison_dashboard 2, test_nlp_mode_ui 2.
+New since 122: the website API's AI rewrite route, further prompt-quality cases, and web_api.py's public
+mode (TOKENZ_PUBLIC=1, for Render): only the allowed website gets in, per-visitor run and AI rewrite
+limits and the daily site-wide AI limit answer 429, one AI rewrite at a time, a busy engine answers 503,
+and the health check answers at once.
+The AI rewrite (optimizer/, its own suite: cd optimizer && ../.venv/bin/python -m pytest -q): 211 passed.
+No test reaches Groq, Google or Qwen: keys are blanked or the provider is replaced.

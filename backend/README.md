@@ -169,7 +169,7 @@ Live Qwen validation is deliberately deferred beyond this submission. Manual ret
 - `docs/architecture.svg` and `docs/architecture.png`: architecture diagram; Mermaid source is in `docs/ARCHITECTURE.md`.
 - `docs/TokenSaver-demo.webm`: original silent screen recording of the local app and architecture; newer TF-IDF controls are demonstrated in `docs/tfidf-fixed.png`.
 - `docs/DEMO_SCRIPT.md`: narration/recording script for your team.
-- `docs/TEST_RESULTS.txt`: latest run, 122 tests passed.
+- `docs/TEST_RESULTS.txt`: latest run (22 November 2026): 155 tests passed here, and 211 in `optimizer/`.
 - `docs/HOW_TO_TEST.md`: walkthrough of the separate NLP and TF-IDF screens.
 - `docs/evaluation/RETENTION_REVIEW.md`: readable 15-case packet awaiting your ratings.
 - `docs/evaluation/review_ratings.json`: optional structured answer sheet; all verdicts are pending.

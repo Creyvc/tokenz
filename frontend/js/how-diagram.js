@@ -390,7 +390,13 @@
   var hint = document.querySelector(".hw-hint");
   // (no ends: past the last step it carries on round from the first, and back again)
   var moved = false;
-  function nudge(by) { wanted += by; moved = true; }
+  // A hard flick can't rush the camera past a stage: it goes at most MAX_PACE steps a second, and
+  // the wheel can be at most LEAD steps ahead of it, so it never runs on long after the hand stops
+  var MAX_PACE = 1.6, LEAD = 1.2;
+  function nudge(by) {
+    wanted = Math.min(at + LEAD, Math.max(at - LEAD, wanted + by));
+    moved = true;
+  }
   if (!fixed) {
     window.addEventListener("wheel", function (event) {
       event.preventDefault();
@@ -438,7 +444,8 @@
 
   function frame(now) {
     fit();
-    at += (wanted - at) * Math.min(1, (now - (last || now)) / 170);
+    var dt = Math.min(now - (last || now), 50), most = MAX_PACE * dt / 1000;
+    at += Math.min(most, Math.max(-most, (wanted - at) * Math.min(1, dt / 170)));
     if (Math.abs(wanted - at) < 0.0005) at = wanted;
     last = now;
     if (hint) hint.classList.toggle("is-gone", moved);

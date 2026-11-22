@@ -464,6 +464,7 @@
       var lines = copy ? copy.querySelectorAll(".mask-rise").length : 1;
       holdAt = at;
       holdUntil = Date.now() + (ms == null ? (lines - 1) * STEP + RISE : ms);
+      if (window.TokenzScroll) window.TokenzScroll.stop();
       window.scrollTo({ top: at, behavior: "instant" });
     }
 
@@ -490,7 +491,19 @@
     // DRAG as far as usual while "SCROLL" grows, and DRAG_BARS while the bars fill, so both take
     // a little more effort than the rest of the page
     var DRAG = 0.4, DRAG_BARS = 0.45;
+    // How far a wheel turn goes here, for scroll-pace.js (which paces the wheel on every page):
+    // 0 while the page holds, DRAG or DRAG_BARS from the FAQ's lock, 1 elsewhere
+    function wheelPace() {
+      if (holding()) return 0;
+      if (!endCover || !root.classList.contains("home-scroll")) return 1;
+      var lock = endCover.offsetTop + faqExtra();
+      if (window.scrollY < lock) return 1;
+      return window.scrollY - lock >= window.innerHeight ? DRAG_BARS : DRAG;
+    }
+    window.TokenzScrollPace = wheelPace;
     function wheel(event) {
+      // (scroll-pace.js handles the wheel when it's loaded, asking wheelPace above)
+      if (window.TokenzScroll) return;
       if (holding()) { event.preventDefault(); return; }
       if (!endCover || !root.classList.contains("home-scroll") || event.ctrlKey) return;
       var lock = endCover.offsetTop + faqExtra();
