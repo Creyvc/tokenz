@@ -972,52 +972,9 @@ html.intro-play .intro.is-playing {
   color: #16171A;
 }
 
-.about-intro {
-  margin-top: 24px;
-  font-size: 18px;
-  line-height: 1.6;
-  color: #8a8a8a;
-}
-
-.about-section {
-  margin-top: 72px;
-}
-
 .about h2 {
   font-size: 24px;
   color: #16171A;
-}
-
-.about-section p {
-  margin-top: 18px;
-  font-size: 15px;
-  line-height: 1.6;
-}
-
-/* One row per member: name on the left, role on the right, thin line between rows */
-.about-team {
-  margin-top: 18px;
-  list-style: none;
-  border-top: 1px solid #E5E4DF;
-}
-
-.about-team li {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 14px 0;
-  border-bottom: 1px solid #E5E4DF;
-  font-size: 15px;
-}
-
-.about-name {
-  font-weight: 500;
-  color: #16171A;
-}
-
-.about-role {
-  color: #8a8a8a;
-  text-align: right;
 }
 
 @media (max-width: 600px) {
@@ -1027,10 +984,6 @@ html.intro-play .intro.is-playing {
 
   .about h1 {
     font-size: 40px;
-  }
-
-  .about-section {
-    margin-top: 56px;
   }
 }
 
@@ -1076,14 +1029,6 @@ html.intro-play .intro.is-playing {
 /* Unless the "engine isn't running" notice is showing above the form */
 .content.workbench .engine-notice:not([hidden]) + .wb {
   margin-top: 24px;
-}
-
-.page-intro {
-  max-width: 640px;
-  margin-top: 24px;
-  font-size: 18px;
-  line-height: 1.6;
-  color: #8a8a8a;
 }
 
 .workbench h3,
@@ -2065,8 +2010,6 @@ textarea.wb-input {
   vector-effect: non-scaling-stroke;
 }
 
-
-
 .wb-history::backdrop {
   background: rgba(255, 255, 255, 0.6);
   backdrop-filter: blur(3px);
@@ -2567,16 +2510,6 @@ textarea.wb-input {
   border-radius: 0;
   /* White, like the other panels, over the page's gradient */
   background: #ffffff;
-}
-
-.rs-verdict {
-  max-width: 720px;
-  margin-top: 48px;
-  font-size: 22px;
-  font-weight: 500;
-  line-height: 1.35;
-  letter-spacing: -0.02em;
-  color: #16171A;
 }
 
 /* One card per method that has run: two or three across */
@@ -3291,7 +3224,6 @@ html.home-box-waiting .home-panel {
 .content.workbench .wb-result,
 .content.workbench .engine-notice,
 .content.results-page .rs-notice,
-.content.results-page .rs-verdict,
 .content.results-page .wb-details {
   padding: 20px 22px;
   border: none;
@@ -3308,8 +3240,7 @@ html.home-box-waiting .home-panel {
   padding: 28px;
 }
 
-.content.results-page .rs-notice,
-.content.results-page .rs-verdict {
+.content.results-page .rs-notice {
   max-width: none;
 }
 
@@ -3348,8 +3279,7 @@ html.home-box-waiting .home-panel {
 
 /* Results: the bare note and the verdict get the same white, and the method cards sit edge to
    edge, the line between them showing through a 1px gap */
-.content.results-page [data-results] > .wb-help,
-.content.results-page .rs-verdict {
+.content.results-page [data-results] > .wb-help {
   margin: 0;
   padding: 20px 22px;
   background: #ffffff;
@@ -3488,8 +3418,7 @@ html.home-box-waiting .home-panel {
   display: none;
 }
 
-.wb-ai-missing,
-.wb-ai-ready {
+.wb-ai-missing {
   font-weight: 500;
   color: #16171A;
 }
@@ -3774,72 +3703,6 @@ html.home-scroll .home-title {
    from its width) are about a quarter bigger; it's still moved to the middle of the window */
 html.home-scroll .home-intro {
   width: calc(72% - 210px);
-}
-
-/* "Scroll", small, at the bottom middle of the window over the gradient, with a short line under
-   it and a dot running down it. It fades in once the text is in, and out as soon as the page
-   scrolls */
-.home-hint {
-  display: none;
-}
-
-html.home-scroll .home-hint {
-  position: absolute;
-  left: 50%;
-  bottom: 32px;
-  z-index: 3;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  transform: translateX(-50%);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  /* (the letter spacing leaves room after the last letter; this keeps the word centred) */
-  text-indent: 0.22em;
-  color: #ffffff;
-  opacity: 0;
-  transition: opacity 0.6s ease;
-  pointer-events: none;
-}
-
-html.home-scroll.home-text-on .home-hint {
-  opacity: 1;
-  transition-delay: 0.9s;
-}
-
-html.home-scroll.home-tokenz-out .home-hint {
-  opacity: 0;
-  transition-delay: 0s;
-}
-
-.home-hint-line {
-  position: relative;
-  width: 1px;
-  height: 40px;
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.5);
-}
-
-.home-hint-line::after {
-  content: "";
-  position: absolute;
-  left: -1.5px;
-  top: 0;
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: #ffffff;
-  animation: home-hint 1.8s cubic-bezier(0.65, 0, 0.35, 1) infinite;
-}
-
-@keyframes home-hint {
-  0% { transform: translateY(-6px); opacity: 0; }
-  20% { opacity: 1; }
-  80% { opacity: 1; }
-  100% { transform: translateY(40px); opacity: 0; }
 }
 
 /* The white copy's lines wait below their masks until the text comes on, then rise in with the
@@ -4515,93 +4378,10 @@ html.home-compare .faq-word.is-compare {
   interpolate-size: allow-keywords;
 }
 
-.faq-intro {
-  padding-right: 40px;
-}
-
-/* A small label with a line running off it, in the measures' uppercase style */
-.faq-label {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: #8B7FF2;
-}
-
-.faq-label::after {
-  content: "";
-  flex: 1;
-  border-top: 1px dashed rgba(255, 255, 255, 0.2);
-}
-
 /* The questions, behind the same dashed line as the measures */
 .faq-list {
   padding-left: 40px;
   border-left: 1px dashed rgba(255, 255, 255, 0.2);
-}
-
-.faq-item {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
-}
-
-.faq-question {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  padding: 22px 0;
-  font-size: clamp(15px, 1.2vw, 18px);
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  line-height: 1.3;
-  list-style: none;
-  cursor: pointer;
-}
-
-.faq-question::-webkit-details-marker {
-  display: none;
-}
-
-.faq-question:focus-visible {
-  outline: 2px solid #8B7FF2;
-  outline-offset: 4px;
-  border-radius: 4px;
-}
-
-.faq-chevron {
-  flex: none;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  transition: transform 0.35s cubic-bezier(0.33, 1, 0.68, 1);
-}
-
-.faq-item[open] .faq-chevron {
-  transform: rotate(180deg);
-}
-
-/* The answer slides open under its question */
-.faq-item::details-content {
-  block-size: 0;
-  overflow: hidden;
-  transition: block-size 0.4s cubic-bezier(0.33, 1, 0.68, 1), content-visibility 0.4s allow-discrete;
-}
-
-.faq-item[open]::details-content {
-  block-size: auto;
-}
-
-.faq-answer {
-  max-width: 600px;
-  padding: 0 48px 24px 0;
-  font-size: 14px;
-  line-height: 1.6;
-  color: #a3a3a3;
 }
 
 /* The bars: once "SCROLL" is done growing, a row of thin rounded bars like the wake slider's
@@ -4630,22 +4410,10 @@ html.home-scroll .faq-line {
   transform: scaleY(0);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .faq-chevron,
-  .faq-item::details-content {
-    transition: none;
-  }
-}
-
 @media (max-width: 800px) {
   .faq {
     grid-template-columns: 1fr;
     padding: 48px 16px 64px;
-  }
-
-  .faq-intro {
-    padding-right: 0;
-    margin-bottom: 32px;
   }
 
   .faq-list {
@@ -4972,27 +4740,10 @@ html.home-scroll .faq-scroll {
   color: #16171A;
 }
 
-html.home-scroll .faq-label {
-  color: #5B4FD6;
-}
-
-html.home-scroll .faq-label::after {
-  border-top-color: #E5E4DF;
-}
-
-html.home-scroll .faq-answer {
-  color: #5c5c5c;
-}
-
 html.home-scroll .faq-list {
   border-left-color: #E5E4DF;
 }
 
-html.home-scroll .faq-item {
-  border-bottom-color: #E5E4DF;
-}
-
-html.home-scroll .faq-question:focus-visible,
 html.home-scroll .faq-word.is-compare:focus-visible {
   outline-color: #5B4FD6;
 }
@@ -5366,175 +5117,6 @@ html.pt-switch::view-transition-new(root) {
   padding: 0;
 }
 
-.hw-jump {
-  position: relative;
-  height: 450vh;
-}
-
-html.hw-still .hw-jump {
-  height: auto;
-}
-
-/* With reduced motion the scene is one still picture, and the page's text simply follows it */
-html.hw-still .hw-stage {
-  position: relative;
-  height: auto;
-}
-
-html.hw-still .hw-canvas {
-  height: calc(100vh - 24px);
-}
-
-/* What's on the other side of the opening (About's text): over the scene, in the middle of the
-   window, fading in and settling as the opening fills it, so the dive ends right there with
-   nothing more to scroll */
-.hw-land {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow-y: auto;
-  opacity: calc((var(--hw-open, 0) - 0.85) * 6.67);
-  transform: translateY(calc((1 - var(--hw-open, 0)) * 80px));
-  pointer-events: none;
-}
-
-.hw-stage.is-landed .hw-land {
-  pointer-events: auto;
-}
-
-.hw-land .about {
-  width: 100%;
-  max-width: 720px;
-  margin: auto;
-  padding: 48px;
-}
-
-html.hw-still .hw-land {
-  position: static;
-  opacity: 1;
-  transform: none;
-  pointer-events: auto;
-}
-
-.hw-stage {
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  padding: calc(12px * (1 - var(--hw-open, 0)));
-}
-
-.hw-canvas {
-  display: block;
-  width: 100%;
-  height: 100%;
-  border-radius: calc(12px * (1 - var(--hw-open, 0)));
-  background: #eeeeec;
-}
-
-/* Without WebGL2: still rings in CSS, and the hole as a black circle growing over them (white
-   where the page after it is white) */
-.hw-stage.is-flat .hw-canvas[data-land="light"] {
-  background:
-    radial-gradient(circle at 55% 55%, #ffffff calc(var(--hw-open, 0) * 140%), transparent calc(var(--hw-open, 0) * 140% + 1px)),
-    repeating-radial-gradient(circle at 55% 55%, #f2f2f0 0 14px, #b9b4e6 15px 17px, #f2f2f0 18px 34px);
-}
-
-/* Without WebGL2: still rings in CSS, and the hole as a black circle growing over them */
-.hw-stage.is-flat .hw-canvas {
-  background:
-    radial-gradient(circle at 55% 55%, #0b0b0c calc(var(--hw-open, 0) * 140%), transparent calc(var(--hw-open, 0) * 140% + 1px)),
-    repeating-radial-gradient(circle at 55% 55%, #f2f2f0 0 14px, #b9b4e6 15px 17px, #f2f2f0 18px 34px);
-}
-
-/* The two lines over the scene, white with a soft shadow, each rising in behind its mask and
-   leaving upwards (how.js times them) */
-.hw-word {
-  position: absolute;
-  left: 0;
-  right: 0;
-  /* Low in the scene, just above the frame line at its bottom */
-  top: 83%;
-  transform: translateY(-50%);
-  text-align: center;
-  font-size: clamp(32px, 5.2vw, 88px);
-  font-weight: 500;
-  line-height: 1;
-  letter-spacing: -0.05em;
-  color: #ffffff;
-  /* A shadow round the whole word (not inside its mask, where it would be cut off square) */
-  filter: drop-shadow(0 2px 22px rgba(0, 0, 0, 0.28));
-  pointer-events: none;
-}
-
-.hw-mask {
-  display: inline-block;
-  overflow: hidden;
-  padding: 0.12em 0.08em 0.2em;
-  margin: -0.12em -0.08em -0.2em;
-  vertical-align: top;
-}
-
-/* Each letter its own: they rise in, and leave, one after another */
-.hw-mask > span {
-  display: inline-block;
-  transform: translateY(110%);
-  transition: transform 0.7s cubic-bezier(0.33, 1, 0.68, 1);
-  transition-delay: calc(var(--i, 0) * 35ms);
-}
-
-.hw-word.is-on .hw-mask > span {
-  transform: none;
-}
-
-.hw-word.is-gone .hw-mask > span {
-  transform: translateY(-150%);
-}
-
-/* Along the bottom of the scene, like a print layout: a thin rule with small corner ticks, "How
-   it works" on the left and "Scroll" on the right (which goes once the scroll starts). All of it
-   fades as the hole opens */
-.hw-frame {
-  position: absolute;
-  left: 44px;
-  right: 44px;
-  bottom: 36px;
-  display: flex;
-  justify-content: space-between;
-  padding-top: 14px;
-  border-top: 1px solid rgba(22, 23, 26, 0.28);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: #16171A;
-  transition: opacity 0.5s ease;
-  pointer-events: none;
-}
-
-.hw-frame::before,
-.hw-frame::after {
-  content: "";
-  position: absolute;
-  top: -1px;
-  width: 7px;
-  height: 7px;
-  border-top: 1px solid rgba(22, 23, 26, 0.5);
-}
-
-.hw-frame::before {
-  left: 0;
-  border-left: 1px solid rgba(22, 23, 26, 0.5);
-}
-
-.hw-frame::after {
-  right: 0;
-  border-right: 1px solid rgba(22, 23, 26, 0.5);
-}
-
-.hw-frame.is-gone,
 .hw-hint.is-gone {
   opacity: 0;
 }
@@ -5641,33 +5223,6 @@ html.hw-still .hw-land {
   }
 }
 
-.hw-kicker {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: #a3a3a3;
-}
-
-.hw-kicker::before {
-  content: "";
-  width: 8px;
-  height: 8px;
-  background: #8B7FF2;
-}
-
-.hw-headline {
-  margin-top: 18px;
-  max-width: 14ch;
-  font-size: clamp(40px, 5.4vw, 92px);
-  font-weight: 700;
-  line-height: 0.98;
-  letter-spacing: -0.05em;
-}
-
 .hw-diagram {
   max-width: 1200px;
   margin: 0 auto;
@@ -5744,20 +5299,6 @@ body:has(.content.how) .tz-bar {
   width: 100%;
 }
 
-.hw-orbit-dash {
-  animation: hw-orbit 14s linear infinite;
-}
-
-@keyframes hw-orbit {
-  to { stroke-dashoffset: -240; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hw-orbit-dash {
-    animation: none;
-  }
-}
-
 /* (read out instead of the drawing; seen only on a phone) */
 .hw-layers {
   position: absolute;
@@ -5801,10 +5342,6 @@ body:has(.content.how) .tz-bar {
     padding: 12vh 16px 4vh;
   }
 
-  .hw-callout {
-    display: none;
-  }
-
   .hw-layers {
     position: static;
     width: auto;
@@ -5815,76 +5352,6 @@ body:has(.content.how) .tz-bar {
     padding: 0;
   }
 }
-
-/* After the diagram: the three steps of using it */
-.hw-after {
-  padding: 10vh 48px 24vh;
-  background: #0b0b0c;
-  color: #ffffff;
-}
-
-.hw-title {
-  font-size: clamp(32px, 3.6vw, 60px);
-  font-weight: 700;
-  line-height: 0.98;
-  letter-spacing: -0.055em;
-}
-
-.hw-steps {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 48px;
-  margin-top: 12vh;
-  padding: 0;
-  list-style: none;
-}
-
-.hw-step {
-  padding-top: 24px;
-  border-top: 1px dashed rgba(255, 255, 255, 0.2);
-}
-
-.hw-num {
-  display: block;
-  font-size: 13px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  color: #8B7FF2;
-}
-
-.hw-name {
-  margin-top: 18px;
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.hw-text {
-  margin-top: 10px;
-  max-width: 340px;
-  font-size: 15px;
-  line-height: 1.6;
-  color: #a3a3a3;
-}
-
-@media (max-width: 800px) {
-  .hw-after {
-    padding: 12vh 16px 16vh;
-  }
-
-  .hw-steps {
-    grid-template-columns: 1fr;
-    gap: 32px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hw-mask > span {
-    transition: none;
-  }
-}
-
 
 /* About: the team as three glowing balls (orbs.js), each over its person's name in capitals
    and their LinkedIn and GitHub. The balls are drawn on a canvas
