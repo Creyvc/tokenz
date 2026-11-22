@@ -5,7 +5,8 @@
 // has stopped.
 // - Only the wheel: touch, the keyboard, the scrollbar and links scroll as the browser does.
 // - A page can slow the wheel down or hold it still: window.TokenzScrollPace() returns how far a
-//   wheel turn goes here (1 as usual, 0.4 is slower, 0 holds), read on every turn (Home sets it).
+//   wheel turn goes here (1 as usual, 0.4 is slower, 0 holds), read on every turn and every frame,
+//   and the top speed slows down with it (Home sets it).
 // - Not when the page itself can't scroll (How it works, a window open over the page), not inside
 //   something that scrolls on its own (a text box, a list), and not with reduced motion.
 // - TokenzScroll.stop() drops whatever is still queued (a script scrolling the page itself).
@@ -35,7 +36,9 @@
     last = now;
     var gap = target - pos;
     var step = gap * (1 - Math.exp(-dt / EASE));
-    var most = MAX_SPEED * window.innerHeight * dt / 1000;
+    // (where the page slows the wheel down, the top speed slows with it)
+    var pace = typeof window.TokenzScrollPace === "function" ? window.TokenzScrollPace() : 1;
+    var most = MAX_SPEED * window.innerHeight * dt / 1000 * (pace > 0 && pace < 1 ? pace : 1);
     pos += clamp(step, -most, most);
     if (Math.abs(target - pos) < 0.5) pos = target;
     window.scrollTo({ top: pos, behavior: "instant" });

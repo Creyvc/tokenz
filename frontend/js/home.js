@@ -491,11 +491,21 @@
     // DRAG as far as usual while "SCROLL" grows, and DRAG_BARS while the bars fill, so both take
     // a little more effort than the rest of the page
     var DRAG = 0.4, DRAG_BARS = 0.45;
+    // Through Three Methods' opening (the title rising letter by letter as the white page comes up,
+    // the paragraph lighting up, then the title leaving before the first method) the wheel goes at
+    // half pace, so it plays slowly both ways
+    var DRAG_TITLE = 0.5;
     // How far a wheel turn goes here, for scroll-pace.js (which paces the wheel on every page):
-    // 0 while the page holds, DRAG or DRAG_BARS from the FAQ's lock, 1 elsewhere
+    // 0 while the page holds, DRAG_TITLE through Three Methods' opening, DRAG or DRAG_BARS from the
+    // FAQ's lock, 1 elsewhere
     function wheelPace() {
       if (holding()) return 0;
-      if (!endCover || !root.classList.contains("home-scroll")) return 1;
+      if (!root.classList.contains("home-scroll")) return 1;
+      if (next && slide.start) {
+        var into = window.scrollY - next.offsetTop;
+        if (into > -0.6 * window.innerHeight && into < slide.start) return DRAG_TITLE;
+      }
+      if (!endCover) return 1;
       var lock = endCover.offsetTop + faqExtra();
       if (window.scrollY < lock) return 1;
       return window.scrollY - lock >= window.innerHeight ? DRAG_BARS : DRAG;
