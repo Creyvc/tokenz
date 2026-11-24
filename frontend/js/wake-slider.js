@@ -33,7 +33,7 @@
       min: 0, max: 100, step: 1, value: 50, bars: 32, height: 56, restHeight: 12, gap: 4,
       fillColor: "#f5f5f5", trackColor: "#27272a", sensitivity: 1, reach: 6, skew: 0.6,
       glide: 0.3, smoothing: 100, ariaLabel: "Value", disabled: false, onChange: null,
-      barWidth: null, onLayout: null
+      barWidth: null, onLayout: null, maxLift: 1
     }, options || {});
     var min = o.min, max = o.max, step = o.step;
     var value = clamp(o.value, min, max);
@@ -101,7 +101,8 @@
       // The original is tuned on a 320px track. Speed is in percent of the track per second, so a
       // wider track scales the sensitivity up: the same hand speed makes the same wave
       var widen = Math.max(1, (track.clientWidth || 320) / 320);
-      var amp = smoothstep(clamp((Math.abs(v) * o.sensitivity * widen) / FULL_SPEED, 0, 1));
+      // (maxLift: however fast the hand, the wave rises at most this far, 0 to 1 of the full height)
+      var amp = o.maxLift * smoothstep(clamp((Math.abs(v) * o.sensitivity * widen) / FULL_SPEED, 0, 1));
       var dir = Math.sign(v) || 1;
       var r = MIN_REACH + (o.reach - MIN_REACH) * amp;
       var behind = r * (1 + o.skew);
