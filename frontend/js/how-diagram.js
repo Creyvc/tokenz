@@ -13,8 +13,8 @@
 //   2 to 3  the camera swings round low to the side, turning the other way
 //   3 to 4  up over the top, looking straight down, and in close to the top chip, the chips
 //           turning see-through (x-ray) to the circuitry inside them
-//   4 on    the dive: down through the stack a chip at a time to the last, holding still on each
-//           chip for a while (DIVE_HOLD) before easing on to the next, each one passed
+//   4 on    the dive: down through the stack a chip at a time to the last, slowing right down at
+//           each chip (DIVE_HOLD) before easing on to the next, in one connected glide, each one passed
 //           swelling and fading as if flown through, the view turning slowly; the x-ray is only
 //           for the view from the top, so diving the chips are solid again; the chip in front
 //           has its number, name and words on the left
@@ -91,6 +91,8 @@
   function clamp(x) { return Math.min(1, Math.max(0, x)); }
   function ease(x) { return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; }
   function smooth(x) { return x * x * (3 - 2 * x); }
+  // (softer still: it gathers and loses speed gradually, with no jolt as it starts or stops)
+  function smoother(x) { return x * x * x * (x * (6 * x - 15) + 10); }
   function mix(a, b, k) { return a + (b - a) * k; }
   function spaced(text) { return text.split("").join(" "); }  // (letter-spaced capitals)
 
@@ -103,7 +105,8 @@
   var SIDE_POSE = { yaw: -28, pitch: 9, zoom: 0.9, focus: MID, xray: 0, dive: 0, diveW: 0 };   // turning the other way
   var TOP_POSE = { yaw: 135, pitch: 86, zoom: 2.1, focus: { chip: 0 }, xray: 1, dive: 0, diveW: 1 };
   var DIVE_LEN = 6;                            // steps of the wheel to dive from the top chip to the last
-  var DIVE_HOLD = 0.45;                        // of each chip's stretch, the share the camera holds still on it
+  var DIVE_HOLD = 0.18;                        // of each chip's stretch, the share the camera lingers on it
+  var DIVE_DRIFT = 0.25;                       // and how much it keeps drifting on meanwhile (0: a full stop)
   var DIVE_TURN = 120;                         // degrees the view turns on the way down
   var OUT_AT = 4 + DIVE_LEN, END = OUT_AT + 1;
   var LOOP = END + 1;                          // then the stack closes again: back to the start
@@ -441,11 +444,14 @@
     if (w <= 3) return blend(ISO_POSE, SIDE_POSE, smooth(w - 2));
     if (w <= 4) return blend(SIDE_POSE, TOP_POSE, smooth(w - 3));
     if (w <= OUT_AT) {
-      // the dive: down from chip to chip, holding still on each (DIVE_HOLD of its stretch, half
-      // as it arrives and half before it leaves) and easing between them; the view turns only on
-      // the way from one chip to the next, so each stage stands still to be read
+      // the dive: down from chip to chip, lingering at each (DIVE_HOLD of its stretch, half as it
+      // arrives and half before it leaves, drifting slowly on) and easing between them; the view
+      // turns with it
       var d = (w - 4) / DIVE_LEN * 5, n = Math.min(4, Math.floor(d));
-      var chip = n + smooth(clamp((clamp(d - n) - DIVE_HOLD / 2) / (1 - DIVE_HOLD)));
+      // (mostly the eased move, a little of a steady one, so it slows right down at each chip
+      // without quite stopping: one connected glide down the stack)
+      var f = clamp(d - n);
+      var chip = n + mix(smoother(clamp((f - DIVE_HOLD / 2) / (1 - DIVE_HOLD))), f, DIVE_DRIFT);
       // (the x-ray is only for the view from the top: diving, the chips are solid again)
       return blend(TOP_POSE, Object.assign({}, TOP_POSE, { yaw: TOP_POSE.yaw + DIVE_TURN * chip / 5,
         focus: { chip: chip }, dive: chip, xray: 1 - smooth(clamp((w - 4) / 0.35)) }), 1);

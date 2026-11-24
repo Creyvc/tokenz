@@ -10,9 +10,9 @@
 // edges are ragged (stray squares out in the black, holes in the band, thinning out away from the
 // edge) and shift slowly, a square at a time; along them the squares break down smaller, into tiny
 // squares (half a square) and micro ones (a quarter), out in the black and as holes in the band's
-// edge, coming and going one at a time too. Every few seconds the headline and the sentence
-// decrypt, a letter at a time in reading order, every letter in turn: each runs through a few
-// symbols and settles back, so only two or three are changing at once (the letter itself stays in
+// edge, coming and going one at a time too. All the while, letters of the headline and the
+// sentence decrypt freely: one here, one there, at random moments and in no order, each running
+// through its own few symbols at its own pace and settling back, so only a few change at once (the letter itself stays in
 // the page, unseen, so nothing moves and screen readers read it as ever; the buttons are left be). Scrolling down, the
 // squares go out one by one in a random order, and the black goes once the film has filled the
 // window. With reduced motion it all stays still.
@@ -309,12 +309,14 @@
   window.addEventListener("resize", function () { resize(); litKey = ""; if (still) redrawStill(); });
   requestAnimationFrame(draw);
 
-  // The letters decrypting: a pass every PASS_EVERY seconds, through the headline and then the
-  // sentence, the next letter starting every STEP_MS, each showing three symbols in turn before it
-  // settles (styles.css, .dec-letter)
+  // The letters decrypting, freely: every GAP_MIN to GAP_MAX ms a letter picked at random from the
+  // headline and the sentence (one already changing is skipped) runs through TURNS_MIN to
+  // TURNS_MAX symbols, each shown TURN_MIN to TURN_MAX ms, then settles (styles.css, .dec-letter).
+  // So letters come and go one by one, at different times, in no order, never all at once
   var GLYPHS = "@%#*+=-:.0123456789";
   var BLOCKS = [".home-intro:not(.is-copy) .home-headline", ".home-intro:not(.is-copy) .home-lede"];
-  var STEP_MS = 60, TURN_MS = 60, TURNS = 3, PASS_EVERY = 9;
+  var GAP_MIN = 90, GAP_MAX = 380, TURNS_MIN = 2, TURNS_MAX = 6, TURN_MIN = 45, TURN_MAX = 95;
+  function between(lo, hi) { return lo + Math.random() * (hi - lo); }
   // a block's letters in reading order, as [text node, index]; one already going counts (busy), so
   // the order holds while letters are wrapped and unwrapped
   function letters(el) {
@@ -339,11 +341,11 @@
     span.style.setProperty("--dec-color", color);
     letter.parentNode.replaceChild(span, letter);
     span.appendChild(letter);
-    var turns = 0;
+    var turns = 0, many = Math.round(between(TURNS_MIN, TURNS_MAX));
     (function turn() {
-      if (turns++ < TURNS) {
+      if (turns++ < many) {
         span.setAttribute("data-glyph", GLYPHS[Math.floor(Math.random() * GLYPHS.length)]);
-        setTimeout(turn, TURN_MS);
+        setTimeout(turn, between(TURN_MIN, TURN_MAX));
         return;
       }
       var up = span.parentNode;
@@ -352,25 +354,29 @@
       up.normalize();
     })();
   }
-  function pass(b) {
-    var k = 0;
-    (function next() {
-      var el = document.querySelector(BLOCKS[b]);
-      if (!el || window.scrollY > 4) return;                     // (scrolled away: this pass ends)
-      var all = letters(el);
-      if (k >= all.length) { if (b + 1 < BLOCKS.length) pass(b + 1); return; }
-      if (!all[k][2]) decrypt(all[k]);
-      k++;
-      setTimeout(next, STEP_MS);
-    })();
+  // One letter, picked at random from both blocks, that isn't already changing
+  function pickLetter() {
+    var all = [];
+    BLOCKS.forEach(function (selector) {
+      var el = document.querySelector(selector);
+      if (el) all = all.concat(letters(el));
+    });
+    var free = all.filter(function (pick) { return !pick[2]; });
+    return free.length ? free[Math.floor(Math.random() * free.length)] : null;
   }
   if (!still) {
-    // (checked every second until the text is in and the page at its top; then a pass, and a rest)
-    (function nextPass() {
+    // (only while the text is in, the page is at its top and showing; otherwise it checks again in
+    // a moment)
+    (function next() {
       var root = document.documentElement;
       var on = root.classList.contains("home-text-on") || !root.classList.contains("home-text-waiting");
-      if (on && window.scrollY < 4 && !document.hidden) { pass(0); setTimeout(nextPass, PASS_EVERY * 1000); }
-      else setTimeout(nextPass, 1000);
+      if (on && window.scrollY < 4 && !document.hidden) {
+        var pick = pickLetter();
+        if (pick) decrypt(pick);
+        setTimeout(next, between(GAP_MIN, GAP_MAX));
+      } else {
+        setTimeout(next, 600);
+      }
     })();
   }
 })();

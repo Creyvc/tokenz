@@ -12,7 +12,9 @@
 // - While it shows, the page under it can't be scrolled, clicked or reached with the keyboard.
 // Loaded in every page's <head>; the notice is built once the page is read.
 (function () {
-  var MIN_SCREEN = 1024;  // px: narrower screens aren't computers' (phones, small tablets)
+  // px: narrower screens aren't computers' (phones, small tablets). Not higher: a Windows laptop
+  // with its screen scaled up (150% is common) reports a "screen" of only about 900-1000px
+  var MIN_SCREEN = 900;
   var WIDE = 0.85, TALL = 0.8;
   var root = document.documentElement;
   var notice = null, title = null, text = null, plain = null, device = null, state = "";
