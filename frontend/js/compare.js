@@ -82,8 +82,10 @@
   // "How much to keep": the bar slider (wake-slider.js), in the site's near-black and grey
   var slider = window.WakeSlider(find("budget-slider"), {
     min: 1, max: 100, value: 50, step: 1, bars: 32, barWidth: 6, height: 44, restHeight: 10, gap: 4,
-    fillColor: "#16171A", trackColor: "#E5E4DF", sensitivity: 1, reach: 6, skew: 0.6,
-    glide: 0.3, smoothing: 100, ariaLabel: "Token budget", disabled: true,
+    // (a wide, soft wave: it lifts about 16 bars each side of the handle, rises even at an easy
+    // drag, and the handle glides and the wave settles gently when the hand stops)
+    fillColor: "#16171A", trackColor: "#E5E4DF", sensitivity: 2.2, reach: 16, skew: 0.45,
+    glide: 0.42, smoothing: 150, ariaLabel: "Token budget", disabled: true,
     // More bars on a wider screen: the "least" mark is placed by bar, so it moves with them
     onLayout: function () { render(); },
     onChange: function (value) {

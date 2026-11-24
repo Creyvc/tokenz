@@ -495,9 +495,13 @@
     // the paragraph lighting up, then the title leaving before the first method) the wheel goes at
     // half pace, so it plays slowly both ways
     var DRAG_TITLE = 0.5;
+    // And from What We Measure into the FAQ (the white rising over the last measure, the black
+    // page coming up with the questions, until the FAQ locks) at half pace too, so the questions
+    // come in slowly
+    var DRAG_FAQ = 0.5;
     // How far a wheel turn goes here, for scroll-pace.js (which paces the wheel on every page):
-    // 0 while the page holds, DRAG_TITLE through Three Methods' opening, DRAG or DRAG_BARS from the
-    // FAQ's lock, 1 elsewhere
+    // 0 while the page holds, DRAG_TITLE through Three Methods' opening, DRAG_FAQ from the end of
+    // What We Measure to the FAQ's lock, DRAG or DRAG_BARS after it, 1 elsewhere
     function wheelPace() {
       if (holding()) return 0;
       if (!root.classList.contains("home-scroll")) return 1;
@@ -506,6 +510,11 @@
         if (into > -0.6 * window.innerHeight && into < slide.start) return DRAG_TITLE;
       }
       if (!endCover) return 1;
+      if (end && measureItems.length) {
+        var intoEnd = -end.getBoundingClientRect().top;
+        var wipeFrom = (MEASURE_STEP * (measureItems.length - 1) + MEASURE_TAIL) * window.innerHeight;
+        if (intoEnd >= wipeFrom && window.scrollY < endCover.offsetTop + faqExtra()) return DRAG_FAQ;
+      }
       var lock = endCover.offsetTop + faqExtra();
       if (window.scrollY < lock) return 1;
       return window.scrollY - lock >= window.innerHeight ? DRAG_BARS : DRAG;
