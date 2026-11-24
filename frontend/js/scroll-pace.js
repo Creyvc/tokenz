@@ -1,8 +1,8 @@
 // Paces the mouse wheel and trackpad, so a hard flick can't rush past the animations that follow
 // the scroll (Home's text masks, its Three Methods, its measures and FAQ, the pages' entrances).
 // The page glides after the wheel instead of jumping, never faster than MAX_SPEED windows a second,
-// and a big flick queues up at most LEAD windows ahead, so it never runs on long after the hand
-// has stopped.
+// and a big flick queues up at most LEAD windows ahead, so it stops a moment after the hand does:
+// nothing goes on moving by itself.
 // - Only the wheel: touch, the keyboard, the scrollbar and links scroll as the browser does.
 // - A page can slow the wheel down or hold it still: window.TokenzScrollPace() returns how far a
 //   wheel turn goes here (1 as usual, 0.4 is slower, 0 holds), read on every turn and every frame,
@@ -14,7 +14,9 @@
   if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
   var MAX_SPEED = 1.5;  // windows a second, at most
-  var LEAD = 1.5;       // windows the page may still have to go after the wheel stops, at most
+  // windows the page may still have to go after the wheel stops, at most: little, so the page
+  // (and everything that follows it) moves only while the wheel does, settling a moment after
+  var LEAD = 0.3;
   var EASE = 120;       // ms: how quickly it catches most of the way up
 
   var root = document.documentElement;
