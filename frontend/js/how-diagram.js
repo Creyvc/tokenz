@@ -405,7 +405,10 @@
   // the wheel can be at most LEAD steps ahead of it, so it never runs on long after the hand stops.
   // WHEEL is how far (px of wheel) makes one step, EASE how gently the camera catches up: together
   // a slow, unhurried camera that takes its time over each stage
-  var MAX_PACE = 0.8, LEAD = 0.9, WHEEL = 1600, EASE = 280;
+  // Nothing moves by itself: the camera only goes where the wheel has taken it, catching up within
+  // a moment (LEAD is how far it may still have to go once the hand stops), and the dot and the
+  // orbit's dashes move with the wheel too, not with the clock
+  var MAX_PACE = 0.8, LEAD = 0.2, WHEEL = 1600, EASE = 150;
   function nudge(by) {
     wanted = Math.min(at + LEAD, Math.max(at - LEAD, wanted + by));
     moved = true;
@@ -507,7 +510,7 @@
       seg(P(s[0] * 130, s[1] * 130, top), P(s[0] * 130, s[1] * 130, bottom), "rgba(255,255,255,0.28)", 1, [4, 6]);
     });
     seg(P(0, 0, top - LAYERS[0].t), P(0, 0, bottom), "rgba(255,255,255,0.22)", 1);
-    var flow = fixed ? 0.5 : (now / 5200) % 1;
+    var flow = fixed ? 0.5 : (((at * 0.6) % 1) + 1) % 1;
     dot(P(0, 0, mix(top - LAYERS[0].t, bottom, flow)), 4.5, VIOLET);
     g.globalAlpha = 1;
     // the chips, bottom first, so each covers the one under it
@@ -518,7 +521,7 @@
       // the first stretch of the wheel: each chip a whole turn, every other one the other way
       var spin = fixed || w >= END ? 0 : smooth(clamp((w - i * 0.04) / 0.8)) * 2 * Math.PI * (i % 2 ? -1 : 1);
       turn.c = Math.cos(spin); turn.s = Math.abs(Math.sin(spin)) < 1e-9 ? 0 : Math.sin(spin);
-      if (i === METHODS) { g.globalAlpha = alpha[i]; orbit(z - layer.t / 2, false, opened * alpha[i], now); }
+      if (i === METHODS) { g.globalAlpha = alpha[i]; orbit(z - layer.t / 2, false, opened * alpha[i], at * 3000); }
       layerAlpha = alpha[i];
       g.globalAlpha = layerAlpha;
       box(0, 0, z, layer.a, layer.t, xray, null, null, true);
@@ -530,7 +533,7 @@
     }
     layerAlpha = 1;
     cam.k = kBase * scale[METHODS];
-    orbit(tops[METHODS] - LAYERS[METHODS].t / 2, true, opened * alpha[METHODS], now);
+    orbit(tops[METHODS] - LAYERS[METHODS].t / 2, true, opened * alpha[METHODS], at * 3000);
     cam.k = kBase;
     if (c.diveW > 0.01) {
       LAYERS.forEach(function (layer, i) {

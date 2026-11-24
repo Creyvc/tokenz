@@ -683,8 +683,8 @@
       slide.start = 1.4 * window.innerHeight;
       slide.gap = space;
       slide.step = 0.22 * window.innerWidth + space;  // a small panel and the gap after it
-      slide.hold = 0.55 * window.innerHeight;
-      slide.move = 2.3 * window.innerHeight;  // a slow handover: over two windows of scrolling
+      slide.hold = 0.45 * window.innerHeight;
+      slide.move = 1.8 * window.innerHeight;  // the handover: under two windows of scrolling
       slide.tail = 2.2 * window.innerHeight;
       travel = slide.start + Math.max(0, boxes.length - 1) * (slide.hold + slide.move) + slide.hold;
       next.style.height = (window.innerHeight + travel + slide.tail) + "px";
