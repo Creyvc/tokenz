@@ -5164,7 +5164,9 @@ html.pt-switch::view-transition-new(root) {
    and again */
 .hw-hint {
   position: absolute;
-  left: 50%;
+  /* (under the stack, which is centred in the window: half the sidebar's 210px left of the
+     page's own middle) */
+  left: calc(50% - 105px);
   bottom: 3.5vh;
   display: flex;
   flex-direction: column;

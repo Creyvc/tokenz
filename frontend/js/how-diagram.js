@@ -13,7 +13,8 @@
 //   2 to 3  the camera swings round low to the side, turning the other way
 //   3 to 4  up over the top, looking straight down, and in close to the top chip, the chips
 //           turning see-through (x-ray) to the circuitry inside them
-//   4 on    the dive: down through the stack a chip at a time to the last, each one passed
+//   4 on    the dive: down through the stack a chip at a time to the last, holding still on each
+//           chip for a while (DIVE_HOLD) before easing on to the next, each one passed
 //           swelling and fading as if flown through, the view turning slowly; the x-ray is only
 //           for the view from the top, so diving the chips are solid again; the chip in front
 //           has its number, name and words on the left
@@ -101,7 +102,8 @@
   var ISO_POSE = { yaw: 45, pitch: ISO / DEG, zoom: 1, focus: MID, xray: 0, dive: 0, diveW: 0 };
   var SIDE_POSE = { yaw: -28, pitch: 9, zoom: 0.9, focus: MID, xray: 0, dive: 0, diveW: 0 };   // turning the other way
   var TOP_POSE = { yaw: 135, pitch: 86, zoom: 2.1, focus: { chip: 0 }, xray: 1, dive: 0, diveW: 1 };
-  var DIVE_LEN = 3.5;                          // steps of the wheel to dive from the top chip to the last
+  var DIVE_LEN = 6;                            // steps of the wheel to dive from the top chip to the last
+  var DIVE_HOLD = 0.45;                        // of each chip's stretch, the share the camera holds still on it
   var DIVE_TURN = 120;                         // degrees the view turns on the way down
   var OUT_AT = 4 + DIVE_LEN, END = OUT_AT + 1;
   var LOOP = END + 1;                          // then the stack closes again: back to the start
@@ -114,8 +116,14 @@
   stage.appendChild(canvas);
   var g = canvas.getContext("2d");
   var dpr = 1, CW = 0, CH = 0;
+  // The drawing is centred in the window, not just in the space beside the sidebar: OX is how far
+  // the canvas's own middle is from the window's (none on a phone, where it's drawn in its place).
+  // In the dive it eases back to the canvas's middle (ox), leaving room for the stage's words on
+  // the left
+  var OX = 0, ox = 0;
   function fit() {
     var r = stage.getBoundingClientRect();
+    OX = phone ? 0 : Math.round(window.innerWidth / 2 - (r.left + r.width / 2));
     var w = Math.round(r.width), h = Math.round(phone ? r.width * H0 / W0 : r.height);
     if (w === CW && h === CH) return;
     CW = w; CH = h;
@@ -144,7 +152,7 @@
   function P(x, y, z) {
     if (turn.s) { var tx = x * turn.c - y * turn.s; y = x * turn.s + y * turn.c; x = tx; }
     var r = raw(x, y, z);
-    return [CW / 2 + cam.k * (r[0] - cam.fx), CH / 2 + cam.k * (r[1] - cam.fy), r[2]];
+    return [CW / 2 + ox + cam.k * (r[0] - cam.fx), CH / 2 + cam.k * (r[1] - cam.fy), r[2]];
   }
   // how much a side faces the camera (more than 0: it shows)
   function facing(nx, ny) {
@@ -334,7 +342,7 @@
     if (alpha < 0.01 || phone) return;
     var anchor = P(layer.side * 0.82 * layer.a, -layer.side * 0.82 * layer.a, z);
     var base = cam.base, side = layer.side;
-    var endX = CW / 2 + side * 290 * base;
+    var endX = CW / 2 + ox + side * 290 * base;
     var labelY = anchor[1] - (30 + (layer.lift || 0)) * base;
     g.globalAlpha = alpha;
     g.beginPath();
@@ -433,11 +441,13 @@
     if (w <= 3) return blend(ISO_POSE, SIDE_POSE, smooth(w - 2));
     if (w <= 4) return blend(SIDE_POSE, TOP_POSE, smooth(w - 3));
     if (w <= OUT_AT) {
-      // the dive: down from chip to chip, easing to a stop on each; the view turning slowly
+      // the dive: down from chip to chip, holding still on each (DIVE_HOLD of its stretch, half
+      // as it arrives and half before it leaves) and easing between them; the view turns only on
+      // the way from one chip to the next, so each stage stands still to be read
       var d = (w - 4) / DIVE_LEN * 5, n = Math.min(4, Math.floor(d));
-      var chip = n + smooth(clamp(d - n));
+      var chip = n + smooth(clamp((clamp(d - n) - DIVE_HOLD / 2) / (1 - DIVE_HOLD)));
       // (the x-ray is only for the view from the top: diving, the chips are solid again)
-      return blend(TOP_POSE, Object.assign({}, TOP_POSE, { yaw: TOP_POSE.yaw + DIVE_TURN * (w - 4) / DIVE_LEN,
+      return blend(TOP_POSE, Object.assign({}, TOP_POSE, { yaw: TOP_POSE.yaw + DIVE_TURN * chip / 5,
         focus: { chip: chip }, dive: chip, xray: 1 - smooth(clamp((w - 4) / 0.35)) }), 1);
     }
     var bottom = Object.assign({}, TOP_POSE, { yaw: TOP_POSE.yaw + DIVE_TURN, focus: { chip: 5 }, dive: 5, xray: 0 });
@@ -462,6 +472,7 @@
       return mix(middle(lo), middle(hi), f.chip - lo);
     };
     var c = pose(Math.min(w, END));
+    ox = OX * (1 - c.diveW);
     setCamera(c, mix(focusOf(c.focusA), focusOf(c.focusB), c.k));
     var xray = c.xray, kBase = cam.k;
     var opened = clamp((opening - 0.3) / 0.3), raised = clamp((opening - 0.42) / 0.2);
