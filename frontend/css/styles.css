@@ -5067,29 +5067,30 @@ html.home-wipe .nav.nav-copy {
   color: rgba(255, 255, 255, 0.7);
 }
 
-/* The badge turns over: white, with the mark and words in near-black */
+/* On black, the badge turns the team's violet, the mark and words in white (its diamond a light
+   lilac, so it still shows) */
 .nav-copy .tz-lockup {
-  background: #ffffff;
+  background: #5B4FD6;
 }
 
 .nav-copy .tz-lockup svg path {
-  fill: #16171A;
+  fill: #ffffff;
 }
 
 .nav-copy .tz-lockup svg path:last-child {
-  fill: #5B4FD6;
+  fill: #D9D4FF;
 }
 
 .nav-copy .tz-word {
-  color: #16171A;
+  color: #ffffff;
 }
 
 .nav-copy .tz-desc {
-  color: #5c5c5c;
+  color: rgba(255, 255, 255, 0.78);
 }
 
 .nav-copy .tz-bar {
-  background: #c8c8c8;
+  background: rgba(255, 255, 255, 0.45);
 }
 
 /* The page switch (page-transition.js): pixel tiles sweep over the page and clear off the next
@@ -5271,27 +5272,27 @@ body:has(.content.how) .nav-dot {
 }
 
 body:has(.content.how) .tz-lockup {
-  background: #ffffff;
+  background: #5B4FD6;
 }
 
 body:has(.content.how) .tz-lockup svg path {
-  fill: #16171A;
+  fill: #ffffff;
 }
 
 body:has(.content.how) .tz-lockup svg path:last-child {
-  fill: #5B4FD6;
+  fill: #D9D4FF;
 }
 
 body:has(.content.how) .tz-word {
-  color: #16171A;
+  color: #ffffff;
 }
 
 body:has(.content.how) .tz-desc {
-  color: #5c5c5c;
+  color: rgba(255, 255, 255, 0.78);
 }
 
 body:has(.content.how) .tz-bar {
-  background: #c8c8c8;
+  background: rgba(255, 255, 255, 0.45);
 }
 
 /* (the page's title, for screen readers: the drawing is the page) */
