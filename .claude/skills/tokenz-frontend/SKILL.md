@@ -96,10 +96,14 @@ Every page's `<head>` loads, in this order:
 `index.html` also loads `intro.js`, straight after `reload.js`, then `grainient.js` (deferred)
 and `home.js` (not deferred, so it can hide Home's text before the first paint) after `modal.js`.
 
-- `desktop-only.js` (every page, in `<head>`): the site is desktop only. On a phone or tablet, or in a
-  window clearly smaller than its screen (under 85% of its width or 80% of its height), the page is
-  covered by a notice (`.desk-notice`) until the window is full size again; the page under it
-  carries on unchanged. Screenshots at a size other than the screen's need the screen faked too.
+- `desktop-only.js` (every page, in `<head>`): the site is desktop only. On a phone or tablet (a touch
+  screen without a mouse, or a screen under 900px) the page is covered by the "Desktop only" notice
+  (`.desk-notice`). A desktop window of any size shows the site in its desktop layout: the phone
+  layouts are `@media (hover: none) and (pointer: coarse)` (touch screens only), not window widths,
+  so never add a `max-width` layout switch. Screenshots of a small window need the screen faked
+  bigger too (the test browser makes the screen the window's size).
+- `scroll-pace.js`: paces the wheel. Every mouse-wheel click scrolls the same 12% of the window on
+  any mouse or system; trackpad steps pass as they are. Pages slow it with `TokenzScrollPace()`.
 - `reload.js`: refreshing any page (Cmd+R) starts over like a fresh visit: back to Home, intro
   and cookie banner again.
 - `intro.js`: Home only, once per visit. The academic-project notice, then the TOKENZ animation.

@@ -18,6 +18,13 @@
   // (and everything that follows it) moves only while the wheel does, settling a moment after
   var LEAD = 0.3;
   var EASE = 120;       // ms: how quickly it catches most of the way up
+  // A mouse wheel's click goes the same distance on every mouse and every system: NOTCH of the
+  // window, however far the mouse's own settings would send it (Windows sends about 100px a click,
+  // more when it's spun fast or its sensitivity is up; Firefox counts lines; each mouse differs).
+  // Clicks may queue a little further ahead (NOTCH_LEAD), since each one is a bigger step. A
+  // trackpad sends many small, uneven steps, and those pass as they are
+  var NOTCH = 0.12, NOTCH_LEAD = 0.5;
+  var lastSmall = 0;  // when the last small (trackpad-like) step came
 
   var root = document.documentElement;
   var target = null, pos = 0, frame = 0, last = 0;
@@ -48,13 +55,22 @@
     frame = requestAnimationFrame(tick);
   }
 
-  function by(distance) {
+  // Whether this wheel event is a mouse wheel's click, not a trackpad's small step
+  function isClick(event) {
+    if (event.deltaMode !== 0) return true;                 // lines or pages: a wheel
+    var d = Math.abs(event.deltaY);
+    if (d < 40 || d % 1 !== 0) { lastSmall = performance.now(); return false; }
+    // (a big step in the middle of a trackpad swipe is still the trackpad)
+    return performance.now() - lastSmall > 300;
+  }
+
+  function by(distance, lead) {
     if (target == null) {
       pos = window.scrollY;
       target = pos;
       last = 0;
     }
-    var reach = LEAD * window.innerHeight;
+    var reach = (lead || LEAD) * window.innerHeight;
     target = clamp(target + distance, Math.max(0, pos - reach), Math.min(limit(), pos + reach));
     if (!frame) frame = requestAnimationFrame(tick);
   }
@@ -84,8 +100,8 @@
     var pace = typeof window.TokenzScrollPace === "function" ? window.TokenzScrollPace() : 1;
     event.preventDefault();
     if (!pace) { stop(); return; }
-    var unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? window.innerHeight : 1;
-    by(event.deltaY * unit * pace);
+    if (isClick(event)) by(Math.sign(event.deltaY) * NOTCH * window.innerHeight * pace, NOTCH_LEAD);
+    else by(event.deltaY * pace);
   }, { passive: false });
 
   // Anything else that scrolls the page (the scrollbar, the keyboard, a link, a script) wins:

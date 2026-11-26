@@ -28,7 +28,8 @@
   var stage = document.querySelector(".hw-diagram");
   if (!stage) return;
   var still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  var phone = window.matchMedia("(max-width: 800px)").matches;
+  // (a touch screen without a mouse; a narrow desktop window keeps the full drawing)
+  var phone = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
   var VIOLET = "#8B7FF2", LINE = "rgba(255,255,255,0.82)", DIM = "rgba(255,255,255,0.34)";
   var DEG = Math.PI / 180, ISO = Math.atan(Math.SQRT1_2), SCALE = 1 / Math.cos(ISO);
   var W0 = 1200, H0 = 1370;   // the drawing's own size at the first angle, in its units
@@ -414,9 +415,17 @@
     moved = true;
   }
   if (!fixed) {
+    // A mouse wheel's click moves the camera the same CLICK of a step on every mouse and system
+    // (as scroll-pace.js does for the pages); a trackpad's small steps pass as they are
+    var CLICK = 0.07, lastSmall = 0;
     window.addEventListener("wheel", function (event) {
       event.preventDefault();
-      nudge((event.deltaMode === 1 ? event.deltaY * 30 : event.deltaY) / WHEEL);
+      var d = Math.abs(event.deltaY);
+      if (!d) return;
+      var small = event.deltaMode === 0 && (d < 40 || d % 1 !== 0);
+      if (small) lastSmall = performance.now();
+      if (!small && performance.now() - lastSmall > 300) nudge(Math.sign(event.deltaY) * CLICK);
+      else nudge((event.deltaMode === 1 ? event.deltaY * 30 : event.deltaY) / WHEEL);
     }, { passive: false });
     var touchY = null;
     window.addEventListener("touchstart", function (event) { touchY = event.touches[0].clientY; }, { passive: true });

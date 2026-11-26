@@ -1,21 +1,17 @@
-// Tokenz is made for a full desktop window. A page can't stop a window being resized or opened on
-// a phone, so instead, when either happens, the site is covered by a notice until it's right
-// again (.desk-notice in styles.css). Nothing underneath changes: make the window full size again
-// and the page carries on where it was.
+// Tokenz is made for desktop computers. A page can't stop being opened on a phone, so there the site
+// is covered by a notice (.desk-notice in styles.css). A desktop window of any size shows the site:
+// it keeps its desktop layout, whose sizes follow the window (the phone layouts are for touch
+// screens only, styles.css), so a smaller window just shows a smaller site, never a notice.
 // - Not a computer (a phone or tablet: a touch screen with no mouse, or a screen under MIN_SCREEN
 //   wide): "Desktop only", in the academic notice's terminal-style window on its white cover
 //   (intro-warning-* in styles.css), blinking in word by word the same way, without its tick box
 //   and Continue (there's nothing to continue to).
-// - A computer window clearly smaller than its screen (under WIDE of the screen's width or TALL of
-//   its height): "Make this window full size." Measured with the window's own size against the
-//   screen's (outerWidth, screen.availWidth), so zooming the page in or out doesn't count.
 // - While it shows, the page under it can't be scrolled, clicked or reached with the keyboard.
 // Loaded in every page's <head>; the notice is built once the page is read.
 (function () {
   // px: narrower screens aren't computers' (phones, small tablets). Not higher: a Windows laptop
   // with its screen scaled up (150% is common) reports a "screen" of only about 900-1000px
   var MIN_SCREEN = 900;
-  var WIDE = 0.85, TALL = 0.8;
   var root = document.documentElement;
   var notice = null, title = null, text = null, plain = null, device = null, state = "";
   var MARK = '<svg viewBox="0 0 64 64" width="22" height="22" aria-hidden="true"><path d="M6 14 H15 L25 32 L15 50 H6 L16 32 Z"/>' +
@@ -27,11 +23,7 @@
 
   function check() {
     var screenWide = Math.max(screen.width, screen.availWidth || 0);
-    if (touchOnly() || screenWide < MIN_SCREEN) return "device";
-    var outerW = window.outerWidth || window.innerWidth, outerH = window.outerHeight || window.innerHeight;
-    var availW = screen.availWidth || screen.width, availH = screen.availHeight || screen.height;
-    if (outerW < WIDE * availW || outerH < TALL * availH) return "window";
-    return "";
+    return touchOnly() || screenWide < MIN_SCREEN ? "device" : "";
   }
 
   // The device notice: the academic notice's window, its words blinking on one after another
@@ -128,10 +120,6 @@
         blinkIn(device);
       }
       notice.setAttribute("aria-labelledby", "desk-device-title");
-    } else if (state === "window") {
-      notice.setAttribute("aria-labelledby", "desk-notice-title");
-      title.textContent = "Make this window full size.";
-      text.textContent = "Tokenz is made for a full desktop window. Maximise the window or go full screen, and it carries on where you were.";
     }
     root.classList.toggle("desk-blocked", !!state);
     // (everything else on the page is out of reach while the notice shows)

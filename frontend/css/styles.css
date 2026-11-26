@@ -23,6 +23,10 @@ body {
    Windows' sit beside it and take about 17px, which made the page narrower there and everything
    sized to the window (100vw) a little too wide or off-centre. So the page's own scrollbar is
    hidden everywhere: the wheel, a trackpad, the keys and swipes still scroll it, as ever */
+/* The phone layouts (the @media (hover: none) and (pointer: coarse) blocks) are for touch screens
+   without a mouse only, not narrow windows: a desktop window of any size keeps the desktop layout,
+   whose sizes follow the window. Phones and tablets get the desktop-only notice anyway
+   (desktop-only.js) */
 html {
   scrollbar-width: none;
   -moz-osx-font-smoothing: grayscale;
@@ -227,7 +231,7 @@ h1, h2, h3 {
 }
 
 /* Too narrow for a sidebar: switch back to a header pinned to the top */
-@media (max-width: 800px) {
+@media (hover: none) and (pointer: coarse) {
   .nav {
     position: sticky;
     bottom: auto;
@@ -254,13 +258,13 @@ h1, h2, h3 {
   }
 }
 
-@media (max-width: 800px) and (prefers-reduced-motion: no-preference) {
+@media (hover: none) and (pointer: coarse) and (prefers-reduced-motion: no-preference) {
   ::view-transition-new(nav-dot) {
     animation-name: nav-dot-swing-y;
   }
 }
 
-@media (max-width: 600px) {
+@media (hover: none) and (pointer: coarse) {
   /* Not enough room side by side: logo on top, links centered below */
   .nav {
     flex-direction: column;
@@ -290,7 +294,7 @@ h1, h2, h3 {
 
 /* The mark has empty space on its left inside the image; pull it back so its
    visible edge lines up with the link text in the sidebar */
-@media (min-width: 801px) {
+@media (hover: hover), (pointer: fine) {
   .logo {
     margin-left: -5px;
   }
@@ -373,7 +377,7 @@ h1, h2, h3 {
 }
 
 /* No bottom in the top header layout, so leave it out there */
-@media (max-width: 800px) {
+@media (hover: none) and (pointer: coarse) {
   .tz-lockup {
     display: none;
   }
@@ -487,7 +491,7 @@ html.modal-open {
   color: #262626;
 }
 
-@media (max-width: 600px) {
+@media (hover: none) and (pointer: coarse) {
   .modal-panel {
     padding: 48px 24px 32px;
   }
@@ -581,7 +585,7 @@ html.modal-open {
   background: #E6E6E3;
 }
 
-@media (max-width: 600px) {
+@media (hover: none) and (pointer: coarse) {
   .consent {
     left: 16px;
     right: 16px;
@@ -922,7 +926,7 @@ html.intro-play .intro.is-playing {
   animation: intro-blink-out 0.12s step-end forwards;
 }
 
-@media (max-width: 700px) {
+@media (hover: none) and (pointer: coarse) {
   .intro-warning {
     padding: 16px;
   }
@@ -997,7 +1001,7 @@ html.intro-play .intro.is-playing {
   color: #16171A;
 }
 
-@media (max-width: 600px) {
+@media (hover: none) and (pointer: coarse) {
   .content.about {
     padding: 48px 16px 80px;
   }
@@ -1025,7 +1029,7 @@ html.intro-play .intro.is-playing {
 
 /* On wider screens the column (Compare, Results and About) sits in the middle of the space right
    of the sidebar, then 60px to the left of it */
-@media (min-width: 801px) {
+@media (hover: hover), (pointer: fine) {
   .content.workbench,
   .content.results-page,
   .content.about {
@@ -1556,7 +1560,8 @@ html.intro-play .intro.is-playing {
 /* Strength: four cards, the chosen one outlined in near-black */
 .wb-steps {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  /* (minmax: in a narrow window the four tiles share the room instead of pushing past it) */
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -2095,11 +2100,13 @@ textarea.wb-input {
   background: #F1F1EF;
   color: #16171A;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
+/* Violet on hover, its cross white */
 .wb-history-close:hover {
-  background: #E6E6E3;
+  background: #5B4FD6;
+  color: #ffffff;
 }
 
 .wb-history-close:focus-visible {
@@ -2211,7 +2218,7 @@ textarea.wb-input {
 }
 
 /* On a phone the saving goes under the prompt */
-@media (max-width: 600px) {
+@media (hover: none) and (pointer: coarse) {
   .wb-history-item {
     grid-template-columns: 1fr;
     grid-template-areas: "top" "text" "saved";
@@ -2850,14 +2857,14 @@ textarea.wb-input {
   }
 }
 
-@media (max-width: 900px) {
+@media (hover: none) and (pointer: coarse) {
   .wb-text {
     height: auto;
   }
 }
 
 /* On a phone the bubbles can take nearly the whole width */
-@media (max-width: 600px) {
+@media (hover: none) and (pointer: coarse) {
   .wb-bubble {
     max-width: 92%;
   }
@@ -2868,13 +2875,13 @@ textarea.wb-input {
 }
 
 /* With the top bar pinned on narrow screens, stop the result's heading just below it */
-@media (max-width: 800px) {
+@media (hover: none) and (pointer: coarse) {
   .wb-result {
     scroll-margin-top: 150px;
   }
 }
 
-@media (max-width: 600px) {
+@media (hover: none) and (pointer: coarse) {
   .content.workbench,
   .content.results-page {
     padding: 48px 16px 80px;
@@ -2962,7 +2969,7 @@ textarea.wb-input {
   gap: 12px 24px;
 }
 
-@media (max-width: 600px) {
+@media (hover: none) and (pointer: coarse) {
   .wb-shortcut {
     display: none;
   }
@@ -3130,7 +3137,7 @@ textarea.wb-input {
 }
 
 /* On a phone the bars get the whole width, with the number box under them */
-@media (max-width: 600px) {
+@media (hover: none) and (pointer: coarse) {
   .wb-budget-row {
     flex-wrap: wrap;
   }
@@ -3406,7 +3413,7 @@ html.home-box-waiting .home-panel {
 }
 
 /* With the links in a top bar there's no room for halves: the panel takes the full width under it */
-@media (max-width: 800px) {
+@media (hover: none) and (pointer: coarse) {
   .home-panel {
     position: relative;
     inset: auto;
@@ -3514,7 +3521,7 @@ html.home-box-waiting .home-panel {
   margin-top: 0;
 }
 
-@media (max-width: 600px) {
+@media (hover: none) and (pointer: coarse) {
   .wb-candidates {
     grid-template-columns: 1fr;
   }
@@ -3972,13 +3979,13 @@ html.home-scroll .home-method > .grainient-container {
 
 /* Without the scroll effect on a wide screen, Home's text and box stay put for one screen and
    this page scrolls up over them */
-@media (min-width: 801px) {
+@media (hover: hover), (pointer: fine) {
   html:not(.home-scroll) .content.home {
     height: 100vh;
   }
 }
 
-@media (max-width: 800px) {
+@media (hover: none) and (pointer: coarse) {
   .home-next {
     min-height: 0;
     padding: 48px 16px 64px;
@@ -4430,7 +4437,7 @@ html.home-scroll .faq-line {
   transform: scaleY(0);
 }
 
-@media (max-width: 800px) {
+@media (hover: none) and (pointer: coarse) {
   .faq {
     grid-template-columns: 1fr;
     padding: 48px 16px 64px;
@@ -4521,25 +4528,6 @@ html.home-scroll .measure-title::before {
   background: #8B7FF2;
 }
 
-/* It spins round once each time the next card comes up (home.js), backwards going back */
-html.home-scroll .measure-title.is-spinning::before {
-  animation: measure-spin 0.9s cubic-bezier(0.65, 0, 0.35, 1);
-}
-
-html.home-scroll .measure-title.is-spinning.spin-back::before {
-  animation-direction: reverse;
-}
-
-@keyframes measure-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  html.home-scroll .measure-title.is-spinning::before {
-    animation: none;
-  }
-}
 
 html.home-scroll .measure-list {
   position: absolute;
@@ -4772,16 +4760,16 @@ html.home-scroll .faq-bar {
   background: #16171A;
 }
 
-/* COMPARE comes in light grey and fills to near-black a letter at a time, left to right, as the
-   bars fill (--compare-fill, 0 to 1, home.js): all black just as the last bar reaches it */
+/* COMPARE comes in light grey and fills to the team's violet a letter at a time, left to right, as
+   the bars fill (--compare-fill, 0 to 1, home.js): all violet just as the last bar reaches it */
 html.home-scroll .faq-word.is-compare span {
   --ink: clamp(0, var(--compare-fill, 0) * 7 - var(--i), 1);
-  color: color-mix(in srgb, #16171A calc(var(--ink) * 100%), #C9C8C4);
+  color: color-mix(in srgb, #5B4FD6 calc(var(--ink) * 100%), #C9C8C4);
   transition: transform 0.6s cubic-bezier(0.33, 1, 0.68, 1), color 0.15s linear;
   transition-delay: calc(var(--i) * 50ms), 0s;
 }
 
-@media (max-width: 800px) {
+@media (hover: none) and (pointer: coarse) {
   .measure {
     grid-template-columns: 1fr;
     padding: 48px 16px 64px;
@@ -5155,7 +5143,7 @@ html.pt-switch::view-transition-new(root) {
 
 /* On a wide screen the page doesn't scroll: the drawing fills the window, fitted to its height,
    and the wheel opens the stack in place (how-diagram.js) */
-@media (min-width: 801px) {
+@media (hover: hover), (pointer: fine) {
   html:has(.content.how),
   body:has(.content.how) {
     height: 100%;
@@ -5239,7 +5227,7 @@ html.pt-switch::view-transition-new(root) {
   100% { transform: scaleY(0); transform-origin: bottom; }
 }
 
-@media (max-width: 800px), (prefers-reduced-motion: reduce) {
+@media (hover: none) and (pointer: coarse), (prefers-reduced-motion: reduce) {
   .hw-hint {
     display: none;
   }
@@ -5359,7 +5347,7 @@ body:has(.content.how) .tz-bar {
   color: #a3a3a3;
 }
 
-@media (max-width: 800px) {
+@media (hover: none) and (pointer: coarse) {
   .hw-explode {
     padding: 12vh 16px 4vh;
   }
@@ -5406,7 +5394,8 @@ body:has(.content.how) .tz-bar {
 .orbs-team {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  /* (minmax: in a narrow window the three share the room; a long name may wrap) */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 24px;
   width: 100%;
   margin: 0 0 6vh;
@@ -5441,7 +5430,7 @@ body:has(.content.how) .tz-bar {
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: #E9E8E5;   /* shows as #16171A */
-  white-space: nowrap;
+  text-align: center;
   cursor: default;
 }
 
@@ -5456,7 +5445,7 @@ body:has(.content.how) .tz-bar {
 .orbs-stage.is-flat li:nth-child(2) .orb-spot { background: radial-gradient(circle at 35% 35%, #ffd8a0, #ff9a3c 35%, #ff4e1f 60%, #5a2aa0); }
 .orbs-stage.is-flat li:nth-child(3) .orb-spot { background: radial-gradient(circle at 65% 40%, #f3eeff, #b9a6ff 35%, #6f86ff 65%, #3d3dd8); }
 
-@media (max-width: 700px) {
+@media (hover: none) and (pointer: coarse) {
   .orbs-team {
     grid-template-columns: 1fr;
     gap: 48px;
@@ -5541,7 +5530,7 @@ body:has(.content.how) .tz-bar {
 /* Home: no sidebar over the top of the page; it comes in once the Three Methods arrive and stays
    from there on down (home-nav-hidden, home.js), and fades out going back up. Wider screens only:
    on a phone it's the top bar */
-@media (min-width: 801px) {
+@media (hover: hover), (pointer: fine) {
   html.home-nav-hidden .nav {
     opacity: 0;
     visibility: hidden;
@@ -5558,7 +5547,7 @@ body:has(.content.how) .tz-bar {
    badge pushes in from the screen's left edge. The mask is a clip that moves against the rise,
    so each one is cut exactly at its own place while its words come up; it reaches a little
    out to the sides so the dot beside the active link isn't cut */
-@media (min-width: 801px) {
+@media (hover: hover), (pointer: fine) {
   html.home-nav-in .nav,
   html.home-nav-in.home-scroll .nav:not(.nav-copy) {
     transition: none;
@@ -5590,7 +5579,7 @@ body:has(.content.how) .tz-bar {
 
 /* Going back up the page, the same played backwards (home-nav-out, home.js): the links drop
    behind their masks from the bottom up, and the badge slides back out past the left edge */
-@media (min-width: 801px) {
+@media (hover: hover), (pointer: fine) {
   html.home-nav-out .nav :is(.logo, .nav-links a) {
     animation: nav-drop 0.75s cubic-bezier(0.33, 1, 0.68, 1) calc(var(--o, 0) * 75ms) both;
   }
@@ -5804,7 +5793,7 @@ html.home-scroll .faq {
   background-position: 0 0;
 }
 
-@media (max-width: 800px) {
+@media (hover: none) and (pointer: coarse) {
   .qa-head {
     position: static;
     padding-right: 0;
@@ -6530,4 +6519,19 @@ html.desk-blocked .desk-notice.is-device {
   .desk-device-status::after {
     animation: none;
   }
+}
+
+/* The FAQ title's second line in the team's violet, like SAME in Home's headline */
+.qa-title .qa-accent {
+  color: #5B4FD6;
+}
+
+/* The device notice's heading in plain white (the academic notice's window is a soft off-white) */
+.desk-device .intro-warning-card h1 {
+  color: #ffffff;
+}
+
+/* What We Measure's violet square turns with the scroll (--measure-turn, home.js), not on a timer */
+html.home-scroll .measure-title::before {
+  transform: rotate(var(--measure-turn, 0deg));
 }

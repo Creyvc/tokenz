@@ -309,7 +309,8 @@
     var lede = document.querySelector(".home-lede");
     var headline = document.querySelector(".home-headline");
     if (!lede || !headline) return;
-    var wide = window.matchMedia("(min-width: 801px)");
+    // (the desktop layout: any window with a mouse or trackpad, however narrow)
+    var wide = window.matchMedia("(hover: hover), (pointer: fine)");
     var intro = document.querySelector(".home-intro");
     var panel = document.querySelector(".home-panel");
     var nav = document.querySelector(".nav");
@@ -345,9 +346,6 @@
     var measureAt = null, measureAtTime = 0;  // which measure is in the middle (0 to 3), eased
     var activeMeasure = -1, playedMeasure = -1;
     var measureTitle = end ? end.querySelector(".measure-title") : null;
-    if (measureTitle) measureTitle.addEventListener("animationend", function () {
-      measureTitle.classList.remove("is-spinning");
-    });
     // Each drawing's lines (not its frame, nor the typing dots) draw themselves in when its
     // measure takes over and rub themselves out when it hands over (styles.css, .draw-part): each
     // gets its own length to draw along (--len, measured: Chrome's pathLength goes wrong on the
@@ -1153,6 +1151,9 @@
       // comes up from below the window over the one before and stops on it, which darkens a little
       // under it (--slide, --under)
       end.style.setProperty("--card", card.toFixed(1) + "px");
+      // The title's violet square turns with the scroll, a whole turn from one card to the next:
+      // forwards going down, backwards going up, and still when the page is (styles.css)
+      if (measureTitle) measureTitle.style.setProperty("--measure-turn", (measureAt * 360).toFixed(1) + "deg");
       // (the lines' width in the drawing's own units, so they show 1.5px wide at this size)
       end.style.setProperty("--mark-sw", (1.5 * 120 / card).toFixed(3));
       var rise = 0.55 * H;
@@ -1166,14 +1167,6 @@
       if (active !== activeMeasure) {
         measureItems.forEach(function (item, i) { item.classList.toggle("is-active", i === active); });
         if (measureNow) measureNow.textContent = active + 1;
-        // The title's violet square spins round once for each new card: forwards as they come up,
-        // backwards when scrolling back (measure-spin, styles.css)
-        if (activeMeasure !== -1 && measureTitle) {
-          measureTitle.classList.remove("is-spinning");
-          void measureTitle.offsetWidth;  // (so the spin starts over if one is still going)
-          measureTitle.classList.toggle("spin-back", active < activeMeasure);
-          measureTitle.classList.add("is-spinning");
-        }
         activeMeasure = active;
       }
       // Its text plays in once its name is wholly in the window (the first one arrives at the
